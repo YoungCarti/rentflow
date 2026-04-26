@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx shadcn@latest init --yes)",
+      "Bash(npm install *)",
+      "Bash(npx shadcn@latest add button badge card table dialog dropdown-menu avatar separator input --yes)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)"
+    ]
+  }
+}
