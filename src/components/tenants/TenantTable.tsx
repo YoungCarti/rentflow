@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Phone, Mail, CalendarDays, Home } from "lucide-react";
+import { Search, Phone, Mail, CalendarDays, Home, MoreVertical, Edit, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -18,6 +18,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import StatusBadge from "@/components/ui/StatusBadge";
 import type { Tenant } from "@/types";
@@ -157,7 +163,15 @@ function TenantModal({
 
 // ─── Table ────────────────────────────────────────────────────────────────────
 
-export default function TenantTable({ tenants }: { tenants: Tenant[] }) {
+export default function TenantTable({ 
+  tenants, 
+  onEdit, 
+  onDelete 
+}: { 
+  tenants: Tenant[],
+  onEdit: (t: Tenant) => void,
+  onDelete: (t: Tenant) => void 
+}) {
   const [query, setQuery]             = useState("");
   const [selected, setSelected]       = useState<Tenant | null>(null);
   const [modalOpen, setModalOpen]     = useState(false);
@@ -213,7 +227,7 @@ export default function TenantTable({ tenants }: { tenants: Tenant[] }) {
             filtered.map((t) => (
               <TableRow
                 key={t.id}
-                className="cursor-pointer"
+                className="cursor-pointer group relative"
                 onClick={() => openModal(t)}
               >
                 <TableCell className="font-medium">{t.name}</TableCell>
@@ -238,17 +252,31 @@ export default function TenantTable({ tenants }: { tenants: Tenant[] }) {
                 <TableCell>
                   <StatusBadge status={t.rentStatus} />
                 </TableCell>
-                <TableCell className="text-right">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openModal(t);
-                    }}
-                  >
-                    Details
-                  </Button>
+                <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => openModal(t)}
+                    >
+                      Details
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted">
+                          <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => onEdit(t)}>
+                          <Edit className="w-4 h-4 mr-2" /> Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onDelete(t)}>
+                          <Trash2 className="w-4 h-4 mr-2" /> Remove
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </TableCell>
               </TableRow>
             ))
