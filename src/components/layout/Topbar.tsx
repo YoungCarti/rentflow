@@ -19,7 +19,7 @@ export default function Topbar() {
   const router = useRouter();
 
   return (
-    <header className="sticky top-0 z-10 flex items-center justify-between h-16 px-6 bg-white border-b border-border">
+    <header className="sticky top-0 z-10 flex items-center justify-between h-16 px-6 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
       {/* Search */}
       <div className="relative w-72 max-w-full">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />

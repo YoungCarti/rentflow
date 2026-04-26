@@ -98,7 +98,7 @@ export default function PropertiesPage() {
 
       {/* Property cards */}
       {enriched.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-xl border border-dashed border-border">
+        <div className="text-center py-16 bg-card rounded-xl border border-dashed border-border">
           <h3 className="text-lg font-medium text-foreground">No properties found</h3>
           <p className="text-sm text-muted-foreground mt-1 mb-4">Get started by creating your first property.</p>
           <Button onClick={() => router.push("/properties/new")}>
@@ -113,7 +113,7 @@ export default function PropertiesPage() {
               <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 bg-white/80 hover:bg-white shadow-sm backdrop-blur-sm">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 bg-card/80 hover:bg-card shadow-sm backdrop-blur-sm">
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>

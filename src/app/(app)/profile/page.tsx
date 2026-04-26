@@ -54,8 +54,8 @@ export default function ProfilePage() {
               {initials}
             </div>
             <button
-              className="absolute -bottom-1 -right-1 flex items-center justify-center w-6 h-6 rounded-full bg-white border border-border shadow-sm hover:bg-muted transition-colors"
-              title="Change photo"
+              className="absolute -bottom-1 -right-1 flex items-center justify-center w-6 h-6 rounded-full bg-background border border-border shadow-sm hover:bg-muted transition-colors"
+              title="Change Avatar"
             >
               <Camera className="w-3 h-3 text-muted-foreground" />
             </button>

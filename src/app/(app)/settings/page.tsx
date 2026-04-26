@@ -37,7 +37,7 @@ function ToggleRow({
         }`}
       >
         <span
-          className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${
+          className={`inline-block h-4 w-4 rounded-full bg-background shadow transition-transform ${
             checked ? "translate-x-4.5" : "translate-x-0.5"
           }`}
         />

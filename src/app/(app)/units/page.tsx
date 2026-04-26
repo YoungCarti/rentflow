@@ -48,6 +48,7 @@ export default async function UnitsPage({
     : null;
 
   // Summary counts
+  const totalUnits  = filtered.length;
   const occupied    = filtered.filter((u) => u.status === "Occupied").length;
   const vacant      = filtered.filter((u) => u.status === "Vacant").length;
   const maintenance = filtered.filter((u) => u.status === "Maintenance").length;
@@ -80,22 +81,22 @@ export default async function UnitsPage({
 
       {/* Summary chips */}
       <div className="flex flex-wrap gap-3">
-        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-border shadow-sm text-sm">
-          <span className="font-bold text-foreground">{filtered.length}</span>
-          <span className="text-muted-foreground">Total</span>
+        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-card border border-border shadow-sm text-sm">
+          <span className="font-bold text-foreground">{totalUnits}</span>
+          <span className="text-muted-foreground">Total Units</span>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-50 border border-green-100 text-sm">
-          <span className="font-bold text-green-700">{occupied}</span>
-          <span className="text-green-600">Occupied</span>
+        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-50 dark:bg-green-500/10 border border-green-100 dark:border-green-500/20 text-sm">
+          <span className="font-bold text-green-700 dark:text-green-500">{occupied}</span>
+          <span className="text-green-600 dark:text-green-400">Occupied</span>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-50 border border-slate-200 text-sm">
-          <span className="font-bold text-slate-600">{vacant}</span>
-          <span className="text-slate-500">Vacant</span>
+        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-50 dark:bg-slate-500/10 border border-slate-100 dark:border-slate-500/20 text-sm">
+          <span className="font-bold text-slate-700 dark:text-slate-400">{vacant}</span>
+          <span className="text-slate-600 dark:text-slate-400">Vacant</span>
         </div>
         {maintenance > 0 && (
-          <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-orange-50 border border-orange-100 text-sm">
-            <span className="font-bold text-orange-700">{maintenance}</span>
-            <span className="text-orange-600">Maintenance</span>
+          <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-orange-50 dark:bg-orange-500/10 border border-orange-100 dark:border-orange-500/20 text-sm">
+            <span className="font-bold text-orange-700 dark:text-orange-500">{maintenance}</span>
+            <span className="text-orange-600 dark:text-orange-400">Maintenance</span>
           </div>
         )}
       </div>
