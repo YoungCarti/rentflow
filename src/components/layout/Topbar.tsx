@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Bell, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,6 +16,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export default function Topbar() {
+  const router = useRouter();
+
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between h-16 px-6 bg-white border-b border-border">
       {/* Search */}
@@ -56,7 +60,13 @@ export default function Topbar() {
             <DropdownMenuItem>Profile</DropdownMenuItem>
             <DropdownMenuItem>Settings</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">
+            <DropdownMenuItem 
+              className="text-destructive cursor-pointer"
+              onClick={() => {
+                router.push("/");
+                toast.success("Successfully logged out!");
+              }}
+            >
               Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>
