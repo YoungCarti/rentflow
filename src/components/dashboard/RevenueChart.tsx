@@ -21,7 +21,7 @@ export default function RevenueChart() {
       <AreaChart data={monthlyRevenueChart} margin={{ top: 4, right: 4, left: 8, bottom: 0 }}>
         <defs>
           <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%"  stopColor="#1d4ed8" stopOpacity={0.15} />
+            <stop offset="5%" stopColor="#1d4ed8" stopOpacity={0.15} />
             <stop offset="95%" stopColor="#1d4ed8" stopOpacity={0} />
           </linearGradient>
         </defs>
