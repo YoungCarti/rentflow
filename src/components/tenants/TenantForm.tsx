@@ -1,15 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useStore, useStoreHydrated } from "@/lib/store";
 import { toast } from "sonner";
-import type { Tenant, RentStatus } from "@/types";
+import { getPropertiesWithUnits } from "@/lib/properties";
+import { createTenant, updateTenantRecord, type TenantInput } from "@/lib/tenants";
+import type { Property, RentStatus, Tenant, Unit } from "@/types";
 
 interface TenantFormProps {
   initialTenant?: Tenant | null;
@@ -17,8 +18,10 @@ interface TenantFormProps {
 
 export default function TenantForm({ initialTenant }: TenantFormProps) {
   const router = useRouter();
-  const { properties, units, addTenant, updateTenant } = useStore();
-  const hydrated = useStoreHydrated();
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [units, setUnits] = useState<Unit[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   const [name, setName] = useState(initialTenant?.name ?? "");
   const [email, setEmail] = useState(initialTenant?.email ?? "");
@@ -31,12 +34,37 @@ export default function TenantForm({ initialTenant }: TenantFormProps) {
     initialTenant?.rentStatus ?? "Paid"
   );
 
+  useEffect(() => {
+    let mounted = true;
+
+    getPropertiesWithUnits()
+      .then((records) => {
+        if (!mounted) return;
+        setProperties(records.properties);
+        setUnits(records.units);
+      })
+      .catch((error) => {
+        const message =
+          error instanceof Error ? error.message : "Unable to load properties and units.";
+        toast.error(message);
+      })
+      .finally(() => {
+        if (mounted) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const availableUnits = useMemo(() => {
     if (!propertyId) return [];
     return units.filter((u) => u.propertyId === propertyId && (u.status === "Vacant" || u.id === initialTenant?.unitId));
   }, [units, propertyId, initialTenant]);
 
-  if (!hydrated) {
+  if (loading) {
     return <div className="p-8 text-center text-muted-foreground">Loading...</div>;
   }
 
@@ -50,7 +78,7 @@ export default function TenantForm({ initialTenant }: TenantFormProps) {
     );
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!name || !email || !propertyId || !unitId || !leaseStart || !leaseEnd) {
@@ -66,30 +94,36 @@ export default function TenantForm({ initialTenant }: TenantFormProps) {
       return;
     }
 
-    const tId = initialTenant?.id || `t-${Date.now()}`;
-    const newTenant: Tenant = {
-      id: tId,
+    const tenant: TenantInput = {
       name,
       email,
       phone,
       propertyId,
-      propertyName: selectedProperty.name,
       unitId,
-      unitNumber: selectedUnit.unitNumber,
       leaseStart,
       leaseEnd,
       rentStatus,
     };
 
-    if (initialTenant) {
-      updateTenant(newTenant);
-      toast.success("Tenant updated successfully!");
-    } else {
-      addTenant(newTenant);
-      toast.success("Tenant created successfully!");
-    }
+    setSaving(true);
 
-    router.push("/tenants");
+    try {
+      if (initialTenant) {
+        await updateTenantRecord(initialTenant.id, tenant);
+        toast.success("Tenant updated successfully!");
+      } else {
+        await createTenant(tenant);
+        toast.success("Tenant created successfully!");
+      }
+
+      router.push("/tenants");
+      router.refresh();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to save tenant.";
+      toast.error(message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -193,7 +227,9 @@ export default function TenantForm({ initialTenant }: TenantFormProps) {
           <Button type="button" variant="outline" onClick={() => router.push("/tenants")}>
             Cancel
           </Button>
-          <Button type="submit">{initialTenant ? "Save Changes" : "Add Tenant"}</Button>
+          <Button type="submit" disabled={saving}>
+            {saving ? "Saving..." : initialTenant ? "Save Changes" : "Add Tenant"}
+          </Button>
         </div>
       </form>
     </div>

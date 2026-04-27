@@ -1,20 +1,45 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import TenantTable from "@/components/tenants/TenantTable";
-import { useStore, useStoreHydrated } from "@/lib/store";
 import { toast } from "sonner";
 import type { Tenant } from "@/types";
+import { deleteTenantRecord, getTenants } from "@/lib/tenants";
 
 export default function TenantsPage() {
   const router = useRouter();
-  const { tenants, deleteTenant } = useStore();
-  const hydrated = useStoreHydrated();
+  const [tenants, setTenants] = useState<Tenant[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  if (!hydrated) {
+  useEffect(() => {
+    let mounted = true;
+
+    getTenants()
+      .then((records) => {
+        if (mounted) {
+          setTenants(records);
+        }
+      })
+      .catch((error) => {
+        const message = error instanceof Error ? error.message : "Unable to load tenants.";
+        toast.error(message);
+      })
+      .finally(() => {
+        if (mounted) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (loading) {
     return <div className="p-8 text-center text-muted-foreground">Loading tenants...</div>;
   }
 
@@ -22,10 +47,18 @@ export default function TenantsPage() {
   const pending = tenants.filter((t) => t.rentStatus === "Pending").length;
   const overdue = tenants.filter((t) => t.rentStatus === "Overdue").length;
 
-  const handleDelete = (tenant: Tenant) => {
-    if (confirm(`Are you sure you want to remove ${tenant.name}? Their unit will become vacant.`)) {
-      deleteTenant(tenant.id);
+  const handleDelete = async (tenant: Tenant) => {
+    if (!confirm(`Are you sure you want to remove ${tenant.name}? Their unit will become vacant.`)) {
+      return;
+    }
+
+    try {
+      await deleteTenantRecord(tenant.id);
+      setTenants((current) => current.filter((record) => record.id !== tenant.id));
       toast.success("Tenant removed successfully.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to remove tenant.";
+      toast.error(message);
     }
   };
 

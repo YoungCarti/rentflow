@@ -37,7 +37,7 @@ function formatDate(dateStr: string) {
 }
 
 function daysUntil(dateStr: string) {
-  const today = new Date("2026-04-26");
+  const today = new Date();
   return Math.ceil(
     (new Date(dateStr).getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
   );
@@ -136,7 +136,7 @@ function TenantModal({
           {(() => {
             const start = new Date(tenant.leaseStart).getTime();
             const end   = new Date(tenant.leaseEnd).getTime();
-            const today = new Date("2026-04-26").getTime();
+            const today = new Date().getTime();
             const pct   = Math.min(100, Math.max(0, Math.round(((today - start) / (end - start)) * 100)));
             return (
               <div className="space-y-1 ml-6">
