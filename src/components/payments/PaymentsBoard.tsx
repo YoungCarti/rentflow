@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { ImageIcon, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import { CheckCircle2, Clock, ExternalLink, FileText, ImageIcon, XCircle } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -14,7 +15,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import StatusBadge from "@/components/ui/StatusBadge";
 import { cn } from "@/lib/utils";
-import { updatePaymentStatus } from "@/lib/rent-payments-client";
+import {
+  createPaymentProofSignedUrl,
+  updatePaymentStatus,
+} from "@/lib/rent-payments-client";
 import { toast } from "sonner";
 import type { Payment, PaymentApprovalStatus } from "@/types";
 
@@ -32,9 +36,78 @@ function formatDate(d: string) {
   });
 }
 
-// ─── Proof placeholder ────────────────────────────────────────────────────────
+function ProofPreview({
+  proofPath,
+  resolved,
+}: {
+  proofPath?: string;
+  resolved: boolean;
+}) {
+  const [signedUrl, setSignedUrl] = useState<string | null>(null);
+  const isPdf = proofPath?.toLowerCase().endsWith(".pdf");
 
-function ProofPlaceholder({ resolved }: { resolved: boolean }) {
+  useEffect(() => {
+    let mounted = true;
+
+    if (!proofPath) {
+      return;
+    }
+
+    createPaymentProofSignedUrl(proofPath)
+      .then((url) => {
+        if (mounted) {
+          setSignedUrl(url);
+        }
+      })
+      .catch(() => {
+        if (mounted) {
+          setSignedUrl(null);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [proofPath]);
+
+  if (signedUrl) {
+    return (
+      <a
+        href={signedUrl}
+        target="_blank"
+        rel="noreferrer"
+        className={cn(
+          "group flex h-36 overflow-hidden rounded-lg border transition-colors",
+          resolved ? "border-muted bg-muted/20" : "border-blue-200 bg-blue-50/40"
+        )}
+      >
+        {isPdf ? (
+          <div className="flex flex-1 flex-col items-center justify-center gap-2">
+            <FileText className="h-8 w-8 text-blue-500" />
+            <span className="flex items-center gap-1 text-xs font-medium text-blue-600">
+              View PDF proof
+              <ExternalLink className="h-3 w-3" />
+            </span>
+          </div>
+        ) : (
+          <div className="relative flex-1">
+            <Image
+              src={signedUrl}
+              alt="Payment proof"
+              fill
+              sizes="(max-width: 1024px) 100vw, 33vw"
+              unoptimized
+              className="object-cover transition-transform group-hover:scale-[1.02]"
+            />
+            <span className="absolute bottom-2 right-2 rounded bg-black/70 px-2 py-1 text-xs font-medium text-white">
+              View
+            </span>
+          </div>
+        )}
+      </a>
+    );
+  }
+
   return (
     <div
       className={cn(
@@ -46,10 +119,10 @@ function ProofPlaceholder({ resolved }: { resolved: boolean }) {
     >
       <ImageIcon className={cn("w-8 h-8", resolved ? "text-muted-foreground/40" : "text-blue-300")} />
       <p className={cn("text-xs font-medium", resolved ? "text-muted-foreground/50" : "text-blue-400")}>
-        Payment Proof
+        {proofPath ? "Loading proof" : "Payment Proof"}
       </p>
       <p className={cn("text-xs", resolved ? "text-muted-foreground/40" : "text-blue-300")}>
-        Screenshot / Receipt
+        {proofPath ? "Unable to preview" : "No proof uploaded"}
       </p>
     </div>
   );
@@ -95,8 +168,7 @@ function PendingCard({
           </div>
         </div>
 
-        {/* Proof placeholder */}
-        <ProofPlaceholder resolved={resolved} />
+        <ProofPreview proofPath={payment.proofUrl} resolved={resolved} />
 
         {/* Action area */}
         {!resolved ? (
@@ -267,6 +339,7 @@ export default function PaymentsBoard({ payments }: { payments: Payment[] }) {
               <TableHead>Amount</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Method</TableHead>
+              <TableHead>Proof</TableHead>
               <TableHead>Status</TableHead>
             </TableRow>
           </TableHeader>
@@ -286,6 +359,13 @@ export default function PaymentsBoard({ payments }: { payments: Payment[] }) {
                   {p.method ?? "—"}
                 </TableCell>
                 <TableCell>
+                  {p.proofUrl ? (
+                    <ProofLink proofPath={p.proofUrl} />
+                  ) : (
+                    <span className="text-sm text-muted-foreground">—</span>
+                  )}
+                </TableCell>
+                <TableCell>
                   <StatusBadge status={effectiveStatus(p)} />
                 </TableCell>
               </TableRow>
@@ -294,5 +374,45 @@ export default function PaymentsBoard({ payments }: { payments: Payment[] }) {
         </Table>
       </div>
     </div>
+  );
+}
+
+function ProofLink({ proofPath }: { proofPath: string }) {
+  const [signedUrl, setSignedUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    createPaymentProofSignedUrl(proofPath)
+      .then((url) => {
+        if (mounted) {
+          setSignedUrl(url);
+        }
+      })
+      .catch(() => {
+        if (mounted) {
+          setSignedUrl(null);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [proofPath]);
+
+  if (!signedUrl) {
+    return <span className="text-sm text-muted-foreground">Loading...</span>;
+  }
+
+  return (
+    <a
+      href={signedUrl}
+      target="_blank"
+      rel="noreferrer"
+      className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+    >
+      View proof
+      <ExternalLink className="h-3.5 w-3.5" />
+    </a>
   );
 }

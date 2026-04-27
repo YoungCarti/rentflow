@@ -20,6 +20,8 @@ type PaymentRow = {
 const paymentSelect =
   "id, rent_record_id, tenant_id, amount, paid_on, method, approval_status, proof_url, tenants ( name ), properties ( name ), units ( unit_number )";
 
+const PAYMENT_PROOFS_BUCKET = "payment-proofs";
+
 function relationValue<T>(relation: Relation<T> | undefined) {
   if (Array.isArray(relation)) {
     return relation[0] ?? null;
@@ -44,14 +46,57 @@ function toPayment(row: PaymentRow): Payment {
   };
 }
 
+function safeFileName(fileName: string) {
+  return fileName.replace(/[^a-zA-Z0-9._-]/g, "-").replace(/-+/g, "-");
+}
+
+async function uploadPaymentProof(input: {
+  rentRecordId: string;
+  file: File;
+}) {
+  const supabase = createClient();
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+
+  if (userError) {
+    throw userError;
+  }
+
+  const user = userData.user;
+
+  if (!user) {
+    throw new Error("You must be signed in to upload payment proof.");
+  }
+
+  const filePath = `${user.id}/${input.rentRecordId}/${crypto.randomUUID()}-${safeFileName(
+    input.file.name
+  )}`;
+  const { error } = await supabase.storage
+    .from(PAYMENT_PROOFS_BUCKET)
+    .upload(filePath, input.file, {
+      cacheControl: "3600",
+      upsert: false,
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  return filePath;
+}
+
 export async function submitPayment(input: {
   rentRecordId: string;
   tenantId: string;
   amount: number;
   date: string;
   method: PaymentMethod;
+  proofFile: File;
 }) {
   const supabase = createClient();
+  const proofPath = await uploadPaymentProof({
+    rentRecordId: input.rentRecordId,
+    file: input.proofFile,
+  });
   const { data: rentRecord, error: rentRecordError } = await supabase
     .from("rent_records")
     .select("id, tenant_id, property_id, unit_id")
@@ -73,6 +118,7 @@ export async function submitPayment(input: {
       paid_on: input.date,
       method: input.method,
       approval_status: "Pending",
+      proof_url: proofPath,
     })
     .select(paymentSelect)
     .single();
@@ -98,4 +144,17 @@ export async function updatePaymentStatus(id: string, status: PaymentApprovalSta
   }
 
   return toPayment(data as PaymentRow);
+}
+
+export async function createPaymentProofSignedUrl(path: string) {
+  const supabase = createClient();
+  const { data, error } = await supabase.storage
+    .from(PAYMENT_PROOFS_BUCKET)
+    .createSignedUrl(path, 60 * 10);
+
+  if (error) {
+    throw error;
+  }
+
+  return data.signedUrl;
 }

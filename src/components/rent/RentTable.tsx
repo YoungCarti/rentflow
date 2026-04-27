@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Banknote, CreditCard, Globe, Send } from "lucide-react";
+import { Banknote, CreditCard, Globe, Upload } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -11,7 +11,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import StatusBadge from "@/components/ui/StatusBadge";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { submitPayment } from "@/lib/rent-payments-client";
 import { toast } from "sonner";
@@ -58,7 +57,23 @@ export default function RentTable({ records }: { records: RentRecord[] }) {
   // Totals for the active view
   const totalAmount = filtered.reduce((s, r) => s + r.amount, 0);
 
-  async function handleSubmitPayment(record: RentRecord, method: PaymentMethod = "Bank Transfer") {
+  async function handleSubmitPayment(
+    record: RentRecord,
+    proofFile: File,
+    method: PaymentMethod = "Bank Transfer"
+  ) {
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+
+    if (!allowedTypes.includes(proofFile.type)) {
+      toast.error("Upload a JPG, PNG, WebP, or PDF proof.");
+      return;
+    }
+
+    if (proofFile.size > 5 * 1024 * 1024) {
+      toast.error("Payment proof must be 5MB or smaller.");
+      return;
+    }
+
     setSubmittingId(record.id);
 
     try {
@@ -68,6 +83,7 @@ export default function RentTable({ records }: { records: RentRecord[] }) {
         amount: record.amount,
         date: new Date().toISOString().slice(0, 10),
         method,
+        proofFile,
       });
       setRentRecords((current) =>
         current.map((item) =>
@@ -181,16 +197,28 @@ export default function RentTable({ records }: { records: RentRecord[] }) {
                   ) : r.status === "Pending" && r.paymentMethod ? (
                     <span className="text-xs text-muted-foreground">Under review</span>
                   ) : (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="gap-1.5"
-                      disabled={submittingId === r.id}
-                      onClick={() => handleSubmitPayment(r)}
+                    <label
+                      className={cn(
+                        "inline-flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-input bg-background px-3 text-sm font-medium shadow-xs transition-colors hover:bg-accent hover:text-accent-foreground",
+                        submittingId === r.id && "pointer-events-none opacity-50"
+                      )}
                     >
-                      <Send className="w-3.5 h-3.5" />
-                      {submittingId === r.id ? "Submitting..." : "Submit"}
-                    </Button>
+                      <Upload className="w-3.5 h-3.5" />
+                      {submittingId === r.id ? "Uploading..." : "Upload proof"}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,application/pdf"
+                        className="sr-only"
+                        disabled={submittingId === r.id}
+                        onChange={(event) => {
+                          const file = event.target.files?.[0];
+                          event.target.value = "";
+                          if (file) {
+                            void handleSubmitPayment(r, file);
+                          }
+                        }}
+                      />
+                    </label>
                   )}
                 </TableCell>
               </TableRow>
