@@ -4,23 +4,48 @@ import Link from "next/link";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Building2, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { createClient } from "@/lib/supabase/client";
 
 export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setError(null);
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
+
+    const formData = new FormData(e.currentTarget);
+    const email = String(formData.get("email") ?? "");
+    const redirectTo = `${window.location.origin}/auth/callback?next=/update-password`;
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo,
+      });
+
+      if (error) {
+        setError(error.message);
+        toast.error(error.message);
+        return;
+      }
+
       setSuccess(true);
-    }, 1200);
+      toast.success("Password reset email sent.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unable to send reset link.";
+      setError(message);
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -65,6 +90,7 @@ export default function ForgotPasswordPage() {
                   <Label htmlFor="email" className="text-white/80">Email address</Label>
                   <Input
                     id="email"
+                    name="email"
                     type="email"
                     placeholder="you@example.com"
                     required
@@ -72,6 +98,12 @@ export default function ForgotPasswordPage() {
                     className="bg-black/50 border-white/10 focus-visible:ring-primary/50 focus-visible:border-primary text-white placeholder:text-white/30 h-11"
                   />
                 </div>
+
+                {error && (
+                  <p className="rounded-md border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+                    {error}
+                  </p>
+                )}
 
                 <Button type="submit" className="w-full h-11 bg-white text-black hover:bg-white/90 font-medium transition-all" disabled={loading}>
                   {loading ? (

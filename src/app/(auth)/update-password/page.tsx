@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, Building2, ArrowRight } from "lucide-react";
+import { ArrowRight, Building2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,39 +12,30 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/lib/supabase/client";
 
-export default function RegisterPage() {
+export default function UpdatePasswordPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
-    setSuccess(null);
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const firstName = String(formData.get("firstName") ?? "");
-    const lastName = String(formData.get("lastName") ?? "");
-    const email = String(formData.get("email") ?? "");
-    const company = String(formData.get("company") ?? "");
     const password = String(formData.get("password") ?? "");
+    const confirmPassword = String(formData.get("confirmPassword") ?? "");
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      setLoading(false);
+      return;
+    }
 
     try {
       const supabase = createClient();
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-            company,
-          },
-        },
-      });
+      const { error } = await supabase.auth.updateUser({ password });
 
       if (error) {
         setError(error.message);
@@ -52,18 +43,11 @@ export default function RegisterPage() {
         return;
       }
 
-      if (!data.session) {
-        const message = "Account created. Check your email to confirm your account before signing in.";
-        setSuccess(message);
-        toast.success(message);
-        return;
-      }
-
-      toast.success("Account created!");
+      toast.success("Password updated successfully.");
       router.replace("/dashboard");
       router.refresh();
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Unable to create account.";
+      const message = err instanceof Error ? err.message : "Unable to update password.";
       setError(message);
       toast.error(message);
     } finally {
@@ -78,11 +62,10 @@ export default function RegisterPage() {
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
     >
       <Card className="w-full shadow-2xl border-white/10 bg-black/40 backdrop-blur-xl relative overflow-hidden">
-        {/* Subtle top glare */}
         <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-        
+
         <CardHeader className="pb-2 text-center space-y-3 relative z-10">
-          <motion.div 
+          <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.5 }}
@@ -93,64 +76,15 @@ export default function RegisterPage() {
             </div>
           </motion.div>
           <div>
-            <h1 className="text-2xl font-semibold text-white tracking-tight">Create an account</h1>
-            <p className="text-sm text-white/60 mt-1">Start managing your properties today</p>
+            <h1 className="text-2xl font-semibold text-white tracking-tight">Create new password</h1>
+            <p className="text-sm text-white/60 mt-1">Choose a secure password for your account</p>
           </div>
         </CardHeader>
 
         <CardContent className="space-y-4 pt-4 relative z-10">
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="first-name" className="text-white/80">First name</Label>
-                <Input 
-                  id="first-name" 
-                  name="firstName"
-                  placeholder="John" 
-                  required 
-                  autoComplete="given-name" 
-                  className="bg-black/50 border-white/10 focus-visible:ring-primary/50 focus-visible:border-primary text-white placeholder:text-white/30 h-11"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="last-name" className="text-white/80">Last name</Label>
-                <Input 
-                  id="last-name" 
-                  name="lastName"
-                  placeholder="Doe" 
-                  required 
-                  autoComplete="family-name" 
-                  className="bg-black/50 border-white/10 focus-visible:ring-primary/50 focus-visible:border-primary text-white placeholder:text-white/30 h-11"
-                />
-              </div>
-            </div>
-
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-white/80">Email address</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="you@example.com"
-                required
-                autoComplete="email"
-                className="bg-black/50 border-white/10 focus-visible:ring-primary/50 focus-visible:border-primary text-white placeholder:text-white/30 h-11"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="company" className="text-white/80">Company name <span className="text-white/40 font-normal">(Optional)</span></Label>
-              <Input 
-                id="company" 
-                name="company"
-                placeholder="My Property Sdn Bhd" 
-                autoComplete="organization" 
-                className="bg-black/50 border-white/10 focus-visible:ring-primary/50 focus-visible:border-primary text-white placeholder:text-white/30 h-11"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-white/80">Password</Label>
+              <Label htmlFor="password" className="text-white/80">New password</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -173,22 +107,23 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            <p className="text-xs text-white/40">
-              By creating an account, you agree to our{" "}
-              <Link href="#" className="text-white/60 hover:text-white transition-colors underline decoration-white/20 underline-offset-2">Terms</Link>
-              {" "}and{" "}
-              <Link href="#" className="text-white/60 hover:text-white transition-colors underline decoration-white/20 underline-offset-2">Privacy Policy</Link>.
-            </p>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="text-white/80">Confirm password</Label>
+              <Input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                placeholder="Re-enter password"
+                minLength={8}
+                required
+                autoComplete="new-password"
+                className="bg-black/50 border-white/10 focus-visible:ring-primary/50 focus-visible:border-primary text-white placeholder:text-white/30 h-11"
+              />
+            </div>
 
             {error && (
               <p className="rounded-md border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-200">
                 {error}
-              </p>
-            )}
-
-            {success && (
-              <p className="rounded-md border border-green-500/20 bg-green-500/10 px-3 py-2 text-sm text-green-200">
-                {success}
               </p>
             )}
 
@@ -201,7 +136,7 @@ export default function RegisterPage() {
                 />
               ) : (
                 <>
-                  Create Account
+                  Update password
                   <ArrowRight className="w-4 h-4 ml-2 opacity-70 group-hover:translate-x-1 transition-transform" />
                 </>
               )}
@@ -209,7 +144,7 @@ export default function RegisterPage() {
           </form>
 
           <p className="text-center text-sm text-white/50 pt-2">
-            Already have an account?{" "}
+            Remembered it?{" "}
             <Link href="/sign-in" className="text-white hover:text-primary font-medium transition-colors">
               Sign in
             </Link>

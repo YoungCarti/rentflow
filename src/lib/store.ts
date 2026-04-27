@@ -1,7 +1,10 @@
+"use client";
+
+import { useSyncExternalStore } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { properties as initialProperties, units as initialUnits, tenants as initialTenants } from "./data";
-import type { Property, Unit, Tenant, OccupancyStatus } from "@/types";
+import type { Property, Unit, Tenant } from "@/types";
 
 interface StoreState {
   properties: Property[];
@@ -21,7 +24,7 @@ interface StoreState {
 
 export const useStore = create<StoreState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       properties: initialProperties,
       units: initialUnits,
       tenants: initialTenants,
@@ -116,3 +119,19 @@ export const useStore = create<StoreState>()(
     }
   )
 );
+
+export function useStoreHydrated() {
+  return useSyncExternalStore(
+    (callback) => {
+      const unsubscribeHydrate = useStore.persist.onHydrate(callback);
+      const unsubscribeFinishHydration = useStore.persist.onFinishHydration(callback);
+
+      return () => {
+        unsubscribeHydrate();
+        unsubscribeFinishHydration();
+      };
+    },
+    () => useStore.persist.hasHydrated(),
+    () => false
+  );
+}

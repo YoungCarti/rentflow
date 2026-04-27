@@ -1,23 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import TenantTable from "@/components/tenants/TenantTable";
-import { useStore } from "@/lib/store";
+import { useStore, useStoreHydrated } from "@/lib/store";
 import { toast } from "sonner";
 import type { Tenant } from "@/types";
 
 export default function TenantsPage() {
   const router = useRouter();
   const { tenants, deleteTenant } = useStore();
-  const [hydrated, setHydrated] = useState(false);
-
-  useEffect(() => {
-    setHydrated(true);
-  }, []);
+  const hydrated = useStoreHydrated();
 
   if (!hydrated) {
     return <div className="p-8 text-center text-muted-foreground">Loading tenants...</div>;

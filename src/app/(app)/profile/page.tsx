@@ -1,26 +1,62 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Camera, User } from "lucide-react";
+import { toast } from "sonner";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { createClient } from "@/lib/supabase/client";
 
 const DEFAULT = {
-  firstName: "Reshtva",
-  lastName: "Admin",
-  email: "reshtva@rentflow.my",
-  phone: "+60 12-345 6789",
-  company: "Reshtva Holdings Sdn. Bhd.",
+  firstName: "",
+  lastName: "",
+  email: "",
+  phone: "",
+  company: "",
   role: "Owner",
 };
 
 export default function ProfilePage() {
   const [form, setForm] = useState(DEFAULT);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    try {
+      const supabase = createClient();
+
+      supabase.auth.getUser().then(({ data, error }) => {
+        if (error) {
+          toast.error(error.message);
+          return;
+        }
+
+        const currentUser = data.user;
+        const metadata = currentUser?.user_metadata ?? {};
+        const emailPrefix = currentUser?.email?.split("@")[0] ?? "";
+
+        setUser(currentUser);
+        setForm({
+          firstName:
+            typeof metadata.first_name === "string" ? metadata.first_name : emailPrefix,
+          lastName: typeof metadata.last_name === "string" ? metadata.last_name : "",
+          email: currentUser?.email ?? "",
+          phone: typeof metadata.phone === "string" ? metadata.phone : "",
+          company: typeof metadata.company === "string" ? metadata.company : "",
+          role: typeof metadata.role === "string" ? metadata.role : "Owner",
+        });
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unable to load profile.";
+      toast.error(message);
+    }
+  }, []);
 
   function handleChange(key: keyof typeof DEFAULT) {
     return (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -29,12 +65,49 @@ export default function ProfilePage() {
     };
   }
 
-  function handleSave(e: React.FormEvent) {
+  async function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    setSaved(true);
+    setSaving(true);
+    setSaved(false);
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.updateUser({
+        email: form.email,
+        data: {
+          first_name: form.firstName,
+          last_name: form.lastName,
+          phone: form.phone,
+          company: form.company,
+          role: form.role,
+        },
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
+      setSaved(true);
+      toast.success("Profile updated successfully.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unable to save profile.";
+      toast.error(message);
+    } finally {
+      setSaving(false);
+    }
   }
 
-  const initials = `${form.firstName[0] ?? ""}${form.lastName[0] ?? ""}`.toUpperCase();
+  const displayName = `${form.firstName} ${form.lastName}`.trim() || user?.email || "Account";
+  const initials = useMemo(() => {
+    if (form.firstName || form.lastName) {
+      return `${form.firstName[0] ?? ""}${form.lastName[0] ?? ""}`.toUpperCase();
+    }
+
+    return displayName.slice(0, 2).toUpperCase();
+  }, [displayName, form.firstName, form.lastName]);
 
   return (
     <div className="space-y-8 max-w-2xl">
@@ -67,7 +140,7 @@ export default function ProfilePage() {
                 {form.role}
               </Badge>
             </div>
-            <p className="text-sm text-muted-foreground">{form.email}</p>
+            <p className="text-sm text-muted-foreground">{form.email || "No email loaded"}</p>
           </div>
         </CardContent>
       </Card>
@@ -139,10 +212,12 @@ export default function ProfilePage() {
 
             <div className="flex items-center justify-between">
               {saved && (
-                <p className="text-sm text-green-600 font-medium">Changes saved successfully.</p>
+                <p className="text-sm text-green-600 font-medium">
+                  Changes saved successfully.
+                </p>
               )}
-              <Button type="submit" className="ml-auto">
-                Save changes
+              <Button type="submit" className="ml-auto" disabled={saving}>
+                {saving ? "Saving..." : "Save changes"}
               </Button>
             </div>
           </form>

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MapPin, DoorOpen, TrendingUp, ArrowRight, Plus, MoreVertical, Edit, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -12,9 +12,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useStore } from "@/lib/store";
 import { toast } from "sonner";
-import type { Property } from "@/types";
+import { deletePropertyRecord, getPropertiesWithUnits } from "@/lib/properties";
+import type { Property, Unit } from "@/types";
 
 function formatRM(amount: number) {
   return `RM ${amount.toLocaleString()}`;
@@ -41,14 +41,35 @@ function OccupancyBar({ rate }: { rate: number }) {
 
 export default function PropertiesPage() {
   const router = useRouter();
-  const { properties, units, deleteProperty } = useStore();
-  const [hydrated, setHydrated] = useState(false);
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [units, setUnits] = useState<Unit[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setHydrated(true);
+    let mounted = true;
+
+    getPropertiesWithUnits()
+      .then((result) => {
+        if (!mounted) return;
+        setProperties(result.properties);
+        setUnits(result.units);
+      })
+      .catch((error) => {
+        const message = error instanceof Error ? error.message : "Unable to load properties.";
+        toast.error(message);
+      })
+      .finally(() => {
+        if (mounted) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  if (!hydrated) {
+  if (loading) {
     return <div className="p-8 text-center text-muted-foreground">Loading properties...</div>;
   }
 
@@ -68,15 +89,24 @@ export default function PropertiesPage() {
   const totalRevenue = enriched.reduce((s, p) => s + p.monthlyIncome, 0);
   const totalUnits = enriched.reduce((s, p) => s + p.unitCount, 0);
 
-  const handleDelete = (p: typeof enriched[0]) => {
+  const handleDelete = async (p: typeof enriched[0]) => {
     if (p.occupied > 0) {
       toast.error("This property has active tenants. Please remove or reassign tenants before deleting this property.");
       return;
     }
     
-    if (confirm(`Are you sure you want to delete ${p.name}?`)) {
-      deleteProperty(p.id);
+    if (!confirm(`Are you sure you want to delete ${p.name}?`)) {
+      return;
+    }
+
+    try {
+      await deletePropertyRecord(p.id);
+      setProperties((current) => current.filter((property) => property.id !== p.id));
+      setUnits((current) => current.filter((unit) => unit.propertyId !== p.id));
       toast.success("Property deleted successfully.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to delete property.";
+      toast.error(message);
     }
   };
 

@@ -1,14 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Plus, Trash2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useStore } from "@/lib/store";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import {
+  createPropertyWithUnits,
+  updatePropertyWithUnits,
+  type PropertyUnitInput,
+} from "@/lib/properties";
 import type { Property, Unit, OccupancyStatus } from "@/types";
 
 interface PropertyFormProps {
@@ -18,25 +22,11 @@ interface PropertyFormProps {
 
 export default function PropertyForm({ initialProperty, initialUnits }: PropertyFormProps) {
   const router = useRouter();
-  const { addProperty, updateProperty } = useStore();
-  const [hydrated, setHydrated] = useState(false);
   
-  const [name, setName] = useState("");
-  const [location, setLocation] = useState("");
-  const [units, setUnits] = useState<Partial<Unit>[]>([]);
-
-  useEffect(() => {
-    setHydrated(true);
-    if (initialProperty) {
-      setName(initialProperty.name);
-      setLocation(initialProperty.location);
-      setUnits(initialUnits || []);
-    }
-  }, [initialProperty, initialUnits]);
-
-  if (!hydrated) {
-    return <div className="p-8 text-center text-muted-foreground">Loading...</div>;
-  }
+  const [name, setName] = useState(initialProperty?.name ?? "");
+  const [location, setLocation] = useState(initialProperty?.location ?? "");
+  const [units, setUnits] = useState<Partial<Unit>[]>(() => initialUnits ?? []);
+  const [saving, setSaving] = useState(false);
 
   const handleAddUnit = () => {
     setUnits([
@@ -61,13 +51,13 @@ export default function PropertyForm({ initialProperty, initialUnits }: Property
     setUnits(units.filter((_, i) => i !== index));
   };
 
-  const handleUnitChange = (index: number, field: keyof Unit, value: any) => {
+  const handleUnitChange = (index: number, field: keyof Unit, value: Unit[keyof Unit]) => {
     const newUnits = [...units];
     newUnits[index] = { ...newUnits[index], [field]: value };
     setUnits(newUnits);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!name || !location) {
@@ -87,39 +77,49 @@ export default function PropertyForm({ initialProperty, initialUnits }: Property
       }
     }
 
-    const propId = initialProperty?.id || `prop-${Date.now()}`;
-    const monthlyIncome = units.reduce((sum, u) => sum + (u.rent || 0), 0);
-    const occupiedCount = units.filter((u) => u.status === "Occupied").length;
+    const propertyUnits: PropertyUnitInput[] = units.map((u) => {
+      const unit: PropertyUnitInput = {
+        unitNumber: u.unitNumber!,
+        rent: u.rent!,
+        status: (u.status ?? "Vacant") as OccupancyStatus,
+        tenantName: u.tenantName || null,
+        dueDate: u.dueDate || null,
+      };
 
-    const newProperty: Property = {
-      id: propId,
-      name,
-      location,
-      unitCount: units.length,
-      occupiedCount,
-      monthlyIncome,
-    };
+      if (u.id) {
+        unit.id = u.id;
+      }
 
-    const newUnits: Unit[] = units.map((u) => ({
-      id: u.id!,
-      propertyId: propId,
-      propertyName: name,
-      unitNumber: u.unitNumber!,
-      rent: u.rent!,
-      status: u.status as OccupancyStatus,
-      tenantName: u.tenantName || null,
-      dueDate: u.dueDate || null,
-    }));
+      return unit;
+    });
 
-    if (initialProperty) {
-      updateProperty(newProperty, newUnits);
-      toast.success("Property updated successfully!");
-    } else {
-      addProperty(newProperty, newUnits);
-      toast.success("Property created successfully!");
+    setSaving(true);
+
+    try {
+      if (initialProperty) {
+        await updatePropertyWithUnits(initialProperty.id, {
+          name,
+          location,
+          units: propertyUnits,
+        });
+        toast.success("Property updated successfully!");
+      } else {
+        await createPropertyWithUnits({
+          name,
+          location,
+          units: propertyUnits,
+        });
+        toast.success("Property created successfully!");
+      }
+
+      router.push("/properties");
+      router.refresh();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to save property.";
+      toast.error(message);
+    } finally {
+      setSaving(false);
     }
-
-    router.push("/properties");
   };
 
   return (
@@ -228,7 +228,9 @@ export default function PropertyForm({ initialProperty, initialUnits }: Property
           <Button type="button" variant="outline" onClick={() => router.push("/properties")}>
             Cancel
           </Button>
-          <Button type="submit">{initialProperty ? "Save Changes" : "Create Property"}</Button>
+          <Button type="submit" disabled={saving}>
+            {saving ? "Saving..." : initialProperty ? "Save Changes" : "Create Property"}
+          </Button>
         </div>
       </form>
     </div>

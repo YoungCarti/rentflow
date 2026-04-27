@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { Bell, Globe, Lock, Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { createClient } from "@/lib/supabase/client";
 
 // ─── Toggle row ───────────────────────────────────────────────────────────────
 
@@ -68,12 +70,51 @@ export default function SettingsPage() {
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [pwSaved, setPwSaved] = useState(false);
+  const [pwSaving, setPwSaving] = useState(false);
+  const [pwError, setPwError] = useState<string | null>(null);
 
-  function handlePasswordSave(e: React.FormEvent) {
+  async function handlePasswordSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setPwSaved(true);
-    setTimeout(() => setPwSaved(false), 3000);
-    (e.target as HTMLFormElement).reset();
+    setPwSaved(false);
+    setPwError(null);
+
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const currentPassword = String(formData.get("currentPassword") ?? "");
+    const newPassword = String(formData.get("newPassword") ?? "");
+    const confirmNewPassword = String(formData.get("confirmNewPassword") ?? "");
+
+    if (newPassword !== confirmNewPassword) {
+      setPwError("New passwords do not match.");
+      return;
+    }
+
+    setPwSaving(true);
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+        current_password: currentPassword,
+      });
+
+      if (error) {
+        setPwError(error.message);
+        toast.error(error.message);
+        return;
+      }
+
+      setPwSaved(true);
+      toast.success("Password updated successfully.");
+      setTimeout(() => setPwSaved(false), 3000);
+      form.reset();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unable to update password.";
+      setPwError(message);
+      toast.error(message);
+    } finally {
+      setPwSaving(false);
+    }
   }
 
   return (
@@ -213,6 +254,7 @@ export default function SettingsPage() {
               <div className="relative">
                 <Input
                   id="current-password"
+                  name="currentPassword"
                   type={showCurrent ? "text" : "password"}
                   placeholder="••••••••"
                   required
@@ -234,6 +276,7 @@ export default function SettingsPage() {
               <div className="relative">
                 <Input
                   id="new-password"
+                  name="newPassword"
                   type={showNew ? "text" : "password"}
                   placeholder="Min. 8 characters"
                   minLength={8}
@@ -255,6 +298,7 @@ export default function SettingsPage() {
               <Label htmlFor="confirm-new-password">Confirm new password</Label>
               <Input
                 id="confirm-new-password"
+                name="confirmNewPassword"
                 type="password"
                 placeholder="Re-enter new password"
                 minLength={8}
@@ -264,12 +308,16 @@ export default function SettingsPage() {
 
             <Separator />
 
+            {pwError && (
+              <p className="text-sm text-red-600 font-medium">{pwError}</p>
+            )}
+
             <div className="flex items-center justify-between">
               {pwSaved && (
                 <p className="text-sm text-green-600 font-medium">Password updated successfully.</p>
               )}
-              <Button type="submit" size="sm" className="ml-auto">
-                Update password
+              <Button type="submit" size="sm" className="ml-auto" disabled={pwSaving}>
+                {pwSaving ? "Updating..." : "Update password"}
               </Button>
             </div>
           </form>

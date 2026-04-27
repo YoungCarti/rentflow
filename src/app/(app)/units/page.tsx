@@ -11,7 +11,25 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import StatusBadge from "@/components/ui/StatusBadge";
-import { units, properties } from "@/lib/data";
+import { createClient } from "@/lib/supabase/server";
+import type { OccupancyStatus, Property, Unit } from "@/types";
+
+type UnitRow = {
+  id: string;
+  property_id: string;
+  unit_number: string;
+  rent: number | string;
+  status: OccupancyStatus;
+  tenant_name: string | null;
+  due_date: string | null;
+};
+
+type PropertyRow = {
+  id: string;
+  name: string;
+  location: string;
+  units?: UnitRow[];
+};
 
 function formatRM(amount: number) {
   return `RM ${amount.toLocaleString()}`;
@@ -26,10 +44,39 @@ function formatDate(dateStr: string) {
 }
 
 function daysUntil(dateStr: string) {
-  const today = new Date("2026-04-26");
+  const today = new Date();
   return Math.ceil(
     (new Date(dateStr).getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
   );
+}
+
+function mapPropertiesAndUnits(rows: PropertyRow[]) {
+  const properties: Property[] = rows.map((property) => {
+    const units = property.units ?? [];
+    return {
+      id: property.id,
+      name: property.name,
+      location: property.location,
+      unitCount: units.length,
+      occupiedCount: units.filter((unit) => unit.status === "Occupied").length,
+      monthlyIncome: units.reduce((sum, unit) => sum + Number(unit.rent), 0),
+    };
+  });
+
+  const units: Unit[] = rows.flatMap((property) =>
+    (property.units ?? []).map((unit) => ({
+      id: unit.id,
+      propertyId: unit.property_id,
+      propertyName: property.name,
+      unitNumber: unit.unit_number,
+      rent: Number(unit.rent),
+      tenantName: unit.tenant_name,
+      status: unit.status,
+      dueDate: unit.due_date,
+    }))
+  );
+
+  return { properties, units };
 }
 
 export default async function UnitsPage({
@@ -38,6 +85,19 @@ export default async function UnitsPage({
   searchParams: Promise<{ property?: string }>;
 }) {
   const { property: propertyFilter } = await searchParams;
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("properties")
+    .select(
+      "id, name, location, units ( id, property_id, unit_number, rent, status, tenant_name, due_date )"
+    )
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return <div className="p-8 text-center text-muted-foreground">Unable to load units.</div>;
+  }
+
+  const { properties, units } = mapPropertiesAndUnits((data ?? []) as PropertyRow[]);
 
   const filtered = propertyFilter
     ? units.filter((u) => u.propertyId === propertyFilter)

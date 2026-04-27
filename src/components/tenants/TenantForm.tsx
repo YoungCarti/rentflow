@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useStore } from "@/lib/store";
+import { useStore, useStoreHydrated } from "@/lib/store";
 import { toast } from "sonner";
 import type { Tenant, RentStatus } from "@/types";
 
@@ -18,30 +18,18 @@ interface TenantFormProps {
 export default function TenantForm({ initialTenant }: TenantFormProps) {
   const router = useRouter();
   const { properties, units, addTenant, updateTenant } = useStore();
-  const [hydrated, setHydrated] = useState(false);
+  const hydrated = useStoreHydrated();
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [propertyId, setPropertyId] = useState("");
-  const [unitId, setUnitId] = useState("");
-  const [leaseStart, setLeaseStart] = useState("");
-  const [leaseEnd, setLeaseEnd] = useState("");
-  const [rentStatus, setRentStatus] = useState<RentStatus>("Paid");
-
-  useEffect(() => {
-    setHydrated(true);
-    if (initialTenant) {
-      setName(initialTenant.name);
-      setEmail(initialTenant.email);
-      setPhone(initialTenant.phone);
-      setPropertyId(initialTenant.propertyId);
-      setUnitId(initialTenant.unitId);
-      setLeaseStart(initialTenant.leaseStart);
-      setLeaseEnd(initialTenant.leaseEnd);
-      setRentStatus(initialTenant.rentStatus);
-    }
-  }, [initialTenant]);
+  const [name, setName] = useState(initialTenant?.name ?? "");
+  const [email, setEmail] = useState(initialTenant?.email ?? "");
+  const [phone, setPhone] = useState(initialTenant?.phone ?? "");
+  const [propertyId, setPropertyId] = useState(initialTenant?.propertyId ?? "");
+  const [unitId, setUnitId] = useState(initialTenant?.unitId ?? "");
+  const [leaseStart, setLeaseStart] = useState(initialTenant?.leaseStart ?? "");
+  const [leaseEnd, setLeaseEnd] = useState(initialTenant?.leaseEnd ?? "");
+  const [rentStatus, setRentStatus] = useState<RentStatus>(
+    initialTenant?.rentStatus ?? "Paid"
+  );
 
   const availableUnits = useMemo(() => {
     if (!propertyId) return [];
