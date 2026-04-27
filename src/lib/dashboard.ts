@@ -1,7 +1,13 @@
 import type { RentStatus } from "@/types";
+import {
+  ensureCurrentMonthRentRecords,
+  getRevenueChartData,
+  isRentPaymentsSchemaMissing,
+} from "@/lib/rent-payments";
 import { createClient } from "@/lib/supabase/server";
 
 type UnitStatus = "Occupied" | "Vacant" | "Maintenance";
+type Relation<T> = T | T[] | null;
 
 type UnitRow = {
   id: string;
@@ -25,6 +31,23 @@ type TenantRow = {
   created_at: string;
   properties?: { name: string } | { name: string }[] | null;
   units?: { unit_number: string; rent: number | string } | { unit_number: string; rent: number | string }[] | null;
+};
+
+type RentRecordRow = {
+  month_start: string;
+  amount: number | string;
+  status: RentStatus;
+};
+
+type PaymentRow = {
+  id: string;
+  amount: number | string;
+  paid_on: string;
+  approval_status: "Approved" | "Pending" | "Rejected";
+  created_at: string;
+  tenants?: Relation<{ name: string }>;
+  properties?: Relation<{ name: string }>;
+  units?: Relation<{ unit_number: string }>;
 };
 
 export type DashboardActivity = {
@@ -63,16 +86,6 @@ function relationValue<T>(relation: T | T[] | null | undefined) {
   return relation ?? null;
 }
 
-function monthLabels() {
-  const formatter = new Intl.DateTimeFormat("en-MY", { month: "short" });
-  const currentMonth = new Date();
-
-  return Array.from({ length: 6 }, (_, index) => {
-    const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - (5 - index), 1);
-    return formatter.format(date);
-  });
-}
-
 function daysUntil(dateStr: string) {
   const today = new Date();
   return Math.ceil(
@@ -81,13 +94,17 @@ function daysUntil(dateStr: string) {
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {
+  await ensureCurrentMonthRentRecords();
   const supabase = await createClient();
   const [
     propertiesResult,
     unitsResult,
     tenantsResult,
+    rentRecordsResult,
+    recentPaymentsResult,
     recentTenantsResult,
     recentUnitsResult,
+    chartData,
   ] = await Promise.all([
     supabase.from("properties").select("id", { count: "exact", head: true }),
     supabase
@@ -99,6 +116,14 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         "id, name, property_id, unit_id, lease_start, lease_end, rent_status, created_at, properties ( name ), units ( unit_number, rent )"
       ),
     supabase
+      .from("rent_records")
+      .select("month_start, amount, status"),
+    supabase
+      .from("payments")
+      .select("id, amount, paid_on, approval_status, created_at, tenants ( name ), properties ( name ), units ( unit_number )")
+      .order("created_at", { ascending: false })
+      .limit(4),
+    supabase
       .from("tenants")
       .select("id, name, created_at, properties ( name ), units ( unit_number )")
       .order("created_at", { ascending: false })
@@ -108,12 +133,19 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       .select("id, unit_number, status, created_at, properties ( name )")
       .order("created_at", { ascending: false })
       .limit(4),
+    getRevenueChartData(),
   ]);
 
   const error =
     propertiesResult.error ??
     unitsResult.error ??
     tenantsResult.error ??
+    (rentRecordsResult.error && !isRentPaymentsSchemaMissing(rentRecordsResult.error)
+      ? rentRecordsResult.error
+      : null) ??
+    (recentPaymentsResult.error && !isRentPaymentsSchemaMissing(recentPaymentsResult.error)
+      ? recentPaymentsResult.error
+      : null) ??
     recentTenantsResult.error ??
     recentUnitsResult.error;
 
@@ -126,10 +158,20 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   const totalUnits = units.length;
   const occupiedUnits = units.filter((unit) => unit.status === "Occupied").length;
   const vacantUnits = units.filter((unit) => unit.status === "Vacant").length;
-  const monthlyIncome = units.reduce((sum, unit) => sum + Number(unit.rent), 0);
-  const overdueRent = tenants
-    .filter((tenant) => tenant.rent_status === "Overdue")
-    .reduce((sum, tenant) => sum + Number(relationValue(tenant.units)?.rent ?? 0), 0);
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  const rentRecords = rentRecordsResult.error
+    ? []
+    : ((rentRecordsResult.data ?? []) as RentRecordRow[]);
+  const currentMonthRecords = rentRecords.filter((record) =>
+    record.month_start.startsWith(currentMonth)
+  );
+  const monthlyIncome =
+    currentMonthRecords.length > 0
+      ? currentMonthRecords.reduce((sum, record) => sum + Number(record.amount), 0)
+      : units.reduce((sum, unit) => sum + Number(unit.rent), 0);
+  const overdueRent = rentRecords
+    .filter((record) => record.status === "Overdue")
+    .reduce((sum, record) => sum + Number(record.amount), 0);
 
   const upcomingLeaseExpiries = tenants
     .filter((tenant) => {
@@ -168,7 +210,24 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     tone: unit.status === "Maintenance" ? "amber" : "blue",
   }));
 
-  const recentActivity = [...recentTenantActivities, ...recentUnitActivities]
+  const recentPaymentActivities: DashboardActivity[] = (
+    recentPaymentsResult.error ? [] : ((recentPaymentsResult.data ?? []) as PaymentRow[])
+  ).map((payment) => ({
+    id: `payment-${payment.id}`,
+    label: `Payment ${payment.approval_status.toLowerCase()}`,
+    detail: `${relationValue(payment.tenants)?.name ?? "Unknown tenant"} · ${
+      relationValue(payment.properties)?.name ?? "Unknown property"
+    } · Unit ${relationValue(payment.units)?.unit_number ?? "Unknown unit"}`,
+    date: payment.created_at,
+    tone:
+      payment.approval_status === "Approved"
+        ? "green"
+        : payment.approval_status === "Rejected"
+        ? "amber"
+        : "blue",
+  }));
+
+  const recentActivity = [...recentPaymentActivities, ...recentTenantActivities, ...recentUnitActivities]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 6);
 
@@ -181,7 +240,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     monthlyIncome,
     overdueRent,
     occupancyRate: totalUnits === 0 ? 0 : Math.round((occupiedUnits / totalUnits) * 100),
-    chartData: monthLabels().map((month) => ({ month, revenue: monthlyIncome })),
+    chartData,
     upcomingLeaseExpiries,
     recentActivity,
   };

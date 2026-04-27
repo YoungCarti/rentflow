@@ -151,9 +151,9 @@ export default async function DashboardPage() {
         <Card className="lg:col-span-3 shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-semibold">
-              Monthly Rent Potential
+              Monthly Rent Collection
             </CardTitle>
-            <p className="text-xs text-muted-foreground">Based on current unit rents</p>
+            <p className="text-xs text-muted-foreground">Approved payments by month</p>
           </CardHeader>
           <CardContent className="pt-0">
             <RevenueChart data={stats.chartData} />

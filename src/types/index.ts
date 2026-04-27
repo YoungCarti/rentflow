@@ -56,12 +56,14 @@ export interface RentRecord {
 
 export interface Payment {
   id: string;
+  rentRecordId?: string;
   tenantId: string;
   tenantName: string;
   propertyName: string;
   unitNumber: string;
   amount: number;
   date: string;
+  method?: PaymentMethod;
   status: PaymentApprovalStatus;
   proofUrl?: string;
 }

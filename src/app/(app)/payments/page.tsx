@@ -1,12 +1,13 @@
 import { Card, CardContent } from "@/components/ui/card";
 import PaymentsBoard from "@/components/payments/PaymentsBoard";
-import { payments } from "@/lib/data";
+import { getPayments } from "@/lib/rent-payments";
 
 function formatRM(n: number) {
   return `RM ${n.toLocaleString()}`;
 }
 
-export default function PaymentsPage() {
+export default async function PaymentsPage() {
+  const payments = await getPayments();
   const approved = payments.filter((p) => p.status === "Approved");
   const pending  = payments.filter((p) => p.status === "Pending");
   const rejected = payments.filter((p) => p.status === "Rejected");

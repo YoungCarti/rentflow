@@ -1,12 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import RentTable from "@/components/rent/RentTable";
-import { rentRecords } from "@/lib/data";
+import { getRentRecords } from "@/lib/rent-payments";
 
 function formatRM(amount: number) {
   return `RM ${amount.toLocaleString()}`;
 }
 
-export default function RentPage() {
+export default async function RentPage() {
+  const rentRecords = await getRentRecords();
   const paid    = rentRecords.filter((r) => r.status === "Paid");
   const pending = rentRecords.filter((r) => r.status === "Pending");
   const overdue = rentRecords.filter((r) => r.status === "Overdue");
@@ -16,7 +17,8 @@ export default function RentPage() {
   const totalPending   = pending.reduce((s, r) => s + r.amount, 0);
   const totalOverdue   = overdue.reduce((s, r) => s + r.amount, 0);
 
-  const collectionRate = Math.round((totalCollected / totalExpected) * 100);
+  const collectionRate =
+    totalExpected === 0 ? 0 : Math.round((totalCollected / totalExpected) * 100);
 
   return (
     <div className="space-y-6">
@@ -24,7 +26,7 @@ export default function RentPage() {
       <div>
         <h1 className="text-2xl font-bold text-foreground">Rent Tracking</h1>
         <p className="text-sm text-muted-foreground mt-0.5">
-          {rentRecords.length} records · Feb – Apr 2026 · {collectionRate}% collection rate
+          {rentRecords.length} records · {collectionRate}% collection rate
         </p>
       </div>
 
@@ -69,15 +71,15 @@ export default function RentPage() {
         <div className="h-2.5 w-full rounded-full bg-muted overflow-hidden flex">
           <div
             className="h-full bg-green-500 transition-all"
-            style={{ width: `${(totalCollected / totalExpected) * 100}%` }}
+            style={{ width: `${totalExpected === 0 ? 0 : (totalCollected / totalExpected) * 100}%` }}
           />
           <div
             className="h-full bg-yellow-400 transition-all"
-            style={{ width: `${(totalPending / totalExpected) * 100}%` }}
+            style={{ width: `${totalExpected === 0 ? 0 : (totalPending / totalExpected) * 100}%` }}
           />
           <div
             className="h-full bg-red-400 transition-all"
-            style={{ width: `${(totalOverdue / totalExpected) * 100}%` }}
+            style={{ width: `${totalExpected === 0 ? 0 : (totalOverdue / totalExpected) * 100}%` }}
           />
         </div>
         <div className="flex gap-4 text-xs text-muted-foreground">

@@ -14,6 +14,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import StatusBadge from "@/components/ui/StatusBadge";
 import { cn } from "@/lib/utils";
+import { updatePaymentStatus } from "@/lib/rent-payments-client";
+import { toast } from "sonner";
 import type { Payment, PaymentApprovalStatus } from "@/types";
 
 type FilterTab = "All" | PaymentApprovalStatus;
@@ -60,11 +62,13 @@ function PendingCard({
   onApprove,
   onReject,
   resolvedStatus,
+  saving,
 }: {
   payment: Payment;
   onApprove: (id: string) => void;
   onReject: (id: string) => void;
   resolvedStatus: PaymentApprovalStatus | null;
+  saving: boolean;
 }) {
   const resolved = resolvedStatus !== null;
   const approved = resolvedStatus === "Approved";
@@ -101,18 +105,20 @@ function PendingCard({
               size="sm"
               variant="outline"
               className="gap-1.5 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+              disabled={saving}
               onClick={() => onReject(payment.id)}
             >
               <XCircle className="w-4 h-4" />
-              Reject
+              {saving ? "Saving..." : "Reject"}
             </Button>
             <Button
               size="sm"
               className="gap-1.5 bg-green-600 hover:bg-green-700 text-white"
+              disabled={saving}
               onClick={() => onApprove(payment.id)}
             >
               <CheckCircle2 className="w-4 h-4" />
-              Approve
+              {saving ? "Saving..." : "Approve"}
             </Button>
           </div>
         ) : (
@@ -139,16 +145,32 @@ export default function PaymentsBoard({ payments }: { payments: Payment[] }) {
   // Track in-session status overrides (Approve / Reject actions)
   const [overrides, setOverrides] = useState<Record<string, PaymentApprovalStatus>>({});
   const [activeTab, setActiveTab] = useState<FilterTab>("All");
+  const [savingId, setSavingId] = useState<string | null>(null);
 
   function effectiveStatus(p: Payment): PaymentApprovalStatus {
     return overrides[p.id] ?? p.status;
   }
 
+  async function resolvePayment(id: string, status: PaymentApprovalStatus) {
+    setSavingId(id);
+
+    try {
+      const payment = await updatePaymentStatus(id, status);
+      setOverrides((prev) => ({ ...prev, [id]: payment.status }));
+      toast.success(`Payment ${payment.status.toLowerCase()}.`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to update payment.";
+      toast.error(message);
+    } finally {
+      setSavingId(null);
+    }
+  }
+
   function approve(id: string) {
-    setOverrides((prev) => ({ ...prev, [id]: "Approved" }));
+    void resolvePayment(id, "Approved");
   }
   function reject(id: string) {
-    setOverrides((prev) => ({ ...prev, [id]: "Rejected" }));
+    void resolvePayment(id, "Rejected");
   }
 
   const pendingPayments = payments.filter((p) => effectiveStatus(p) === "Pending");
@@ -198,6 +220,7 @@ export default function PaymentsBoard({ payments }: { payments: Payment[] }) {
                 onApprove={approve}
                 onReject={reject}
                 resolvedStatus={overrides[p.id] ?? null}
+                saving={savingId === p.id}
               />
             ))}
           </div>
@@ -243,6 +266,7 @@ export default function PaymentsBoard({ payments }: { payments: Payment[] }) {
               <TableHead>Property · Unit</TableHead>
               <TableHead>Amount</TableHead>
               <TableHead>Date</TableHead>
+              <TableHead>Method</TableHead>
               <TableHead>Status</TableHead>
             </TableRow>
           </TableHeader>
@@ -257,6 +281,9 @@ export default function PaymentsBoard({ payments }: { payments: Payment[] }) {
                 <TableCell className="font-semibold">{formatRM(p.amount)}</TableCell>
                 <TableCell className="text-sm text-muted-foreground">
                   {formatDate(p.date)}
+                </TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  {p.method ?? "—"}
                 </TableCell>
                 <TableCell>
                   <StatusBadge status={effectiveStatus(p)} />
