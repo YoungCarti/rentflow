@@ -9,16 +9,20 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { monthlyRevenueChart } from "@/lib/data";
+
+type RevenueChartPoint = {
+  month: string;
+  revenue: number;
+};
 
 function formatRM(value: number) {
   return `RM ${value.toLocaleString()}`;
 }
 
-export default function RevenueChart() {
+export default function RevenueChart({ data }: { data: RevenueChartPoint[] }) {
   return (
     <ResponsiveContainer width="100%" height={220}>
-      <AreaChart data={monthlyRevenueChart} margin={{ top: 4, right: 4, left: 8, bottom: 0 }}>
+      <AreaChart data={data} margin={{ top: 4, right: 4, left: 8, bottom: 0 }}>
         <defs>
           <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="5%" stopColor="#1d4ed8" stopOpacity={0.15} />
