@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { CheckCircle2, Clock, ExternalLink, FileText, ImageIcon, XCircle } from "lucide-react";
+import Link from "next/link";
+import { CheckCircle2, Clock, Download, ExternalLink, FileText, ImageIcon, XCircle } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -341,6 +342,7 @@ export default function PaymentsBoard({ payments }: { payments: Payment[] }) {
               <TableHead>Method</TableHead>
               <TableHead>Proof</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Receipt</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -367,6 +369,18 @@ export default function PaymentsBoard({ payments }: { payments: Payment[] }) {
                 </TableCell>
                 <TableCell>
                   <StatusBadge status={effectiveStatus(p)} />
+                </TableCell>
+                <TableCell>
+                  {effectiveStatus(p) === "Approved" ? (
+                    <Button asChild variant="ghost" size="sm" className="gap-1.5">
+                      <Link href={`/receipts/${p.id}`}>
+                        <Download className="h-3.5 w-3.5" />
+                        View
+                      </Link>
+                    </Button>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">—</span>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

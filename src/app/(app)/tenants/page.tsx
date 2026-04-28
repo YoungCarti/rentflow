@@ -62,6 +62,14 @@ export default function TenantsPage() {
     }
   };
 
+  const handlePaymentLinkRegenerated = (tenantId: string, paymentLinkId: string) => {
+    setTenants((current) =>
+      current.map((tenant) =>
+        tenant.id === tenantId ? { ...tenant, paymentLinkId } : tenant
+      )
+    );
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -108,6 +116,7 @@ export default function TenantsPage() {
             tenants={tenants} 
             onEdit={(t) => router.push(`/tenants/${t.id}`)} 
             onDelete={handleDelete} 
+            onPaymentLinkRegenerated={handlePaymentLinkRegenerated}
           />
         </CardContent>
       </Card>

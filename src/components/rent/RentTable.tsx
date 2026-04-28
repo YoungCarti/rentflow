@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import StatusBadge from "@/components/ui/StatusBadge";
 import CopyPaymentLinkButton from "@/components/payments/CopyPaymentLinkButton";
+import CopyReminderMessageButton from "@/components/payments/CopyReminderMessageButton";
 import { cn } from "@/lib/utils";
 import { submitPayment } from "@/lib/rent-payments-client";
 import { toast } from "sonner";
@@ -157,13 +158,14 @@ export default function RentTable({ records }: { records: RentRecord[] }) {
             <TableHead>Status</TableHead>
             <TableHead>Method</TableHead>
             <TableHead>Payment Link</TableHead>
+            <TableHead>Reminder</TableHead>
             <TableHead className="text-right">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {filtered.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">
+              <TableCell colSpan={10} className="py-10 text-center text-muted-foreground">
                 No rent records found for this view.
               </TableCell>
             </TableRow>
@@ -195,6 +197,15 @@ export default function RentTable({ records }: { records: RentRecord[] }) {
                 </TableCell>
                 <TableCell>
                   <CopyPaymentLinkButton paymentLinkId={r.paymentLinkId} />
+                </TableCell>
+                <TableCell>
+                  <CopyReminderMessageButton
+                    tenantName={r.tenantName}
+                    month={r.month}
+                    amount={r.amount}
+                    paymentLinkId={r.paymentLinkId}
+                    status={r.status}
+                  />
                 </TableCell>
                 <TableCell className="text-right">
                   {r.status === "Paid" ? (

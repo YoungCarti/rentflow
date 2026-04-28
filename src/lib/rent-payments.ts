@@ -148,11 +148,12 @@ async function ensureCurrentMonthRentRecordsWithClient(
 ) {
   const currentMonth = monthStart();
   const monthStartInput = toDateInput(currentMonth);
+  const todayInput = toDateInput(new Date());
   const { data: tenants, error } = await supabase
     .from("tenants")
     .select("id, property_id, unit_id, lease_start, lease_end, units ( rent )")
-    .lte("lease_start", monthStartInput)
-    .gte("lease_end", monthStartInput);
+    .lte("lease_start", todayInput)
+    .gte("lease_end", todayInput);
 
   if (error) {
     throw error;

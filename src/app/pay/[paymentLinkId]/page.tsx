@@ -1,5 +1,6 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Building2, CheckCircle2, CreditCard, Home, ShieldCheck } from "lucide-react";
+import { Building2, CheckCircle2, CreditCard, Download, Home, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import StatusBadge from "@/components/ui/StatusBadge";
@@ -142,16 +143,24 @@ export default async function PublicPaymentPage({
 
             {successful && (
               <Card className="border-green-200 bg-green-50/70 shadow-sm dark:bg-green-500/10 dark:border-green-500/20">
-                <CardContent className="flex items-center gap-3 p-4">
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-green-700 dark:text-green-400">
-                      Payment successful
-                    </p>
-                    <p className="text-xs text-green-600 dark:text-green-500">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      <p className="text-sm font-semibold text-green-700 dark:text-green-400">
+                        Payment successful
+                      </p>
+                    </div>
+                    <p className="mt-1 text-xs text-green-600 dark:text-green-500">
                       Your landlord&apos;s RentFlow dashboard has been updated.
                     </p>
                   </div>
+                  <Button asChild variant="outline" className="border-green-200 bg-white text-green-700 hover:bg-green-50">
+                    <Link href={`/pay/${paymentLinkId}/receipt`}>
+                      <Download className="h-4 w-4" />
+                      Download receipt
+                    </Link>
+                  </Button>
                 </CardContent>
               </Card>
             )}

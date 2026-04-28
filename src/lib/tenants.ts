@@ -138,3 +138,34 @@ export async function deleteTenantRecord(id: string) {
     throw error;
   }
 }
+
+export async function regenerateTenantPaymentLink(id: string) {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("regenerate_tenant_payment_link", {
+    target_tenant_id: id,
+  });
+
+  if (!error && data && typeof data === "string") {
+    return data;
+  }
+
+  const paymentLinkId = crypto.randomUUID().replaceAll("-", "");
+  const { data: updatedTenant, error: updateError } = await supabase
+    .from("tenants")
+    .update({ payment_link_id: paymentLinkId })
+    .eq("id", id)
+    .select("payment_link_id")
+    .single();
+
+  if (updateError) {
+    throw updateError;
+  }
+
+  if (!updatedTenant?.payment_link_id) {
+    const message =
+      error?.message ?? "Supabase did not return the regenerated payment link.";
+    throw new Error(message);
+  }
+
+  return updatedTenant.payment_link_id as string;
+}
