@@ -46,6 +46,7 @@ export interface RentRecord {
   id: string;
   tenantId: string;
   tenantName: string;
+  tenantPhone?: string;
   paymentLinkId?: string;
   propertyName: string;
   unitNumber: string;
