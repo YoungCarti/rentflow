@@ -31,7 +31,7 @@ export default function TenantForm({ initialTenant }: TenantFormProps) {
   const [leaseStart, setLeaseStart] = useState(initialTenant?.leaseStart ?? "");
   const [leaseEnd, setLeaseEnd] = useState(initialTenant?.leaseEnd ?? "");
   const [rentStatus, setRentStatus] = useState<RentStatus>(
-    initialTenant?.rentStatus ?? "Paid"
+    initialTenant?.rentStatus ?? "Pending"
   );
 
   useEffect(() => {

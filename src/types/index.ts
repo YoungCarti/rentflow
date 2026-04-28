@@ -32,6 +32,7 @@ export interface Tenant {
   name: string;
   email: string;
   phone: string;
+  paymentLinkId?: string;
   propertyId: string;
   propertyName: string;
   unitId: string;
@@ -45,6 +46,7 @@ export interface RentRecord {
   id: string;
   tenantId: string;
   tenantName: string;
+  paymentLinkId?: string;
   propertyName: string;
   unitNumber: string;
   month: string;

@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import StatusBadge from "@/components/ui/StatusBadge";
+import CopyPaymentLinkButton from "@/components/payments/CopyPaymentLinkButton";
 import { cn } from "@/lib/utils";
 import { submitPayment } from "@/lib/rent-payments-client";
 import { toast } from "sonner";
@@ -155,13 +156,14 @@ export default function RentTable({ records }: { records: RentRecord[] }) {
             <TableHead>Due Date</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Method</TableHead>
+            <TableHead>Payment Link</TableHead>
             <TableHead className="text-right">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {filtered.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
+              <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">
                 No rent records found for this view.
               </TableCell>
             </TableRow>
@@ -190,6 +192,9 @@ export default function RentTable({ records }: { records: RentRecord[] }) {
                   ) : (
                     <span className="text-muted-foreground italic text-sm">—</span>
                   )}
+                </TableCell>
+                <TableCell>
+                  <CopyPaymentLinkButton paymentLinkId={r.paymentLinkId} />
                 </TableCell>
                 <TableCell className="text-right">
                   {r.status === "Paid" ? (

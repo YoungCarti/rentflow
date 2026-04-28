@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import StatusBadge from "@/components/ui/StatusBadge";
+import CopyPaymentLinkButton from "@/components/payments/CopyPaymentLinkButton";
 import type { Tenant } from "@/types";
 
 function formatDate(dateStr: string) {
@@ -112,6 +113,16 @@ function TenantModal({
                 {tenant.propertyName} · Unit {tenant.unitNumber}
               </span>
             </div>
+          </div>
+
+          <Separator />
+
+          {/* Payment link */}
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Payment Link
+            </p>
+            <CopyPaymentLinkButton paymentLinkId={tenant.paymentLinkId} showOpen />
           </div>
 
           <Separator />
@@ -213,13 +224,14 @@ export default function TenantTable({
             <TableHead>Property · Unit</TableHead>
             <TableHead>Lease Period</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead>Payment Link</TableHead>
             <TableHead className="text-right">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {filtered.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="text-center text-muted-foreground py-10">
+              <TableCell colSpan={7} className="text-center text-muted-foreground py-10">
                 No tenants match your search.
               </TableCell>
             </TableRow>
@@ -251,6 +263,9 @@ export default function TenantTable({
                 </TableCell>
                 <TableCell>
                   <StatusBadge status={t.rentStatus} />
+                </TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  <CopyPaymentLinkButton paymentLinkId={t.paymentLinkId} />
                 </TableCell>
                 <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                   <div className="flex items-center justify-end gap-2">

@@ -8,6 +8,7 @@ type TenantRow = {
   name: string;
   email: string;
   phone: string;
+  payment_link_id?: string | null;
   property_id: string;
   unit_id: string;
   lease_start: string;
@@ -42,6 +43,7 @@ function toTenant(row: TenantRow): Tenant {
     name: row.name,
     email: row.email,
     phone: row.phone,
+    paymentLinkId: row.payment_link_id ?? undefined,
     propertyId: row.property_id,
     propertyName: relationValue(row.properties)?.name ?? "Unknown property",
     unitId: row.unit_id,
@@ -66,7 +68,7 @@ function toTenantRow(input: TenantInput) {
 }
 
 const tenantSelect =
-  "id, name, email, phone, property_id, unit_id, lease_start, lease_end, rent_status, properties ( name ), units ( unit_number )";
+  "id, name, email, phone, payment_link_id, property_id, unit_id, lease_start, lease_end, rent_status, properties ( name ), units ( unit_number )";
 
 export async function getTenants() {
   const supabase = createClient();
