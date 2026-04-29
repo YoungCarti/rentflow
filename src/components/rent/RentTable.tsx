@@ -45,6 +45,26 @@ function formatDate(dateStr: string) {
   });
 }
 
+function statusHint(record: RentRecord, historical: boolean) {
+  if (historical) {
+    return "Older record";
+  }
+
+  if (record.status === "Paid") {
+    return "Settled";
+  }
+
+  if (record.status === "Pending" && record.paymentMethod) {
+    return "Under review";
+  }
+
+  if (record.status === "Overdue") {
+    return "Needs follow-up";
+  }
+
+  return "Awaiting payment";
+}
+
 export default function RentTable({ records }: { records: RentRecord[] }) {
   const [rentRecords, setRentRecords] = useState(records);
   const [activeTab, setActiveTab] = useState<FilterTab>("All");
@@ -169,25 +189,24 @@ export default function RentTable({ records }: { records: RentRecord[] }) {
       </div>
 
       {/* Table */}
-      <Table>
-        <TableHeader>
+      <div className="max-h-[640px] overflow-auto rounded-lg border border-border">
+      <Table className="min-w-[1180px]">
+        <TableHeader className="sticky top-0 z-10 bg-card shadow-[0_1px_0_var(--border)]">
           <TableRow className="hover:bg-transparent">
-            <TableHead>Tenant</TableHead>
+            <TableHead className="w-[15%]">Tenant</TableHead>
             <TableHead>Property · Unit</TableHead>
-            <TableHead>Month</TableHead>
-            <TableHead>Amount</TableHead>
-            <TableHead>Due Date</TableHead>
+            <TableHead>Period</TableHead>
+            <TableHead className="text-right">Amount</TableHead>
+            <TableHead>Due</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Method</TableHead>
-            <TableHead>Payment Link</TableHead>
-            <TableHead>Reminder</TableHead>
-            <TableHead className="text-right">Action</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {filtered.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={10} className="py-10 text-center text-muted-foreground">
+              <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
                 No rent records found for this view.
               </TableCell>
             </TableRow>
@@ -196,28 +215,44 @@ export default function RentTable({ records }: { records: RentRecord[] }) {
               const historical = isSupersededByLaterPaidRecord(r, rentRecords);
 
               return (
-              <TableRow key={r.id} className={cn(historical && "bg-muted/20")}>
-                <TableCell className="font-medium">{r.tenantName}</TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  {r.propertyName}
-                  <span className="text-foreground font-medium"> · {r.unitNumber}</span>
+              <TableRow
+                key={r.id}
+                className={cn(
+                  "align-top",
+                  historical && "bg-muted/25 text-muted-foreground hover:bg-muted/35"
+                )}
+              >
+                <TableCell className="py-5">
+                  <div className="font-semibold">{r.tenantName}</div>
+                  {historical && (
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      Kept for history
+                    </div>
+                  )}
                 </TableCell>
-                <TableCell className="text-sm">{r.month}</TableCell>
-                <TableCell className="font-semibold">{formatRM(r.amount)}</TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  {formatDate(r.dueDate)}
+                <TableCell className="py-5 text-sm text-muted-foreground">
+                  <div>{r.propertyName}</div>
+                  <div className="mt-1 font-medium text-foreground">Unit {r.unitNumber}</div>
                 </TableCell>
-                <TableCell>
-                  <div className="flex flex-wrap items-center gap-1.5">
+                <TableCell className="py-5 text-sm">{r.month}</TableCell>
+                <TableCell className="py-5 text-right font-semibold">{formatRM(r.amount)}</TableCell>
+                <TableCell className="py-5 text-sm text-muted-foreground">
+                  <div>{formatDate(r.dueDate)}</div>
+                </TableCell>
+                <TableCell className="py-5">
+                  <div className="flex min-w-32 flex-col items-start gap-1.5">
                     <StatusBadge status={r.status} />
+                    <span className="text-xs text-muted-foreground">
+                      {statusHint(r, historical)}
+                    </span>
                     {historical && (
-                      <span className="inline-flex rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                      <span className="inline-flex rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
                         History
                       </span>
                     )}
                   </div>
                 </TableCell>
-                <TableCell>
+                <TableCell className="py-5">
                   {r.paymentMethod ? (
                     <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
                       {methodIcon[r.paymentMethod]}
@@ -227,55 +262,53 @@ export default function RentTable({ records }: { records: RentRecord[] }) {
                     <span className="text-muted-foreground italic text-sm">—</span>
                   )}
                 </TableCell>
-                <TableCell>
-                  <CopyPaymentLinkButton paymentLinkId={r.paymentLinkId} />
-                </TableCell>
-                <TableCell>
-                  {historical ? (
-                    <span className="text-sm text-muted-foreground">History</span>
-                  ) : (
-                    <CopyReminderMessageButton
-                      tenantName={r.tenantName}
-                      tenantPhone={r.tenantPhone}
-                      tenantEmail={r.tenantEmail}
-                      month={r.month}
-                      amount={r.amount}
-                      dueDate={r.dueDate}
-                      paymentLinkId={r.paymentLinkId}
-                      status={r.status}
-                    />
-                  )}
-                </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="py-5 text-right">
                   {historical ? (
                     <span className="text-xs text-muted-foreground">Archived</span>
                   ) : r.status === "Paid" ? (
-                    <span className="text-xs text-muted-foreground">Settled</span>
-                  ) : r.status === "Pending" && r.paymentMethod ? (
-                    <span className="text-xs text-muted-foreground">Under review</span>
+                    <div className="inline-flex items-center gap-2 rounded-md border border-border bg-muted/30 px-2 py-1.5">
+                      <CopyPaymentLinkButton paymentLinkId={r.paymentLinkId} />
+                    </div>
                   ) : (
-                    <label
-                      className={cn(
-                        "inline-flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-input bg-background px-3 text-sm font-medium shadow-xs transition-colors hover:bg-accent hover:text-accent-foreground",
-                        submittingId === r.id && "pointer-events-none opacity-50"
-                      )}
-                    >
-                      <Upload className="w-3.5 h-3.5" />
-                      {submittingId === r.id ? "Uploading..." : "Upload proof"}
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp,application/pdf"
-                        className="sr-only"
-                        disabled={submittingId === r.id}
-                        onChange={(event) => {
-                          const file = event.target.files?.[0];
-                          event.target.value = "";
-                          if (file) {
-                            void handleSubmitPayment(r, file);
-                          }
-                        }}
+                    <div className="inline-flex flex-wrap items-center justify-end gap-2 rounded-md border border-border bg-muted/30 p-1.5">
+                      <CopyPaymentLinkButton paymentLinkId={r.paymentLinkId} />
+                      <CopyReminderMessageButton
+                        tenantName={r.tenantName}
+                        tenantPhone={r.tenantPhone}
+                        tenantEmail={r.tenantEmail}
+                        month={r.month}
+                        amount={r.amount}
+                        dueDate={r.dueDate}
+                        paymentLinkId={r.paymentLinkId}
+                        status={r.status}
                       />
-                    </label>
+                      {r.status === "Pending" && r.paymentMethod ? (
+                        <span className="px-2 text-xs text-muted-foreground">Reviewing</span>
+                      ) : (
+                        <label
+                          className={cn(
+                            "inline-flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-input bg-background px-3 text-sm font-semibold shadow-xs transition-colors hover:bg-accent hover:text-accent-foreground",
+                            submittingId === r.id && "pointer-events-none opacity-50"
+                          )}
+                        >
+                          <Upload className="w-3.5 h-3.5" />
+                          {submittingId === r.id ? "Uploading..." : "Upload"}
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,application/pdf"
+                            className="sr-only"
+                            disabled={submittingId === r.id}
+                            onChange={(event) => {
+                              const file = event.target.files?.[0];
+                              event.target.value = "";
+                              if (file) {
+                                void handleSubmitPayment(r, file);
+                              }
+                            }}
+                          />
+                        </label>
+                      )}
+                    </div>
                   )}
                 </TableCell>
               </TableRow>
@@ -284,6 +317,7 @@ export default function RentTable({ records }: { records: RentRecord[] }) {
           )}
         </TableBody>
       </Table>
+      </div>
     </div>
   );
 }
