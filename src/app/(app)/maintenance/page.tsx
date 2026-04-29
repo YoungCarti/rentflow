@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import EmptyState from "@/components/ui/empty-state";
+import PageHeader from "@/components/layout/PageHeader";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import StatusBadge from "@/components/ui/StatusBadge";
@@ -295,12 +296,16 @@ export default function MaintenancePage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Maintenance</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Log property issues, assign status, and track repair costs
-        </p>
-      </div>
+      <PageHeader
+        title="Maintenance"
+        summary="Log property issues, assign status, and track repair costs"
+        action={
+          <Button type="button" onClick={focusRequestForm}>
+            <Plus className="w-4 h-4 mr-2" />
+            Log Request
+          </Button>
+        }
+      />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="shadow-sm">

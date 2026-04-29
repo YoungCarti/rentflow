@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { MapPin, DoorOpen, TrendingUp, ArrowRight, Plus, MoreVertical, Edit, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import PageHeader from "@/components/layout/PageHeader";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -117,19 +118,16 @@ export default function PropertiesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Properties</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {properties.length} properties · {totalUnits} units · {formatRM(totalRevenue)} / mo
-          </p>
-        </div>
-        <Button onClick={() => router.push("/properties/new")}>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Property
-        </Button>
-      </div>
+      <PageHeader
+        title="Properties"
+        summary={`${properties.length} properties · ${totalUnits} units · ${formatRM(totalRevenue)} / mo`}
+        action={
+          <Button onClick={() => router.push("/properties/new")}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Property
+          </Button>
+        }
+      />
 
       {/* Property cards */}
       {enriched.length === 0 ? (

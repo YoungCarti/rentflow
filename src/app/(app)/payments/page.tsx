@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import PaymentsBoard from "@/components/payments/PaymentsBoard";
+import PageHeader from "@/components/layout/PageHeader";
 import { semanticTone } from "@/lib/color-system";
 import { getPayments } from "@/lib/rent-payments";
 
@@ -18,13 +19,10 @@ export default async function PaymentsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Payments</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Review submitted payment proofs and update approval status
-        </p>
-      </div>
+      <PageHeader
+        title="Payments"
+        summary="Review submitted payment proofs and update approval status"
+      />
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

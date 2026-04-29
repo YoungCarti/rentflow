@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import PageHeader from "@/components/layout/PageHeader";
 import { Separator } from "@/components/ui/separator";
 import { createClient } from "@/lib/supabase/client";
 
@@ -119,13 +120,10 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-8 max-w-2xl">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Settings</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Manage your notifications and preferences
-        </p>
-      </div>
+      <PageHeader
+        title="Settings"
+        summary="Manage your notifications and preferences"
+      />
 
       {/* Notifications */}
       <Card className="shadow-sm">

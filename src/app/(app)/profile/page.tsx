@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import PageHeader from "@/components/layout/PageHeader";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/lib/supabase/client";
@@ -111,13 +112,10 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-8 max-w-2xl">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Profile</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Manage your personal information
-        </p>
-      </div>
+      <PageHeader
+        title="Profile"
+        summary="Manage your personal information"
+      />
 
       {/* Avatar + name banner */}
       <Card className="shadow-sm">

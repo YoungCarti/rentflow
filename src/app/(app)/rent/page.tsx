@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import RentTable from "@/components/rent/RentTable";
 import RentReminderCenter from "@/components/rent/RentReminderCenter";
+import PageHeader from "@/components/layout/PageHeader";
 import { semanticTone } from "@/lib/color-system";
 import { getRentRecords } from "@/lib/rent-payments";
 import { getActiveRentRecords } from "@/lib/rent-reminders";
@@ -26,13 +27,10 @@ export default async function RentPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Rent Tracking</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          {activeRentRecords.length} records · {collectionRate}% collection rate
-        </p>
-      </div>
+      <PageHeader
+        title="Rent Tracking"
+        summary={`${activeRentRecords.length} records · ${collectionRate}% collection rate`}
+      />
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

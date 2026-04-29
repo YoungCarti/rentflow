@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import PageHeader from "@/components/layout/PageHeader";
 import { toast } from "sonner";
 import { getPropertiesWithUnits } from "@/lib/properties";
 import { createTenant, updateTenantRecord, type TenantInput } from "@/lib/tenants";
@@ -128,14 +129,16 @@ export default function TenantForm({ initialTenant }: TenantFormProps) {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.push("/tenants")}>
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
-        <h1 className="text-2xl font-bold text-foreground">
-          {initialTenant ? "Edit Tenant Details" : "Add New Tenant"}
-        </h1>
-      </div>
+      <PageHeader
+        title={initialTenant ? "Edit Tenant Details" : "Add New Tenant"}
+        summary="Manage tenant contact details, lease dates, and unit assignment"
+        action={
+          <Button variant="outline" size="sm" onClick={() => router.push("/tenants")}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Tenants
+          </Button>
+        }
+      />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card className="shadow-sm">

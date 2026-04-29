@@ -5,6 +5,7 @@ import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import PageHeader from "@/components/layout/PageHeader";
 import TenantTable from "@/components/tenants/TenantTable";
 import { toast } from "sonner";
 import type { Tenant } from "@/types";
@@ -73,19 +74,16 @@ export default function TenantsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Tenants</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {tenants.length} active tenants · click any row to view details
-          </p>
-        </div>
-        <Button onClick={() => router.push("/tenants/new")}>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Tenant
-        </Button>
-      </div>
+      <PageHeader
+        title="Tenants"
+        summary={`${tenants.length} active tenants · click any row to view details`}
+        action={
+          <Button onClick={() => router.push("/tenants/new")}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Tenant
+          </Button>
+        }
+      />
 
       {/* Summary chips */}
       <div className="flex flex-wrap gap-3">

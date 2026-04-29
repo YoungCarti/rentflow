@@ -9,6 +9,7 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import PageHeader from "@/components/layout/PageHeader";
 import { Separator } from "@/components/ui/separator";
 
 // ─── Plan data ────────────────────────────────────────────────────────────────
@@ -85,13 +86,16 @@ function FeatureRow({ label, included }: { label: string; included: boolean }) {
 export default function SubscriptionPage() {
   return (
     <div className="space-y-8 max-w-4xl">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Subscription</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Manage your plan and billing details
-        </p>
-      </div>
+      <PageHeader
+        title="Subscription"
+        summary="Manage your plan and billing details"
+        action={
+          <Button size="sm" variant="outline" className="gap-2 shrink-0">
+            <Zap className="w-4 h-4 text-amber-500" />
+            Upgrade to Pro
+          </Button>
+        }
+      />
 
       {/* Current plan banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-blue-200 bg-blue-50/60 px-5 py-4">
@@ -111,10 +115,6 @@ export default function SubscriptionPage() {
             </p>
           </div>
         </div>
-        <Button size="sm" variant="outline" className="gap-2 shrink-0">
-          <Zap className="w-4 h-4 text-amber-500" />
-          Upgrade to Pro
-        </Button>
       </div>
 
       {/* Plan cards */}

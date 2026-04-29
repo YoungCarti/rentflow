@@ -3,6 +3,7 @@ import { Trophy, TrendingUp, AlertCircle, BarChart2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import EmptyState from "@/components/ui/empty-state";
+import PageHeader from "@/components/layout/PageHeader";
 import RevenueBarChart from "@/components/reports/RevenueBarChart";
 import OccupancyLineChart from "@/components/reports/OccupancyLineChart";
 import { properties, units, rentRecords } from "@/lib/data";
@@ -58,12 +59,15 @@ export default function ReportsPage() {
   if (properties.length === 0 && rentRecords.length === 0) {
     return (
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Reports</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Financial and occupancy summary
-          </p>
-        </div>
+        <PageHeader
+          title="Reports"
+          summary="Financial and occupancy summary"
+          action={
+            <Button asChild size="sm">
+              <Link href="/properties/new">Add Property</Link>
+            </Button>
+          }
+        />
 
         <EmptyState
           icon={BarChart2}
@@ -88,13 +92,15 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Reports</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Financial and occupancy summary · Feb – Apr 2026
-        </p>
-      </div>
+      <PageHeader
+        title="Reports"
+        summary="Financial and occupancy summary · Feb – Apr 2026"
+        action={
+          <Button asChild variant="outline" size="sm">
+            <Link href="/rent">Open Rent Tracking</Link>
+          </Button>
+        }
+      />
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

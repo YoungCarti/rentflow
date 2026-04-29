@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import EmptyState from "@/components/ui/empty-state";
+import PageHeader from "@/components/layout/PageHeader";
 import StatusBadge from "@/components/ui/StatusBadge";
 import { semanticTone } from "@/lib/color-system";
 import { cn } from "@/lib/utils";
@@ -217,14 +218,12 @@ export default function CalendarView({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Calendar</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            {events.length} scheduled item{events.length === 1 ? "" : "s"} · {monthLabel(monthStart)}
-          </p>
-        </div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <PageHeader
+        title="Calendar"
+        summary={`${events.length} scheduled item${events.length === 1 ? "" : "s"} · ${monthLabel(monthStart)}`}
+        className="xl:items-end"
+        action={
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="inline-flex w-fit rounded-md border border-border bg-muted/40 p-1">
             <Button
               type="button"
@@ -268,7 +267,8 @@ export default function CalendarView({
             </Button>
           </div>
         </div>
-      </div>
+        }
+      />
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         {(Object.keys(groupStyles) as CalendarGroup[]).map((group) => {

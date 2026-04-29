@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import PageHeader from "@/components/layout/PageHeader";
 import StatusBadge from "@/components/ui/StatusBadge";
 import { createClient } from "@/lib/supabase/server";
 import { semanticTone } from "@/lib/color-system";
@@ -116,29 +117,26 @@ export default async function UnitsPage({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Units</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {activeProperty ? (
-              <>Showing units for <span className="font-medium text-foreground">{activeProperty.name}</span></>
-            ) : (
-              `All ${units.length} units across ${properties.length} properties`
-            )}
-          </p>
-        </div>
-
-        {/* Clear filter button */}
-        {activeProperty && (
+      <PageHeader
+        title="Units"
+        summary={
+          activeProperty ? (
+            <>Showing units for <span className="font-medium text-foreground">{activeProperty.name}</span></>
+          ) : (
+            `All ${units.length} units across ${properties.length} properties`
+          )
+        }
+        action={
+          activeProperty ? (
           <Button asChild variant="outline" size="sm" className="gap-1.5 shrink-0">
             <Link href="/units">
               <X className="w-3.5 h-3.5" />
               Clear filter
             </Link>
           </Button>
-        )}
-      </div>
+          ) : null
+        }
+      />
 
       {/* Summary chips */}
       <div className="flex flex-wrap gap-3">

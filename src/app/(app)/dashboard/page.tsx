@@ -16,6 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import RevenueChart from "@/components/dashboard/RevenueChart";
+import PageHeader from "@/components/layout/PageHeader";
 import { semanticTone } from "@/lib/color-system";
 import { getDashboardStats, type DashboardStats } from "@/lib/dashboard";
 
@@ -114,24 +115,22 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-7">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            Portfolio operations overview · {monthLabel}
-          </p>
-        </div>
-        <div className="inline-flex w-fit items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm">
-          <span className="text-muted-foreground">Collection focus</span>
-          <span
-            className={`font-semibold ${
-              stats.overdueRent > 0 ? semanticTone.danger.textSoft : semanticTone.success.textSoft
-            }`}
-          >
-            {stats.overdueRent > 0 ? formatRM(stats.overdueRent) : "Clear"}
-          </span>
-        </div>
-      </div>
+      <PageHeader
+        title="Dashboard"
+        summary={`Portfolio operations overview · ${monthLabel}`}
+        action={
+          <div className="inline-flex w-fit items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm">
+            <span className="text-muted-foreground">Collection focus</span>
+            <span
+              className={`font-semibold ${
+                stats.overdueRent > 0 ? semanticTone.danger.textSoft : semanticTone.success.textSoft
+              }`}
+            >
+              {stats.overdueRent > 0 ? formatRM(stats.overdueRent) : "Clear"}
+            </span>
+          </div>
+        }
+      />
 
       <div className="-mx-6 border-y border-border bg-card/45 px-6">
         <div className="grid grid-cols-2 divide-y divide-border sm:grid-cols-3 xl:grid-cols-7 xl:divide-x xl:divide-y-0">
