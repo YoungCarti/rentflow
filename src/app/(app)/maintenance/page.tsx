@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -12,6 +12,7 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import EmptyState from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import StatusBadge from "@/components/ui/StatusBadge";
@@ -86,6 +87,7 @@ function priorityClass(priority: MaintenancePriority) {
 }
 
 export default function MaintenancePage() {
+  const titleInputRef = useRef<HTMLInputElement>(null);
   const [requests, setRequests] = useState<MaintenanceRequest[]>([]);
   const [properties, setProperties] = useState<Property[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
@@ -277,6 +279,11 @@ export default function MaintenancePage() {
     }
   }
 
+  function focusRequestForm() {
+    titleInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    titleInputRef.current?.focus();
+  }
+
   if (loading) {
     return (
       <div className="p-8 text-center text-muted-foreground">
@@ -357,6 +364,7 @@ export default function MaintenancePage() {
             <div className="space-y-2 lg:col-span-2">
               <Label>Issue Title</Label>
               <Input
+                ref={titleInputRef}
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
                 placeholder="Leaking sink, faulty light, repainting..."
@@ -546,12 +554,17 @@ export default function MaintenancePage() {
         </CardHeader>
         <CardContent className="space-y-3">
           {requests.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border py-12 text-center">
-              <CheckCircle2 className="h-8 w-8 text-green-400" />
-              <p className="text-sm font-medium text-muted-foreground">
-                No maintenance requests yet.
-              </p>
-            </div>
+            <EmptyState
+              icon={CheckCircle2}
+              title="No maintenance requests yet"
+              description="Start by logging the first repair, cleaning, plumbing, or electrical issue so it can be tracked to resolution."
+              action={
+                <Button type="button" size="sm" onClick={focusRequestForm}>
+                  <Plus className="h-4 w-4" />
+                  Log First Request
+                </Button>
+              }
+            />
           ) : (
             requests.map((request) => {
               const draft = drafts[request.id] ?? toDraft(request);

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import EmptyState from "@/components/ui/empty-state";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -300,12 +301,31 @@ export default function NotificationCenter() {
               Loading notifications...
             </div>
           ) : notifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-2 py-10 text-center">
-              <ClipboardCheck className="h-8 w-8 text-muted-foreground/60" />
-              <p className="text-sm font-medium text-foreground">All caught up</p>
-              <p className="text-xs text-muted-foreground">
-                No payments, leases, rent, or maintenance items need attention.
-              </p>
+            <div className="p-3">
+              <EmptyState
+                icon={ClipboardCheck}
+                title="All caught up"
+                description="No payment approvals, overdue rent, lease expiries, or maintenance updates need attention."
+                action={
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => router.push("/calendar")}
+                  >
+                    Open Calendar
+                  </Button>
+                }
+                secondaryAction={
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => router.push("/dashboard")}
+                  >
+                    View Dashboard
+                  </Button>
+                }
+              />
             </div>
           ) : (
             <div className="divide-y divide-border">
