@@ -15,12 +15,17 @@ import CopyPaymentLinkButton from "@/components/payments/CopyPaymentLinkButton";
 import CopyReminderMessageButton from "@/components/payments/CopyReminderMessageButton";
 import { cn } from "@/lib/utils";
 import { submitPayment } from "@/lib/rent-payments-client";
+import {
+  getActiveRentRecords,
+  getHistoricalRentRecords,
+  isSupersededByLaterPaidRecord,
+} from "@/lib/rent-reminders";
 import { toast } from "sonner";
 import type { PaymentMethod, RentRecord, RentStatus } from "@/types";
 
-type FilterTab = "All" | RentStatus;
+type FilterTab = "All" | RentStatus | "History";
 
-const TABS: FilterTab[] = ["All", "Paid", "Pending", "Overdue"];
+const TABS: FilterTab[] = ["All", "Paid", "Pending", "Overdue", "History"];
 
 const methodIcon: Record<string, React.ReactNode> = {
   "Bank Transfer": <CreditCard className="w-3.5 h-3.5" />,
@@ -44,17 +49,32 @@ export default function RentTable({ records }: { records: RentRecord[] }) {
   const [rentRecords, setRentRecords] = useState(records);
   const [activeTab, setActiveTab] = useState<FilterTab>("All");
   const [submittingId, setSubmittingId] = useState<string | null>(null);
+  const activeRecords = getActiveRentRecords(rentRecords);
+  const historyRecords = getHistoricalRentRecords(rentRecords);
 
   const counts = TABS.reduce<Record<FilterTab, number>>((acc, tab) => {
-    acc[tab] =
-      tab === "All"
-        ? rentRecords.length
-        : rentRecords.filter((r) => r.status === tab).length;
+    if (tab === "All") {
+      acc[tab] = rentRecords.length;
+    } else if (tab === "History") {
+      acc[tab] = historyRecords.length;
+    } else {
+      acc[tab] = activeRecords.filter((r) => r.status === tab).length;
+    }
+
     return acc;
   }, {} as Record<FilterTab, number>);
 
-  const filtered =
-    activeTab === "All" ? rentRecords : rentRecords.filter((r) => r.status === activeTab);
+  const filtered = (() => {
+    if (activeTab === "All") {
+      return rentRecords;
+    }
+
+    if (activeTab === "History") {
+      return historyRecords;
+    }
+
+    return activeRecords.filter((r) => r.status === activeTab);
+  })();
 
   // Totals for the active view
   const totalAmount = filtered.reduce((s, r) => s + r.amount, 0);
@@ -127,6 +147,8 @@ export default function RentTable({ records }: { records: RentRecord[] }) {
                     ? "bg-yellow-100 text-yellow-700"
                     : tab === "Paid"
                     ? "bg-green-100 text-green-700"
+                    : tab === "History"
+                    ? "bg-slate-100 text-slate-700"
                     : "bg-slate-100 text-slate-600"
                   : "bg-muted text-muted-foreground"
               )}
@@ -170,8 +192,11 @@ export default function RentTable({ records }: { records: RentRecord[] }) {
               </TableCell>
             </TableRow>
           ) : (
-            filtered.map((r) => (
-              <TableRow key={r.id}>
+            filtered.map((r) => {
+              const historical = isSupersededByLaterPaidRecord(r, rentRecords);
+
+              return (
+              <TableRow key={r.id} className={cn(historical && "bg-muted/20")}>
                 <TableCell className="font-medium">{r.tenantName}</TableCell>
                 <TableCell className="text-sm text-muted-foreground">
                   {r.propertyName}
@@ -183,7 +208,14 @@ export default function RentTable({ records }: { records: RentRecord[] }) {
                   {formatDate(r.dueDate)}
                 </TableCell>
                 <TableCell>
-                  <StatusBadge status={r.status} />
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <StatusBadge status={r.status} />
+                    {historical && (
+                      <span className="inline-flex rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                        History
+                      </span>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell>
                   {r.paymentMethod ? (
@@ -199,19 +231,25 @@ export default function RentTable({ records }: { records: RentRecord[] }) {
                   <CopyPaymentLinkButton paymentLinkId={r.paymentLinkId} />
                 </TableCell>
                 <TableCell>
-                  <CopyReminderMessageButton
-                    tenantName={r.tenantName}
-                    tenantPhone={r.tenantPhone}
-                    tenantEmail={r.tenantEmail}
-                    month={r.month}
-                    amount={r.amount}
-                    dueDate={r.dueDate}
-                    paymentLinkId={r.paymentLinkId}
-                    status={r.status}
-                  />
+                  {historical ? (
+                    <span className="text-sm text-muted-foreground">History</span>
+                  ) : (
+                    <CopyReminderMessageButton
+                      tenantName={r.tenantName}
+                      tenantPhone={r.tenantPhone}
+                      tenantEmail={r.tenantEmail}
+                      month={r.month}
+                      amount={r.amount}
+                      dueDate={r.dueDate}
+                      paymentLinkId={r.paymentLinkId}
+                      status={r.status}
+                    />
+                  )}
                 </TableCell>
                 <TableCell className="text-right">
-                  {r.status === "Paid" ? (
+                  {historical ? (
+                    <span className="text-xs text-muted-foreground">Archived</span>
+                  ) : r.status === "Paid" ? (
                     <span className="text-xs text-muted-foreground">Settled</span>
                   ) : r.status === "Pending" && r.paymentMethod ? (
                     <span className="text-xs text-muted-foreground">Under review</span>
@@ -241,7 +279,8 @@ export default function RentTable({ records }: { records: RentRecord[] }) {
                   )}
                 </TableCell>
               </TableRow>
-            ))
+              );
+            })
           )}
         </TableBody>
       </Table>

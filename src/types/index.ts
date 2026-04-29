@@ -60,6 +60,7 @@ export interface RentRecord {
   propertyName: string;
   unitNumber: string;
   month: string;
+  monthStart?: string;
   amount: number;
   dueDate: string;
   status: RentStatus;

@@ -51,6 +51,7 @@ export default function CopyReminderMessageButton({
       propertyName: "",
       unitNumber: "",
       month,
+      monthStart: dueDate.slice(0, 7) + "-01",
       amount,
       dueDate,
       status,

@@ -46,8 +46,40 @@ export function getReminderTiming(
   return null;
 }
 
+function recordDateValue(record: RentRecord) {
+  if (record.monthStart) {
+    return new Date(`${record.monthStart}T00:00:00`).getTime();
+  }
+
+  return new Date(`01 ${record.month}`).getTime();
+}
+
+export function isSupersededByLaterPaidRecord(
+  record: RentRecord,
+  records: RentRecord[]
+) {
+  if (record.status === "Paid") {
+    return false;
+  }
+
+  return records.some(
+    (candidate) =>
+      candidate.tenantId === record.tenantId &&
+      candidate.status === "Paid" &&
+      recordDateValue(candidate) > recordDateValue(record)
+  );
+}
+
+export function getActiveRentRecords(records: RentRecord[]) {
+  return records.filter((record) => !isSupersededByLaterPaidRecord(record, records));
+}
+
+export function getHistoricalRentRecords(records: RentRecord[]) {
+  return records.filter((record) => isSupersededByLaterPaidRecord(record, records));
+}
+
 export function getRentReminders(records: RentRecord[], referenceDate = new Date()) {
-  return records
+  return getActiveRentRecords(records)
     .map((record): RentReminder | null => {
       const timing = getReminderTiming(record, referenceDate);
 

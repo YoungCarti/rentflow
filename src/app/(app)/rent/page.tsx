@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import RentTable from "@/components/rent/RentTable";
 import RentReminderCenter from "@/components/rent/RentReminderCenter";
 import { getRentRecords } from "@/lib/rent-payments";
+import { getActiveRentRecords } from "@/lib/rent-reminders";
 
 function formatRM(amount: number) {
   return `RM ${amount.toLocaleString()}`;
@@ -9,11 +10,12 @@ function formatRM(amount: number) {
 
 export default async function RentPage() {
   const rentRecords = await getRentRecords();
-  const paid    = rentRecords.filter((r) => r.status === "Paid");
-  const pending = rentRecords.filter((r) => r.status === "Pending");
-  const overdue = rentRecords.filter((r) => r.status === "Overdue");
+  const activeRentRecords = getActiveRentRecords(rentRecords);
+  const paid    = activeRentRecords.filter((r) => r.status === "Paid");
+  const pending = activeRentRecords.filter((r) => r.status === "Pending");
+  const overdue = activeRentRecords.filter((r) => r.status === "Overdue");
 
-  const totalExpected = rentRecords.reduce((s, r) => s + r.amount, 0);
+  const totalExpected = activeRentRecords.reduce((s, r) => s + r.amount, 0);
   const totalCollected = paid.reduce((s, r) => s + r.amount, 0);
   const totalPending   = pending.reduce((s, r) => s + r.amount, 0);
   const totalOverdue   = overdue.reduce((s, r) => s + r.amount, 0);
@@ -27,7 +29,7 @@ export default async function RentPage() {
       <div>
         <h1 className="text-2xl font-bold text-foreground">Rent Tracking</h1>
         <p className="text-sm text-muted-foreground mt-0.5">
-          {rentRecords.length} records · {collectionRate}% collection rate
+          {activeRentRecords.length} records · {collectionRate}% collection rate
         </p>
       </div>
 
@@ -37,7 +39,7 @@ export default async function RentPage() {
           <CardContent className="p-4">
             <p className="text-xs text-muted-foreground mb-1">Total Expected</p>
             <p className="text-xl font-bold text-foreground">{formatRM(totalExpected)}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{rentRecords.length} records</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{activeRentRecords.length} records</p>
           </CardContent>
         </Card>
         <Card className="shadow-sm border-green-100 bg-green-50/40">
@@ -90,7 +92,7 @@ export default async function RentPage() {
         </div>
       </div>
 
-      <RentReminderCenter records={rentRecords} />
+      <RentReminderCenter records={activeRentRecords} />
 
       {/* Records table */}
       <Card className="shadow-sm">

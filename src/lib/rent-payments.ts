@@ -103,6 +103,7 @@ function toRentRecord(row: RentRecordRow): RentRecord {
     propertyName: relationValue(row.properties)?.name ?? "Unknown property",
     unitNumber: relationValue(row.units)?.unit_number ?? "Unknown unit",
     month: formatMonth(row.month_start),
+    monthStart: row.month_start,
     amount: Number(row.amount),
     dueDate: row.due_date,
     status: row.status,
