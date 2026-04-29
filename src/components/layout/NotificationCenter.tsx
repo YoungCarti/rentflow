@@ -56,6 +56,14 @@ const notificationMeta: Record<
   },
 };
 
+type NotificationGroup = {
+  id: "urgent" | "payments" | "maintenance" | "leases";
+  label: string;
+  description: string;
+  icon: typeof Bell;
+  items: AppNotification[];
+};
+
 function loadReadIds() {
   if (typeof window === "undefined") return new Set<string>();
 
@@ -77,6 +85,100 @@ function formatDate(dateStr: string) {
     day: "2-digit",
     month: "short",
   });
+}
+
+function groupNotifications(notifications: AppNotification[]): NotificationGroup[] {
+  const urgent = notifications.filter(
+    (item) => item.severity === "danger" || item.type === "rent_overdue"
+  );
+  const urgentIds = new Set(urgent.map((item) => item.id));
+
+  return [
+    {
+      id: "urgent",
+      label: "Urgent",
+      description: "Needs attention first",
+      icon: AlertCircle,
+      items: urgent,
+    },
+    {
+      id: "payments",
+      label: "Payments",
+      description: "Proofs waiting for review",
+      icon: CircleDollarSign,
+      items: notifications.filter(
+        (item) => item.type === "payment_pending" && !urgentIds.has(item.id)
+      ),
+    },
+    {
+      id: "maintenance",
+      label: "Maintenance",
+      description: "Open work and updates",
+      icon: Wrench,
+      items: notifications.filter(
+        (item) => item.type === "maintenance_update" && !urgentIds.has(item.id)
+      ),
+    },
+    {
+      id: "leases",
+      label: "Leases",
+      description: "Upcoming expiries",
+      icon: CalendarClock,
+      items: notifications.filter(
+        (item) => item.type === "lease_ending" && !urgentIds.has(item.id)
+      ),
+    },
+  ];
+}
+
+function NotificationItem({
+  notification,
+  unread,
+  onOpen,
+}: {
+  notification: AppNotification;
+  unread: boolean;
+  onOpen: () => void;
+}) {
+  const meta = notificationMeta[notification.type];
+  const Icon = meta.icon;
+
+  return (
+    <button
+      type="button"
+      className={cn(
+        "group flex w-full items-start gap-3 rounded-md px-2.5 py-2 text-left transition-colors hover:bg-accent",
+        unread && "bg-muted/50"
+      )}
+      onClick={onOpen}
+    >
+      <div
+        className={cn(
+          "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md border",
+          meta.className
+        )}
+      >
+        <Icon className="h-4 w-4" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start justify-between gap-2">
+          <p className="line-clamp-1 text-sm font-semibold text-foreground">
+            {notification.title}
+          </p>
+          <span className="shrink-0 text-[11px] text-muted-foreground">
+            {formatDate(notification.date)}
+          </span>
+        </div>
+        <p className="mt-0.5 line-clamp-2 text-xs leading-5 text-muted-foreground">
+          {notification.description}
+        </p>
+        <p className="mt-1 text-[11px] font-medium text-muted-foreground">
+          {meta.label}
+        </p>
+      </div>
+      {unread && <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-primary" />}
+    </button>
+  );
 }
 
 export default function NotificationCenter() {
@@ -129,6 +231,10 @@ export default function NotificationCenter() {
     () => notifications.filter((item) => !readIds.has(item.id)).length,
     [notifications, readIds]
   );
+  const notificationGroups = useMemo(
+    () => groupNotifications(notifications).filter((group) => group.items.length > 0),
+    [notifications]
+  );
 
   function markRead(id: string) {
     setReadIds((current) => {
@@ -162,9 +268,16 @@ export default function NotificationCenter() {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[23rem] p-0">
-        <div className="flex items-center justify-between px-4 py-3">
-          <DropdownMenuLabel className="p-0">Notifications</DropdownMenuLabel>
+      <DropdownMenuContent align="end" className="w-[25rem] p-0">
+        <div className="flex items-start justify-between gap-3 px-4 py-3">
+          <div>
+            <DropdownMenuLabel className="p-0">Notifications</DropdownMenuLabel>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {unreadCount > 0
+                ? `${unreadCount} unread item${unreadCount === 1 ? "" : "s"}`
+                : "Everything has been reviewed"}
+            </p>
+          </div>
           <div className="flex items-center gap-1.5">
             <Button
               type="button"
@@ -180,7 +293,7 @@ export default function NotificationCenter() {
           </div>
         </div>
         <DropdownMenuSeparator />
-        <div className="max-h-[28rem] overflow-y-auto p-2">
+        <div className="max-h-[30rem] overflow-y-auto">
           {loading ? (
             <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -195,50 +308,46 @@ export default function NotificationCenter() {
               </p>
             </div>
           ) : (
-            <div className="space-y-1">
-              {notifications.map((notification) => {
-                const meta = notificationMeta[notification.type];
-                const Icon = meta.icon;
-                const unread = !readIds.has(notification.id);
+            <div className="divide-y divide-border">
+              {notificationGroups.map((group) => {
+                const Icon = group.icon;
+                const unreadInGroup = group.items.filter(
+                  (item) => !readIds.has(item.id)
+                ).length;
 
                 return (
-                  <button
-                    key={notification.id}
-                    type="button"
-                    className={cn(
-                      "flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-accent",
-                      unread && "bg-muted/50"
-                    )}
-                    onClick={() => openNotification(notification)}
-                  >
-                    <div
-                      className={cn(
-                        "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border",
-                        meta.className
-                      )}
-                    >
-                      <Icon className="h-4 w-4" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="line-clamp-1 text-sm font-semibold text-foreground">
-                          {notification.title}
-                        </p>
-                        <span className="shrink-0 text-[11px] text-muted-foreground">
-                          {formatDate(notification.date)}
-                        </span>
+                  <section key={group.id} className="p-2.5">
+                    <div className="mb-2 flex items-center justify-between gap-3 px-1">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                          <Icon className="h-3.5 w-3.5" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold uppercase tracking-normal text-foreground">
+                            {group.label}
+                          </p>
+                          <p className="truncate text-[11px] text-muted-foreground">
+                            {group.description}
+                          </p>
+                        </div>
                       </div>
-                      <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
-                        {notification.description}
-                      </p>
-                      <p className="mt-1 text-[11px] font-medium text-muted-foreground">
-                        {meta.label}
-                      </p>
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
+                        {unreadInGroup > 0
+                          ? `${unreadInGroup}/${group.items.length}`
+                          : group.items.length}
+                      </span>
                     </div>
-                    {unread && (
-                      <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-primary" />
-                    )}
-                  </button>
+                    <div className="space-y-1">
+                      {group.items.map((notification) => (
+                        <NotificationItem
+                          key={notification.id}
+                          notification={notification}
+                          unread={!readIds.has(notification.id)}
+                          onOpen={() => openNotification(notification)}
+                        />
+                      ))}
+                    </div>
+                  </section>
                 );
               })}
             </div>
