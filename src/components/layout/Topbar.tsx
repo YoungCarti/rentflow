@@ -124,6 +124,9 @@ export default function Topbar() {
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => router.push("/profile")}>Profile</DropdownMenuItem>
             <DropdownMenuItem onClick={() => router.push("/settings")}>Settings</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push("/subscription")}>
+              Subscription
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem 
               className="text-destructive cursor-pointer"
