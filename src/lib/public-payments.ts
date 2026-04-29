@@ -66,3 +66,28 @@ export async function markPublicRentPaid(paymentLinkId: string) {
   const row = data?.[0] as PublicRentPaymentRow | undefined;
   return row ? toPublicRentPayment(row) : null;
 }
+
+export async function createPublicMaintenanceRequest(
+  paymentLinkId: string,
+  input: {
+    title: string;
+    description: string;
+    category: string;
+    priority: string;
+  }
+) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("create_public_maintenance_request", {
+    link_id: paymentLinkId,
+    request_title: input.title,
+    request_description: input.description,
+    request_category: input.category,
+    request_priority: input.priority,
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  return data as string | null;
+}

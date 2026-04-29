@@ -202,8 +202,10 @@ export default function RentTable({ records }: { records: RentRecord[] }) {
                   <CopyReminderMessageButton
                     tenantName={r.tenantName}
                     tenantPhone={r.tenantPhone}
+                    tenantEmail={r.tenantEmail}
                     month={r.month}
                     amount={r.amount}
+                    dueDate={r.dueDate}
                     paymentLinkId={r.paymentLinkId}
                     status={r.status}
                   />

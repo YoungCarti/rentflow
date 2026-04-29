@@ -10,6 +10,7 @@ import {
   ClipboardList,
   CreditCard,
   BarChart3,
+  Wrench,
   Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,7 @@ const navItems = [
   { label: "Tenants",        href: "/tenants",      icon: Users },
   { label: "Rent Tracking",  href: "/rent",         icon: ClipboardList },
   { label: "Payments",       href: "/payments",     icon: CreditCard },
+  { label: "Maintenance",    href: "/maintenance",  icon: Wrench },
   { label: "Reports",        href: "/reports",      icon: BarChart3 },
   { label: "Subscription",   href: "/subscription", icon: Sparkles },
 ];

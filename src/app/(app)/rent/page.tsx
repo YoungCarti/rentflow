@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import RentTable from "@/components/rent/RentTable";
+import RentReminderCenter from "@/components/rent/RentReminderCenter";
 import { getRentRecords } from "@/lib/rent-payments";
 
 function formatRM(amount: number) {
@@ -88,6 +89,8 @@ export default async function RentPage() {
           <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400 inline-block" /> Overdue</span>
         </div>
       </div>
+
+      <RentReminderCenter records={rentRecords} />
 
       {/* Records table */}
       <Card className="shadow-sm">

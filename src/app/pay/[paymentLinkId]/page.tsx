@@ -1,10 +1,21 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Building2, CheckCircle2, CreditCard, Download, Home, ShieldCheck } from "lucide-react";
+import {
+  Building2,
+  CheckCircle2,
+  CreditCard,
+  Download,
+  Home,
+  ShieldCheck,
+  Wrench,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import StatusBadge from "@/components/ui/StatusBadge";
 import {
+  createPublicMaintenanceRequest,
   getPublicRentPayment,
   markPublicRentPaid,
   type PublicRentPayment,
@@ -97,10 +108,10 @@ export default async function PublicPaymentPage({
   searchParams,
 }: {
   params: Promise<{ paymentLinkId: string }>;
-  searchParams: Promise<{ paid?: string }>;
+  searchParams: Promise<{ paid?: string; maintenance?: string }>;
 }) {
   const { paymentLinkId } = await params;
-  const { paid } = await searchParams;
+  const { paid, maintenance } = await searchParams;
   const payment = await getPublicRentPayment(paymentLinkId);
 
   if (!payment) {
@@ -113,7 +124,29 @@ export default async function PublicPaymentPage({
     redirect(`/pay/${paymentLinkId}?paid=1`);
   }
 
+  async function logMaintenance(formData: FormData) {
+    "use server";
+
+    const title = String(formData.get("title") ?? "").trim();
+    const description = String(formData.get("description") ?? "").trim();
+    const category = String(formData.get("category") ?? "Repairs");
+    const priority = String(formData.get("priority") ?? "Medium");
+
+    if (!title) {
+      redirect(`/pay/${paymentLinkId}?maintenance=missing-title`);
+    }
+
+    await createPublicMaintenanceRequest(paymentLinkId, {
+      title,
+      description,
+      category,
+      priority,
+    });
+    redirect(`/pay/${paymentLinkId}?maintenance=1`);
+  }
+
   const successful = paid === "1" || payment.status === "Paid";
+  const maintenanceLogged = maintenance === "1";
 
   return (
     <main className="min-h-screen bg-muted/30 px-4 py-10">
@@ -161,6 +194,22 @@ export default async function PublicPaymentPage({
                       Download receipt
                     </Link>
                   </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {maintenanceLogged && (
+              <Card className="border-green-200 bg-green-50/70 shadow-sm dark:bg-green-500/10 dark:border-green-500/20">
+                <CardContent className="flex items-start gap-3 p-4">
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 text-green-600" />
+                  <div>
+                    <p className="text-sm font-semibold text-green-700 dark:text-green-400">
+                      Maintenance request submitted
+                    </p>
+                    <p className="mt-1 text-xs text-green-600 dark:text-green-500">
+                      Your landlord can now review it in RentFlow.
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             )}
@@ -220,6 +269,71 @@ export default async function PublicPaymentPage({
                     This MVP uses dummy payment logic. No real card, bank, or wallet charge is made.
                   </p>
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Wrench className="h-4 w-4 text-muted-foreground" />
+                  Report Maintenance
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form action={logMaintenance} className="space-y-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="maintenance-title">Issue</Label>
+                    <Input
+                      id="maintenance-title"
+                      name="title"
+                      placeholder="Leaking pipe, faulty light..."
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="maintenance-category">Category</Label>
+                      <select
+                        id="maintenance-category"
+                        name="category"
+                        className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring"
+                        defaultValue="Repairs"
+                      >
+                        <option value="Plumbing">Plumbing</option>
+                        <option value="Electrical">Electrical</option>
+                        <option value="Cleaning">Cleaning</option>
+                        <option value="Repairs">Repairs</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="maintenance-priority">Priority</Label>
+                      <select
+                        id="maintenance-priority"
+                        name="priority"
+                        className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring"
+                        defaultValue="Medium"
+                      >
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                        <option value="Urgent">Urgent</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="maintenance-description">Notes</Label>
+                    <Input
+                      id="maintenance-description"
+                      name="description"
+                      placeholder="Optional details"
+                    />
+                  </div>
+                  <Button type="submit" variant="outline" className="w-full">
+                    <Wrench className="h-4 w-4" />
+                    Submit Request
+                  </Button>
+                </form>
               </CardContent>
             </Card>
           </aside>

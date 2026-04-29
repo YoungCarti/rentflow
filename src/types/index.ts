@@ -5,6 +5,14 @@ export type RentStatus = "Paid" | "Pending" | "Overdue";
 export type PaymentMethod = "Bank Transfer" | "Cash" | "Online";
 export type PaymentApprovalStatus = "Approved" | "Pending" | "Rejected";
 export type SubscriptionPlan = "Basic" | "Pro";
+export type MaintenanceStatus = "Open" | "In Progress" | "Resolved";
+export type MaintenanceCategory =
+  | "Plumbing"
+  | "Electrical"
+  | "Cleaning"
+  | "Repairs"
+  | "Other";
+export type MaintenancePriority = "Low" | "Medium" | "High" | "Urgent";
 
 export interface Property {
   id: string;
@@ -47,6 +55,7 @@ export interface RentRecord {
   tenantId: string;
   tenantName: string;
   tenantPhone?: string;
+  tenantEmail?: string;
   paymentLinkId?: string;
   propertyName: string;
   unitNumber: string;
@@ -69,4 +78,25 @@ export interface Payment {
   method?: PaymentMethod;
   status: PaymentApprovalStatus;
   proofUrl?: string;
+}
+
+export interface MaintenanceRequest {
+  id: string;
+  propertyId: string;
+  propertyName: string;
+  unitId: string | null;
+  unitNumber: string | null;
+  tenantId: string | null;
+  tenantName: string | null;
+  title: string;
+  description: string;
+  category: MaintenanceCategory;
+  priority: MaintenancePriority;
+  status: MaintenanceStatus;
+  reportedBy: "Landlord" | "Tenant";
+  reportedOn: string;
+  resolvedOn: string | null;
+  estimatedCost: number;
+  actualCost: number;
+  vendorName: string | null;
 }

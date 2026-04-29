@@ -13,7 +13,12 @@ type RentRecordRow = {
   due_date: string;
   status: RentStatus;
   payment_method: PaymentMethod | null;
-  tenants?: Relation<{ name: string; phone?: string | null; payment_link_id?: string | null }>;
+  tenants?: Relation<{
+    name: string;
+    email?: string | null;
+    phone?: string | null;
+    payment_link_id?: string | null;
+  }>;
   properties?: Relation<{ name: string }>;
   units?: Relation<{ unit_number: string }>;
 };
@@ -49,7 +54,7 @@ type SupabaseQueryError = {
 };
 
 const rentRecordSelect =
-  "id, tenant_id, property_id, unit_id, month_start, amount, due_date, status, payment_method, tenants ( name, phone, payment_link_id ), properties ( name ), units ( unit_number )";
+  "id, tenant_id, property_id, unit_id, month_start, amount, due_date, status, payment_method, tenants ( name, email, phone, payment_link_id ), properties ( name ), units ( unit_number )";
 
 const paymentSelect =
   "id, rent_record_id, tenant_id, property_id, unit_id, amount, paid_on, method, approval_status, proof_url, tenants ( name ), properties ( name ), units ( unit_number )";
@@ -92,6 +97,7 @@ function toRentRecord(row: RentRecordRow): RentRecord {
     id: row.id,
     tenantId: row.tenant_id,
     tenantName: relationValue(row.tenants)?.name ?? "Unknown tenant",
+    tenantEmail: relationValue(row.tenants)?.email ?? undefined,
     tenantPhone: relationValue(row.tenants)?.phone ?? undefined,
     paymentLinkId: relationValue(row.tenants)?.payment_link_id ?? undefined,
     propertyName: relationValue(row.properties)?.name ?? "Unknown property",
