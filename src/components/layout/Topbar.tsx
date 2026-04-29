@@ -98,7 +98,13 @@ export default function Topbar({
     <header className="sticky top-0 z-10 flex items-center justify-between h-16 px-6 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
       {/* Search */}
       <div className="flex min-w-0 items-center gap-3">
-        {!sidebarVisible && (
+        <div
+          className={`hidden overflow-hidden transition-[width,opacity,transform] duration-300 ease-in-out md:block ${
+            sidebarVisible
+              ? "w-0 -translate-x-2 opacity-0"
+              : "w-9 translate-x-0 opacity-100"
+          }`}
+        >
           <Button
             type="button"
             variant="ghost"
@@ -107,10 +113,11 @@ export default function Topbar({
             aria-label="Show sidebar"
             title="Show sidebar"
             onClick={onShowSidebar}
+            tabIndex={sidebarVisible ? -1 : 0}
           >
             <Menu className="h-4 w-4" />
           </Button>
-        )}
+        </div>
         <div className="relative w-72 max-w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
           <Input

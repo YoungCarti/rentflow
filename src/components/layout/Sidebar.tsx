@@ -29,61 +29,82 @@ const navItems = [
   { label: "Reports",        href: "/reports",      icon: BarChart3 },
 ];
 
-export default function Sidebar({ onHide }: { onHide: () => void }) {
+export default function Sidebar({
+  visible,
+  onHide,
+}: {
+  visible: boolean;
+  onHide: () => void;
+}) {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden md:flex flex-col w-64 shrink-0 bg-card border-r border-border h-screen sticky top-0">
-      {/* Logo */}
-      <div className="flex items-center justify-between gap-3 px-4 h-16 border-b border-border">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary">
-            <Building2 className="w-4 h-4 text-primary-foreground" />
+    <aside
+      className={cn(
+        "sticky top-0 hidden h-screen shrink-0 overflow-hidden bg-card transition-[width,border-color] duration-300 ease-in-out md:block",
+        visible ? "w-64 border-r border-border" : "w-0 border-r border-transparent"
+      )}
+      aria-hidden={!visible}
+    >
+      <div
+        className={cn(
+          "flex h-full w-64 flex-col transition-[opacity,transform] duration-300 ease-in-out",
+          visible
+            ? "translate-x-0 opacity-100"
+            : "-translate-x-4 opacity-0 pointer-events-none"
+        )}
+      >
+        {/* Logo */}
+        <div className="flex items-center justify-between gap-3 px-4 h-16 border-b border-border">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary">
+              <Building2 className="w-4 h-4 text-primary-foreground" />
+            </div>
+            <span className="truncate text-lg font-bold tracking-tight text-foreground">
+              RentFlow
+            </span>
           </div>
-          <span className="truncate text-lg font-bold tracking-tight text-foreground">
-            RentFlow
-          </span>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
+            aria-label="Hide sidebar"
+            title="Hide sidebar"
+            onClick={onHide}
+          >
+            <PanelLeftClose className="h-4 w-4" />
+          </Button>
         </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
-          aria-label="Hide sidebar"
-          title="Hide sidebar"
-          onClick={onHide}
-        >
-          <PanelLeftClose className="h-4 w-4" />
-        </Button>
-      </div>
 
-      {/* Nav links */}
-      <nav className="flex flex-col gap-1 p-3 flex-1 overflow-y-auto">
-        {navItems.map(({ label, href, icon: Icon }) => {
-          const active = pathname === href || pathname.startsWith(href + "/");
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                active
-                  ? "bg-slate-900 text-white dark:bg-[#262626] dark:text-white"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              )}
-            >
-              <Icon className="w-4 h-4 shrink-0" />
-              {label}
-            </Link>
-          );
-        })}
-      </nav>
+        {/* Nav links */}
+        <nav className="flex flex-col gap-1 p-3 flex-1 overflow-y-auto">
+          {navItems.map(({ label, href, icon: Icon }) => {
+            const active = pathname === href || pathname.startsWith(href + "/");
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                  active
+                    ? "bg-slate-900 text-white dark:bg-[#262626] dark:text-white"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                )}
+              >
+                <Icon className="w-4 h-4 shrink-0" />
+                {label}
+              </Link>
+            );
+          })}
+        </nav>
 
-      {/* Footer */}
-      <div className="p-4 border-t border-border">
-        <p className="text-xs text-muted-foreground text-center">
-          RentFlow v1.0 · MVP
-        </p>
+        {/* Footer */}
+        <div className="p-4 border-t border-border">
+          <p className="text-xs text-muted-foreground text-center">
+            RentFlow v1.0 · MVP
+          </p>
+        </div>
       </div>
     </aside>
   );

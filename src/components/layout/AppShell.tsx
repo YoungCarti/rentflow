@@ -9,9 +9,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-full bg-background">
-      {sidebarVisible && (
-        <Sidebar onHide={() => setSidebarVisible(false)} />
-      )}
+      <Sidebar
+        visible={sidebarVisible}
+        onHide={() => setSidebarVisible(false)}
+      />
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Topbar
           sidebarVisible={sidebarVisible}
