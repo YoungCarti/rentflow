@@ -3,11 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Bell, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import NotificationCenter from "@/components/layout/NotificationCenter";
 import { createClient } from "@/lib/supabase/client";
 import {
   DropdownMenu,
@@ -100,12 +101,7 @@ export default function Topbar() {
 
       {/* Right side */}
       <div className="flex items-center gap-3">
-        {/* Notification bell */}
-        <Button variant="ghost" size="icon" className="relative h-9 w-9">
-          <Bell className="w-4 h-4" />
-          {/* red dot badge */}
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-destructive" />
-        </Button>
+        <NotificationCenter />
 
         {/* Profile dropdown */}
         <DropdownMenu>
