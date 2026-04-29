@@ -1,220 +1,258 @@
+import type { LucideIcon } from "lucide-react";
 import {
-  CheckCircle2,
-  XCircle,
-  Zap,
-  CreditCard,
+  BarChart3,
+  Bell,
+  Building2,
   CalendarDays,
+  CreditCard,
+  Crown,
+  Download,
+  FileText,
+  Headphones,
+  KeyRound,
+  MessageCircle,
+  ReceiptText,
   ShieldCheck,
+  Sparkles,
+  UploadCloud,
+  Users,
+  Wrench,
 } from "lucide-react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import PageHeader from "@/components/layout/PageHeader";
-import { Separator } from "@/components/ui/separator";
 
-// ─── Plan data ────────────────────────────────────────────────────────────────
+type Plan = {
+  name: string;
+  price: number;
+  period: string;
+  description: string;
+  action: string;
+  current?: boolean;
+  featured?: boolean;
+  featuresTitle?: string;
+  features: Array<{
+    label: string;
+    icon: LucideIcon;
+  }>;
+};
 
-const PLANS = [
+const plans: Plan[] = [
   {
-    id: "basic",
-    name: "Basic",
-    price: 49,
-    description: "Everything you need to get started.",
-    current: true,
+    name: "Go",
+    price: 24,
+    period: "MYR / month",
+    description: "Keep the essentials organized for a small rental portfolio",
+    action: "Switch to Go",
     features: [
-      { label: "Up to 3 properties",       included: true },
-      { label: "Up to 20 units",           included: true },
-      { label: "Tenant management",        included: true },
-      { label: "Rent tracking",            included: true },
-      { label: "Basic reports",            included: true },
-      { label: "Email support",            included: true },
-      { label: "Advanced analytics",       included: false },
-      { label: "Payment gateway",          included: false },
-      { label: "Bulk rent reminders",      included: false },
-      { label: "Custom branding",          included: false },
-      { label: "Priority support",         included: false },
+      { label: "Core property dashboard", icon: Building2 },
+      { label: "Tenant and unit records", icon: Users },
+      { label: "Manual rent tracking", icon: ReceiptText },
+      { label: "Basic maintenance log", icon: Wrench },
+      { label: "Lease expiry reminders", icon: CalendarDays },
     ],
   },
   {
-    id: "pro",
-    name: "Pro",
+    name: "Plus",
     price: 99,
-    description: "For serious landlords managing multiple portfolios.",
-    current: false,
+    period: "MYR / month",
+    description: "More access for landlords managing active collections",
+    action: "Your current plan",
+    current: true,
     features: [
-      { label: "Unlimited properties",     included: true },
-      { label: "Unlimited units",          included: true },
-      { label: "Tenant management",        included: true },
-      { label: "Rent tracking",            included: true },
-      { label: "Advanced reports + export",included: true },
-      { label: "Email support",            included: true },
-      { label: "Advanced analytics",       included: true },
-      { label: "Payment gateway",          included: true },
-      { label: "Bulk rent reminders",      included: true },
-      { label: "Custom branding",          included: true },
-      { label: "Priority support",         included: true },
+      { label: "Advanced collection dashboard", icon: BarChart3 },
+      { label: "More tenants, units, and uploads", icon: UploadCloud },
+      { label: "Payment links and proof review", icon: CreditCard },
+      { label: "Automated rent reminders", icon: Bell },
+      { label: "Receipt generation", icon: FileText },
+      { label: "Maintenance cost tracking", icon: Wrench },
+      { label: "Monthly report exports", icon: Download },
+    ],
+  },
+  {
+    name: "Pro",
+    price: 420,
+    period: "MYR / month",
+    description: "Maximize your property operations",
+    action: "Upgrade to Pro",
+    featured: true,
+    featuresTitle: "Everything in Plus, and:",
+    features: [
+      { label: "5x more portfolio capacity", icon: Sparkles },
+      { label: "Priority payment operations", icon: CreditCard },
+      { label: "Custom tenant portal branding", icon: Crown },
+      { label: "Unlimited receipt and document storage", icon: FileText },
+      { label: "Maximum report exports", icon: Download },
+      { label: "Priority support", icon: Headphones },
+      { label: "Early access to new workflows", icon: KeyRound },
+      { label: "Dedicated onboarding guidance", icon: ShieldCheck },
     ],
   },
 ];
 
-const BILLING = {
-  nextDate: "1 May 2026",
-  amount: "RM 49.00",
-  method: "Visa ending in 4242",
-  cycle: "Monthly",
-};
-
-// ─── Reusable feature row ─────────────────────────────────────────────────────
-
-function FeatureRow({ label, included }: { label: string; included: boolean }) {
+function FeatureItem({
+  label,
+  icon: Icon,
+  featured = false,
+}: {
+  label: string;
+  icon: LucideIcon;
+  featured?: boolean;
+}) {
   return (
-    <li className="flex items-center gap-2.5 text-sm">
-      {included ? (
-        <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
-      ) : (
-        <XCircle className="w-4 h-4 text-muted-foreground/40 shrink-0" />
-      )}
-      <span className={included ? "text-foreground" : "text-muted-foreground/60 line-through"}>
+    <li className="flex items-start gap-3 text-sm leading-5">
+      <Icon
+        className={`mt-0.5 h-4 w-4 shrink-0 ${
+          featured ? "text-violet-700 dark:text-violet-100" : "text-foreground"
+        }`}
+      />
+      <span
+        className={
+          featured
+            ? "font-medium text-violet-950 dark:text-white"
+            : "text-foreground"
+        }
+      >
         {label}
       </span>
     </li>
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+function PlanCard({ plan }: { plan: Plan }) {
+  const featured = Boolean(plan.featured);
+
+  return (
+    <section
+      className={`flex min-h-[36rem] flex-col rounded-lg border p-5 shadow-sm ${
+        featured
+          ? "border-violet-400/70 bg-violet-100/80 text-violet-950 shadow-violet-950/5 dark:border-violet-400/45 dark:bg-[#2c214c] dark:text-white"
+          : "border-border bg-card text-card-foreground"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <h2 className="text-2xl font-semibold tracking-normal">{plan.name}</h2>
+
+        {featured && (
+          <div className="inline-flex rounded-full bg-violet-200/80 p-1 text-xs font-semibold text-violet-950 dark:bg-black/25 dark:text-white">
+            <span className="rounded-full bg-violet-950 px-4 py-1 text-white dark:bg-white/15">
+              5x
+            </span>
+            <span className="px-4 py-1 text-violet-700 dark:text-white/55">20x</span>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-6 flex items-end gap-3">
+        <span
+          className={`mb-2 text-base ${
+            featured ? "text-violet-700 dark:text-white/55" : "text-muted-foreground"
+          }`}
+        >
+          RM
+        </span>
+        <span className="text-5xl font-bold leading-none tracking-normal">
+          {plan.price}
+        </span>
+        <span
+          className={`mb-1 text-xs font-semibold ${
+            featured ? "text-violet-800 dark:text-white" : "text-foreground"
+          }`}
+        >
+          {plan.period}
+        </span>
+      </div>
+
+      <p
+        className={`mt-5 min-h-10 text-sm font-semibold leading-5 ${
+          featured ? "text-violet-950 dark:text-white" : "text-foreground"
+        }`}
+      >
+        {plan.description}
+      </p>
+
+      <Button
+        className={`mt-8 h-10 w-full rounded-full ${
+          featured
+            ? "border-0 bg-violet-600 text-white hover:bg-violet-700 dark:bg-violet-500 dark:hover:bg-violet-400"
+            : ""
+        }`}
+        variant={plan.current ? "outline" : featured ? "default" : "outline"}
+        disabled={plan.current}
+      >
+        {plan.action}
+      </Button>
+
+      {plan.featuresTitle && (
+        <p className="mt-7 text-sm font-bold text-violet-950 dark:text-white">
+          {plan.featuresTitle}
+        </p>
+      )}
+
+      <ul className="mt-6 space-y-4">
+        {plan.features.map((feature) => (
+          <FeatureItem
+            key={feature.label}
+            label={feature.label}
+            icon={feature.icon}
+            featured={featured}
+          />
+        ))}
+      </ul>
+
+      <div
+        className={`mt-auto pt-8 text-xs leading-5 ${
+          featured ? "text-violet-800 dark:text-white/80" : "text-muted-foreground"
+        }`}
+      >
+        {featured ? (
+          <>
+            <p>Unlimited usage subject to plan limits.</p>
+            <a className="font-semibold underline underline-offset-2" href="#">
+              I need help with billing
+            </a>
+          </>
+        ) : plan.current ? (
+          <a className="font-semibold underline underline-offset-2" href="#">
+            I need help with billing
+          </a>
+        ) : (
+          <p>This plan may include payment processing fees.</p>
+        )}
+      </div>
+    </section>
+  );
+}
 
 export default function SubscriptionPage() {
   return (
-    <div className="space-y-8 max-w-4xl">
-      <PageHeader
-        title="Subscription"
-        summary="Manage your plan and billing details"
-        action={
-          <Button size="sm" variant="outline" className="gap-2 shrink-0">
-            <Zap className="w-4 h-4 text-amber-500" />
-            Upgrade to Pro
-          </Button>
-        }
-      />
+    <div className="-m-6 min-h-[calc(100vh-4rem)] bg-background px-6 py-8 text-foreground">
+      <div className="mx-auto flex w-full max-w-5xl flex-col items-center">
+        <h1 className="text-center text-2xl font-semibold tracking-normal sm:text-3xl">
+          Upgrade your plan
+        </h1>
 
-      {/* Current plan banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-blue-200 bg-blue-50/60 px-5 py-4">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-100">
-            <ShieldCheck className="w-5 h-5 text-blue-600" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <p className="font-semibold text-foreground">Basic Plan</p>
-              <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-0 text-xs">
-                Active
-              </Badge>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Next billing on {BILLING.nextDate} · {BILLING.amount}
-            </p>
-          </div>
+        <div className="mt-6 inline-flex rounded-full border border-border bg-muted p-1">
+          <button className="rounded-full bg-background px-4 py-1.5 text-xs font-semibold text-foreground shadow-sm">
+            Personal
+          </button>
+          <button className="rounded-full px-4 py-1.5 text-xs font-semibold text-muted-foreground">
+            Business
+          </button>
+        </div>
+
+        <div className="mt-8 grid w-full grid-cols-1 gap-5 lg:grid-cols-3">
+          {plans.map((plan) => (
+            <PlanCard key={plan.name} plan={plan} />
+          ))}
+        </div>
+
+        <div className="mt-14 text-center text-sm text-muted-foreground">
+          <MessageCircle className="mx-auto mb-3 h-5 w-5 text-foreground" />
+          <p>Need more capabilities for your business?</p>
+          <a className="font-semibold text-foreground underline underline-offset-2" href="#">
+            Talk to RentFlow Enterprise
+          </a>
         </div>
       </div>
-
-      {/* Plan cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {PLANS.map((plan) => (
-          <Card
-            key={plan.id}
-            className={`shadow-sm relative overflow-hidden ${
-              !plan.current
-                ? "border-primary ring-1 ring-primary/20"
-                : "border-border"
-            }`}
-          >
-            {/* Pro "Most popular" ribbon */}
-            {!plan.current && (
-              <div className="absolute top-4 right-4">
-                <span className="flex items-center gap-1 text-xs font-semibold bg-primary text-primary-foreground px-2.5 py-1 rounded-full">
-                  <Zap className="w-3 h-3" />
-                  Recommended
-                </span>
-              </div>
-            )}
-
-            <CardHeader className="pb-3">
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-foreground">
-                  RM {plan.price}
-                </span>
-                <span className="text-sm text-muted-foreground">/ month</span>
-              </div>
-              <p className="font-semibold text-lg text-foreground">{plan.name}</p>
-              <p className="text-sm text-muted-foreground">{plan.description}</p>
-            </CardHeader>
-
-            <CardContent className="space-y-4 pt-0">
-              <ul className="space-y-2.5">
-                {plan.features.map((f) => (
-                  <FeatureRow key={f.label} label={f.label} included={f.included} />
-                ))}
-              </ul>
-
-              <div className="pt-2">
-                {plan.current ? (
-                  <Button variant="outline" className="w-full" disabled>
-                    Current Plan
-                  </Button>
-                ) : (
-                  <Button className="w-full gap-2">
-                    <Zap className="w-4 h-4" />
-                    Upgrade to Pro
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Billing details */}
-      <Card className="shadow-sm max-w-lg">
-        <CardHeader className="pb-2">
-          <p className="font-semibold text-base text-foreground">Billing Details</p>
-        </CardHeader>
-        <CardContent className="space-y-3 pt-0">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Billing cycle</span>
-            <span className="font-medium">{BILLING.cycle}</span>
-          </div>
-          <Separator />
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground flex items-center gap-1.5">
-              <CalendarDays className="w-3.5 h-3.5" />
-              Next billing date
-            </span>
-            <span className="font-medium">{BILLING.nextDate}</span>
-          </div>
-          <Separator />
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground flex items-center gap-1.5">
-              <CreditCard className="w-3.5 h-3.5" />
-              Payment method
-            </span>
-            <span className="font-medium">{BILLING.method}</span>
-          </div>
-          <Separator />
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Amount due</span>
-            <span className="font-bold text-foreground">{BILLING.amount}</span>
-          </div>
-
-          <div className="flex gap-2 pt-2">
-            <Button variant="outline" size="sm" className="flex-1">
-              Update Payment Method
-            </Button>
-            <Button variant="outline" size="sm" className="flex-1">
-              View Invoices
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
