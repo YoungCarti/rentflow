@@ -10,12 +10,16 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from "recharts";
-import { occupancyChart } from "@/lib/data";
+import type { OccupancyChartPoint } from "@/lib/reports";
 
-export default function OccupancyLineChart() {
+type OccupancyLineChartProps = {
+  data: OccupancyChartPoint[];
+};
+
+export default function OccupancyLineChart({ data }: OccupancyLineChartProps) {
   return (
     <ResponsiveContainer width="100%" height={240}>
-      <LineChart data={occupancyChart} margin={{ top: 8, right: 4, left: 8, bottom: 0 }}>
+      <LineChart data={data} margin={{ top: 8, right: 4, left: 8, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
         <XAxis
           dataKey="month"
@@ -24,7 +28,7 @@ export default function OccupancyLineChart() {
           tickLine={false}
         />
         <YAxis
-          domain={[60, 100]}
+          domain={[0, 100]}
           tickFormatter={(v) => `${v}%`}
           tick={{ fontSize: 12, fill: "#94a3b8" }}
           axisLine={false}

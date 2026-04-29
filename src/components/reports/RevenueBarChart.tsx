@@ -11,16 +11,21 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import { monthlyRevenueChart } from "@/lib/data";
+import type { ReportChartPoint } from "@/lib/reports";
 
-const avg = Math.round(
-  monthlyRevenueChart.reduce((s, d) => s + d.revenue, 0) / monthlyRevenueChart.length
-);
+type RevenueBarChartProps = {
+  data: ReportChartPoint[];
+};
 
-export default function RevenueBarChart() {
+export default function RevenueBarChart({ data }: RevenueBarChartProps) {
+  const avg =
+    data.length === 0
+      ? 0
+      : Math.round(data.reduce((sum, item) => sum + item.revenue, 0) / data.length);
+
   return (
     <ResponsiveContainer width="100%" height={240}>
-      <BarChart data={monthlyRevenueChart} margin={{ top: 8, right: 4, left: 8, bottom: 0 }}>
+      <BarChart data={data} margin={{ top: 8, right: 4, left: 8, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
         <XAxis
           dataKey="month"
@@ -56,12 +61,10 @@ export default function RevenueBarChart() {
           }}
         />
         <Bar dataKey="revenue" radius={[4, 4, 0, 0]} maxBarSize={48}>
-          {monthlyRevenueChart.map((entry, index) => (
+          {data.map((_, index) => (
             <Cell
               key={index}
-              fill={
-                index === monthlyRevenueChart.length - 1 ? "#1d4ed8" : "#bfdbfe"
-              }
+              fill={index === data.length - 1 ? "#1d4ed8" : "#bfdbfe"}
             />
           ))}
         </Bar>

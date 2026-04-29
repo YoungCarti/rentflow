@@ -6,57 +6,16 @@ import EmptyState from "@/components/ui/empty-state";
 import PageHeader from "@/components/layout/PageHeader";
 import RevenueBarChart from "@/components/reports/RevenueBarChart";
 import OccupancyLineChart from "@/components/reports/OccupancyLineChart";
-import { properties, units, rentRecords } from "@/lib/data";
+import { getReportsStats } from "@/lib/reports";
 
 function formatRM(n: number) {
   return `RM ${n.toLocaleString()}`;
 }
 
-// ─── Derived stats ────────────────────────────────────────────────────────────
+export default async function ReportsPage() {
+  const r = await getReportsStats();
 
-function buildReports() {
-  const paid    = rentRecords.filter((r) => r.status === "Paid");
-  const overdue = rentRecords.filter((r) => r.status === "Overdue");
-  const pending = rentRecords.filter((r) => r.status === "Pending");
-
-  const totalCollected = paid.reduce((s, r) => s + r.amount, 0);
-  const totalOverdue   = overdue.reduce((s, r) => s + r.amount, 0);
-  const totalExpected  = rentRecords.reduce((s, r) => s + r.amount, 0);
-  const collectionRate = Math.round((totalCollected / totalExpected) * 100);
-
-  const occupiedCount = units.filter((u) => u.status === "Occupied").length;
-  const avgOccupancy  = Math.round((occupiedCount / units.length) * 100);
-
-  // Per-property breakdown
-  const propStats = properties.map((p) => {
-    const propUnits    = units.filter((u) => u.propertyId === p.id);
-    const occupied     = propUnits.filter((u) => u.status === "Occupied").length;
-    const occupancy    = Math.round((occupied / propUnits.length) * 100);
-    const propRecords  = rentRecords.filter((r) =>
-      propUnits.some((u) => u.unitNumber === r.unitNumber && u.propertyId === p.id)
-    );
-    const collected    = propRecords.filter((r) => r.status === "Paid").reduce((s, r) => s + r.amount, 0);
-    const propOverdue  = propRecords.filter((r) => r.status === "Overdue").length;
-    return { ...p, occupancy, collected, overdueCount: propOverdue };
-  });
-
-  const best = [...propStats].sort((a, b) => b.monthlyIncome - a.monthlyIncome)[0];
-
-  return {
-    totalCollected,
-    totalOverdue,
-    totalExpected,
-    collectionRate,
-    avgOccupancy,
-    overdueCount: overdue.length,
-    pendingCount: pending.length,
-    propStats,
-    best,
-  };
-}
-
-export default function ReportsPage() {
-  if (properties.length === 0 && rentRecords.length === 0) {
+  if (r.propStats.length === 0 && r.totalExpected === 0) {
     return (
       <div className="space-y-6">
         <PageHeader
@@ -88,13 +47,11 @@ export default function ReportsPage() {
     );
   }
 
-  const r = buildReports();
-
   return (
     <div className="space-y-6">
       <PageHeader
         title="Reports"
-        summary="Financial and occupancy summary · Feb – Apr 2026"
+        summary={`Financial and occupancy summary · ${r.rangeLabel}`}
         action={
           <Button asChild variant="outline" size="sm">
             <Link href="/rent">Open Rent Tracking</Link>
@@ -149,8 +106,12 @@ export default function ReportsPage() {
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Best Property</p>
-              <p className="text-sm font-bold text-foreground leading-tight">{r.best.name}</p>
-              <p className="text-xs text-emerald-600">{formatRM(r.best.monthlyIncome)} / mo</p>
+              <p className="text-sm font-bold text-foreground leading-tight">
+                {r.best?.name ?? "No properties"}
+              </p>
+              <p className="text-xs text-emerald-600">
+                {formatRM(r.best?.monthlyIncome ?? 0)} / mo
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -166,7 +127,7 @@ export default function ReportsPage() {
             </p>
           </CardHeader>
           <CardContent className="pt-0">
-            <RevenueBarChart />
+            <RevenueBarChart data={r.revenueChart} />
           </CardContent>
         </Card>
 
@@ -178,7 +139,7 @@ export default function ReportsPage() {
             </p>
           </CardHeader>
           <CardContent className="pt-0">
-            <OccupancyLineChart />
+            <OccupancyLineChart data={r.occupancyChart} />
           </CardContent>
         </Card>
       </div>
@@ -218,12 +179,12 @@ export default function ReportsPage() {
                   className={`${
                     i < r.propStats.length - 1 ? "border-b border-border" : ""
                   } hover:bg-muted/30 transition-colors ${
-                    p.id === r.best.id ? "bg-emerald-50/40" : ""
+                    p.id === r.best?.id ? "bg-emerald-50/40" : ""
                   }`}
                 >
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-2">
-                      {p.id === r.best.id && (
+                      {p.id === r.best?.id && (
                         <Trophy className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                       )}
                       <span className="font-medium text-foreground">{p.name}</span>
