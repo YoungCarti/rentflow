@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import PaymentsBoard from "@/components/payments/PaymentsBoard";
+import { semanticTone } from "@/lib/color-system";
 import { getPayments } from "@/lib/rent-payments";
 
 function formatRM(n: number) {
@@ -33,24 +34,24 @@ export default async function PaymentsPage() {
             <p className="text-xl font-bold text-foreground">{payments.length}</p>
           </CardContent>
         </Card>
-        <Card className="shadow-sm border-amber-100 bg-amber-50/40">
+        <Card className={`shadow-sm ${semanticTone.pending.surface}`}>
           <CardContent className="p-4">
-            <p className="text-xs text-amber-600 mb-1">Pending Review</p>
-            <p className="text-xl font-bold text-amber-700">{pending.length}</p>
-            <p className="text-xs text-amber-600 mt-0.5">{formatRM(totalPending)}</p>
+            <p className={`mb-1 text-xs ${semanticTone.pending.textSoft}`}>Pending Review</p>
+            <p className={`text-xl font-bold ${semanticTone.pending.text}`}>{pending.length}</p>
+            <p className={`mt-0.5 text-xs ${semanticTone.pending.textSoft}`}>{formatRM(totalPending)}</p>
           </CardContent>
         </Card>
-        <Card className="shadow-sm border-green-100 bg-green-50/40">
+        <Card className={`shadow-sm ${semanticTone.success.surface}`}>
           <CardContent className="p-4">
-            <p className="text-xs text-green-600 mb-1">Approved</p>
-            <p className="text-xl font-bold text-green-700">{approved.length}</p>
-            <p className="text-xs text-green-600 mt-0.5">{formatRM(totalApproved)}</p>
+            <p className={`mb-1 text-xs ${semanticTone.success.textSoft}`}>Approved</p>
+            <p className={`text-xl font-bold ${semanticTone.success.text}`}>{approved.length}</p>
+            <p className={`mt-0.5 text-xs ${semanticTone.success.textSoft}`}>{formatRM(totalApproved)}</p>
           </CardContent>
         </Card>
-        <Card className="shadow-sm border-red-100 bg-red-50/40">
+        <Card className={`shadow-sm ${semanticTone.danger.surface}`}>
           <CardContent className="p-4">
-            <p className="text-xs text-red-600 mb-1">Rejected</p>
-            <p className="text-xl font-bold text-red-700">{rejected.length}</p>
+            <p className={`mb-1 text-xs ${semanticTone.danger.textSoft}`}>Rejected</p>
+            <p className={`text-xl font-bold ${semanticTone.danger.text}`}>{rejected.length}</p>
           </CardContent>
         </Card>
       </div>

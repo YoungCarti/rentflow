@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import StatusBadge from "@/components/ui/StatusBadge";
 import { createClient } from "@/lib/supabase/server";
+import { semanticTone } from "@/lib/color-system";
 import type { OccupancyStatus, Property, Unit } from "@/types";
 
 type UnitRow = {
@@ -145,18 +146,18 @@ export default async function UnitsPage({
           <span className="font-bold text-foreground">{totalUnits}</span>
           <span className="text-muted-foreground">Total Units</span>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-50 dark:bg-green-500/10 border border-green-100 dark:border-green-500/20 text-sm">
-          <span className="font-bold text-green-700 dark:text-green-500">{occupied}</span>
-          <span className="text-green-600 dark:text-green-400">Occupied</span>
+        <div className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm ${semanticTone.success.surface}`}>
+          <span className={`font-bold ${semanticTone.success.text}`}>{occupied}</span>
+          <span className={semanticTone.success.textSoft}>Occupied</span>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-50 dark:bg-slate-500/10 border border-slate-100 dark:border-slate-500/20 text-sm">
-          <span className="font-bold text-slate-700 dark:text-slate-400">{vacant}</span>
-          <span className="text-slate-600 dark:text-slate-400">Vacant</span>
+        <div className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm ${semanticTone.neutral.surface}`}>
+          <span className={`font-bold ${semanticTone.neutral.text}`}>{vacant}</span>
+          <span className={semanticTone.neutral.textSoft}>Vacant</span>
         </div>
         {maintenance > 0 && (
-          <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-orange-50 dark:bg-orange-500/10 border border-orange-100 dark:border-orange-500/20 text-sm">
-            <span className="font-bold text-orange-700 dark:text-orange-500">{maintenance}</span>
-            <span className="text-orange-600 dark:text-orange-400">Maintenance</span>
+          <div className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm ${semanticTone.maintenance.surface}`}>
+            <span className={`font-bold ${semanticTone.maintenance.text}`}>{maintenance}</span>
+            <span className={semanticTone.maintenance.textSoft}>Maintenance</span>
           </div>
         )}
       </div>

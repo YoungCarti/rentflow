@@ -16,6 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import RevenueChart from "@/components/dashboard/RevenueChart";
+import { semanticTone } from "@/lib/color-system";
 import { getDashboardStats, type DashboardStats } from "@/lib/dashboard";
 
 function formatRM(amount: number) {
@@ -55,50 +56,50 @@ function getStatCards(stats: DashboardStats) {
       label: "Properties",
       value: stats.totalProperties,
       icon: Building2,
-      color: "text-blue-600",
-      bg: "bg-blue-50",
+      color: semanticTone.neutral.textSoft,
+      bg: semanticTone.neutral.bg,
     },
     {
       label: "Units",
       value: stats.totalUnits,
       icon: DoorOpen,
-      color: "text-violet-600",
-      bg: "bg-violet-50",
+      color: semanticTone.neutral.textSoft,
+      bg: semanticTone.neutral.bg,
     },
     {
       label: "Occupied",
       value: `${stats.occupiedUnits} (${stats.occupancyRate}%)`,
       icon: CheckCircle2,
-      color: "text-green-600",
-      bg: "bg-green-50",
+      color: semanticTone.success.textSoft,
+      bg: semanticTone.success.bg,
     },
     {
       label: "Vacant",
       value: stats.vacantUnits,
       icon: XCircle,
-      color: "text-slate-500",
-      bg: "bg-slate-100",
+      color: semanticTone.neutral.textSoft,
+      bg: semanticTone.neutral.bg,
     },
     {
       label: "Tenants",
       value: stats.tenantCount,
       icon: Users,
-      color: "text-cyan-600",
-      bg: "bg-cyan-50",
+      color: semanticTone.neutral.textSoft,
+      bg: semanticTone.neutral.bg,
     },
     {
       label: "Revenue",
       value: formatRM(stats.monthlyIncome),
       icon: TrendingUp,
-      color: "text-emerald-600",
-      bg: "bg-emerald-50",
+      color: semanticTone.success.textSoft,
+      bg: semanticTone.success.bg,
     },
     {
       label: "Overdue",
       value: formatRM(stats.overdueRent),
       icon: AlertCircle,
-      color: "text-red-600",
-      bg: "bg-red-50",
+      color: semanticTone.danger.textSoft,
+      bg: semanticTone.danger.bg,
     },
   ];
 }
@@ -124,7 +125,7 @@ export default async function DashboardPage() {
           <span className="text-muted-foreground">Collection focus</span>
           <span
             className={`font-semibold ${
-              stats.overdueRent > 0 ? "text-red-600" : "text-emerald-600"
+              stats.overdueRent > 0 ? semanticTone.danger.textSoft : semanticTone.success.textSoft
             }`}
           >
             {stats.overdueRent > 0 ? formatRM(stats.overdueRent) : "Clear"}
@@ -164,7 +165,7 @@ export default async function DashboardPage() {
               </h2>
               <p className="text-xs text-muted-foreground">Approved payments by month</p>
             </div>
-            <span className="text-sm font-semibold text-emerald-600">
+            <span className={`text-sm font-semibold ${semanticTone.success.textSoft}`}>
               {formatRM(stats.monthlyIncome)}
             </span>
           </div>
@@ -207,7 +208,7 @@ export default async function DashboardPage() {
                         </p>
                         <p
                           className={`text-xs font-semibold ${
-                            urgent ? "text-red-600" : "text-amber-600"
+                            urgent ? semanticTone.danger.textSoft : semanticTone.pending.textSoft
                           }`}
                         >
                           {days}d left
@@ -253,10 +254,10 @@ export default async function DashboardPage() {
                         <span
                           className={`h-2 w-2 rounded-full ${
                             activity.tone === "green"
-                              ? "bg-green-500"
+                              ? semanticTone.success.bgStrong
                               : activity.tone === "amber"
-                                ? "bg-amber-500"
-                                : "bg-blue-500"
+                                ? semanticTone.pending.bgStrong
+                                : semanticTone.scheduled.bgStrong
                           }`}
                         />
                         {activity.label}

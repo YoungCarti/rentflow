@@ -11,6 +11,7 @@ import {
   getRentReminders,
   type RentReminderTiming,
 } from "@/lib/rent-reminders";
+import { semanticTone } from "@/lib/color-system";
 import type { RentRecord } from "@/types";
 
 function timingStyles(timing: RentReminderTiming) {
@@ -18,17 +19,17 @@ function timingStyles(timing: RentReminderTiming) {
     "Before Due": {
       icon: CalendarClock,
       label: "Before due",
-      className: "bg-blue-50 text-blue-700 border-blue-100",
+      className: semanticTone.pending.soft,
     },
     "Due Today": {
       icon: Clock,
       label: "Due today",
-      className: "bg-amber-50 text-amber-700 border-amber-100",
+      className: semanticTone.pending.soft,
     },
     Overdue: {
       icon: AlertCircle,
       label: "Overdue",
-      className: "bg-red-50 text-red-700 border-red-100",
+      className: semanticTone.danger.soft,
     },
   }[timing];
 }
@@ -94,7 +95,7 @@ export default function RentReminderCenter({ records }: { records: RentRecord[] 
       <CardContent className="space-y-3">
         {reminders.length === 0 ? (
           <div className="flex items-center justify-center gap-2 rounded-lg border border-dashed border-border py-8 text-sm text-muted-foreground">
-            <CheckCircle2 className="h-4 w-4 text-green-500" />
+            <CheckCircle2 className={`h-4 w-4 ${semanticTone.success.textSoft}`} />
             No rent reminders needed right now.
           </div>
         ) : (

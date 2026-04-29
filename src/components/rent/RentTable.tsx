@@ -20,6 +20,7 @@ import {
   getHistoricalRentRecords,
   isSupersededByLaterPaidRecord,
 } from "@/lib/rent-reminders";
+import { semanticTone } from "@/lib/color-system";
 import { toast } from "sonner";
 import type { PaymentMethod, RentRecord, RentStatus } from "@/types";
 
@@ -162,14 +163,14 @@ export default function RentTable({ records }: { records: RentRecord[] }) {
                 "text-xs px-1.5 py-0.5 rounded-full font-semibold",
                 activeTab === tab
                   ? tab === "Overdue"
-                    ? "bg-red-100 text-red-700"
+                    ? semanticTone.danger.badge
                     : tab === "Pending"
-                    ? "bg-yellow-100 text-yellow-700"
+                    ? semanticTone.pending.badge
                     : tab === "Paid"
-                    ? "bg-green-100 text-green-700"
+                    ? semanticTone.success.badge
                     : tab === "History"
-                    ? "bg-slate-100 text-slate-700"
-                    : "bg-slate-100 text-slate-600"
+                    ? semanticTone.neutral.badge
+                    : semanticTone.neutral.badge
                   : "bg-muted text-muted-foreground"
               )}
             >
@@ -246,7 +247,7 @@ export default function RentTable({ records }: { records: RentRecord[] }) {
                       {statusHint(r, historical)}
                     </span>
                     {historical && (
-                      <span className="inline-flex rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
+                      <span className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-medium ${semanticTone.neutral.badge}`}>
                         History
                       </span>
                     )}

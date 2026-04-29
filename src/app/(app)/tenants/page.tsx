@@ -9,6 +9,7 @@ import TenantTable from "@/components/tenants/TenantTable";
 import { toast } from "sonner";
 import type { Tenant } from "@/types";
 import { deleteTenantRecord, getTenants } from "@/lib/tenants";
+import { semanticTone } from "@/lib/color-system";
 
 export default function TenantsPage() {
   const router = useRouter();
@@ -92,17 +93,17 @@ export default function TenantsPage() {
           <span className="font-bold text-foreground">{tenants.length}</span>
           <span className="text-muted-foreground">Total</span>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-50 dark:bg-green-500/10 border border-green-100 dark:border-green-500/20 text-sm">
-          <span className="font-bold text-green-700 dark:text-green-500">{paid}</span>
-          <span className="text-green-600 dark:text-green-400">Paid</span>
+        <div className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm ${semanticTone.success.surface}`}>
+          <span className={`font-bold ${semanticTone.success.text}`}>{paid}</span>
+          <span className={semanticTone.success.textSoft}>Paid</span>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-yellow-50 dark:bg-yellow-500/10 border border-yellow-100 dark:border-yellow-500/20 text-sm">
-          <span className="font-bold text-yellow-700 dark:text-yellow-500">{pending}</span>
-          <span className="text-yellow-600 dark:text-yellow-400">Pending</span>
+        <div className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm ${semanticTone.pending.surface}`}>
+          <span className={`font-bold ${semanticTone.pending.text}`}>{pending}</span>
+          <span className={semanticTone.pending.textSoft}>Pending</span>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 text-sm">
-          <span className="font-bold text-red-700 dark:text-red-500">{overdue}</span>
-          <span className="text-red-600 dark:text-red-400">Overdue</span>
+        <div className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm ${semanticTone.danger.surface}`}>
+          <span className={`font-bold ${semanticTone.danger.text}`}>{overdue}</span>
+          <span className={semanticTone.danger.textSoft}>Overdue</span>
         </div>
       </div>
 

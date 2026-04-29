@@ -24,6 +24,7 @@ import {
   updateMaintenanceRequest,
   type MaintenanceRequestInput,
 } from "@/lib/maintenance";
+import { semanticTone } from "@/lib/color-system";
 import { cn } from "@/lib/utils";
 import type {
   MaintenanceCategory,
@@ -79,10 +80,10 @@ function toDraft(request: MaintenanceRequest): CostDraft {
 
 function priorityClass(priority: MaintenancePriority) {
   return {
-    Low: "bg-slate-100 text-slate-600 border-slate-200",
-    Medium: "bg-amber-100 text-amber-700 border-amber-200",
-    High: "bg-orange-100 text-orange-700 border-orange-200",
-    Urgent: "bg-red-100 text-red-700 border-red-200",
+    Low: semanticTone.neutral.badge,
+    Medium: semanticTone.pending.badge,
+    High: semanticTone.danger.badge,
+    Urgent: semanticTone.danger.badge,
   }[priority];
 }
 
@@ -304,8 +305,8 @@ export default function MaintenancePage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="shadow-sm">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50">
-              <AlertTriangle className="h-5 w-5 text-red-500" />
+            <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${semanticTone.pending.bg}`}>
+              <AlertTriangle className={`h-5 w-5 ${semanticTone.pending.textSoft}`} />
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Open</p>
@@ -315,8 +316,8 @@ export default function MaintenancePage() {
         </Card>
         <Card className="shadow-sm">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
-              <Clock className="h-5 w-5 text-blue-600" />
+            <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${semanticTone.scheduled.bg}`}>
+              <Clock className={`h-5 w-5 ${semanticTone.scheduled.textSoft}`} />
             </div>
             <div>
               <p className="text-xs text-muted-foreground">In Progress</p>
@@ -328,8 +329,8 @@ export default function MaintenancePage() {
         </Card>
         <Card className="shadow-sm">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50">
-              <CheckCircle2 className="h-5 w-5 text-green-600" />
+            <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${semanticTone.success.bg}`}>
+              <CheckCircle2 className={`h-5 w-5 ${semanticTone.success.textSoft}`} />
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Resolved</p>
@@ -339,8 +340,8 @@ export default function MaintenancePage() {
         </Card>
         <Card className="shadow-sm">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50">
-              <CircleDollarSign className="h-5 w-5 text-emerald-600" />
+            <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${semanticTone.neutral.bg}`}>
+              <CircleDollarSign className={`h-5 w-5 ${semanticTone.neutral.textSoft}`} />
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Actual Costs</p>

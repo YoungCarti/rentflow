@@ -15,11 +15,12 @@ import {
 import { Button } from "@/components/ui/button";
 import EmptyState from "@/components/ui/empty-state";
 import StatusBadge from "@/components/ui/StatusBadge";
+import { semanticTone } from "@/lib/color-system";
 import { cn } from "@/lib/utils";
 import type { CalendarEvent, CalendarEventType } from "@/lib/calendar";
 
 type ViewMode = "month" | "list";
-type CalendarGroup = "payments" | "maintenance" | "leases";
+type CalendarGroup = "payments" | "maintenance" | "leases" | "inspections";
 
 const groupStyles: Record<
   CalendarGroup,
@@ -28,23 +29,30 @@ const groupStyles: Record<
   payments: {
     label: "Payments",
     icon: Banknote,
-    className: "border-emerald-300 bg-emerald-50 text-emerald-800",
-    soft: "bg-emerald-500/10 text-emerald-700 border-emerald-200",
-    dot: "bg-emerald-500",
+    className: `${semanticTone.pending.bg} ${semanticTone.pending.text} ${semanticTone.pending.border}`,
+    soft: semanticTone.pending.soft,
+    dot: semanticTone.pending.bgStrong,
   },
   maintenance: {
     label: "Maintenance",
     icon: Wrench,
-    className: "border-violet-300 bg-violet-50 text-violet-800",
-    soft: "bg-violet-500/10 text-violet-700 border-violet-200",
-    dot: "bg-violet-500",
+    className: `${semanticTone.maintenance.bg} ${semanticTone.maintenance.text} ${semanticTone.maintenance.border}`,
+    soft: semanticTone.maintenance.soft,
+    dot: semanticTone.maintenance.bgStrong,
   },
   leases: {
     label: "Leases",
     icon: AlertCircle,
-    className: "border-amber-300 bg-amber-50 text-amber-800",
-    soft: "bg-amber-500/10 text-amber-700 border-amber-200",
-    dot: "bg-amber-500",
+    className: `${semanticTone.pending.bg} ${semanticTone.pending.text} ${semanticTone.pending.border}`,
+    soft: semanticTone.pending.soft,
+    dot: semanticTone.pending.bgStrong,
+  },
+  inspections: {
+    label: "Inspections",
+    icon: CalendarCheck,
+    className: `${semanticTone.scheduled.bg} ${semanticTone.scheduled.text} ${semanticTone.scheduled.border}`,
+    soft: semanticTone.scheduled.soft,
+    dot: semanticTone.scheduled.bgStrong,
   },
 };
 
@@ -58,6 +66,7 @@ const eventLabels: Record<CalendarEventType, string> = {
 function eventGroup(type: CalendarEventType): CalendarGroup {
   if (type === "rent_due") return "payments";
   if (type === "maintenance") return "maintenance";
+  if (type === "inspection") return "inspections";
   return "leases";
 }
 
@@ -121,9 +130,10 @@ function EventPill({ event, compact = false }: { event: CalendarEvent; compact?:
     <div
       className={cn(
         "min-w-0 rounded-md border-l-4 bg-card px-2.5 py-2 text-xs shadow-xs",
-        group === "payments" && "border-l-emerald-500",
+        group === "payments" && "border-l-amber-500",
         group === "maintenance" && "border-l-violet-500",
         group === "leases" && "border-l-amber-500",
+        group === "inspections" && "border-l-blue-500",
         compact ? "space-y-0.5" : "space-y-1.5"
       )}
     >
@@ -202,7 +212,7 @@ export default function CalendarView({
       acc[eventGroup(event.type)] += 1;
       return acc;
     },
-    { payments: 0, maintenance: 0, leases: 0 }
+    { payments: 0, maintenance: 0, leases: 0, inspections: 0 }
   );
 
   return (

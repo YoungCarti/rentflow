@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import RentTable from "@/components/rent/RentTable";
 import RentReminderCenter from "@/components/rent/RentReminderCenter";
+import { semanticTone } from "@/lib/color-system";
 import { getRentRecords } from "@/lib/rent-payments";
 import { getActiveRentRecords } from "@/lib/rent-reminders";
 
@@ -42,25 +43,25 @@ export default async function RentPage() {
             <p className="text-xs text-muted-foreground mt-0.5">{activeRentRecords.length} records</p>
           </CardContent>
         </Card>
-        <Card className="shadow-sm border-green-100 bg-green-50/40">
+        <Card className={`shadow-sm ${semanticTone.success.surface}`}>
           <CardContent className="p-4">
-            <p className="text-xs text-green-600 mb-1">Collected</p>
-            <p className="text-xl font-bold text-green-700">{formatRM(totalCollected)}</p>
-            <p className="text-xs text-green-600 mt-0.5">{paid.length} payments</p>
+            <p className={`mb-1 text-xs ${semanticTone.success.textSoft}`}>Collected</p>
+            <p className={`text-xl font-bold ${semanticTone.success.text}`}>{formatRM(totalCollected)}</p>
+            <p className={`mt-0.5 text-xs ${semanticTone.success.textSoft}`}>{paid.length} payments</p>
           </CardContent>
         </Card>
-        <Card className="shadow-sm border-yellow-100 bg-yellow-50/40">
+        <Card className={`shadow-sm ${semanticTone.pending.surface}`}>
           <CardContent className="p-4">
-            <p className="text-xs text-yellow-600 mb-1">Pending</p>
-            <p className="text-xl font-bold text-yellow-700">{formatRM(totalPending)}</p>
-            <p className="text-xs text-yellow-600 mt-0.5">{pending.length} records</p>
+            <p className={`mb-1 text-xs ${semanticTone.pending.textSoft}`}>Pending</p>
+            <p className={`text-xl font-bold ${semanticTone.pending.text}`}>{formatRM(totalPending)}</p>
+            <p className={`mt-0.5 text-xs ${semanticTone.pending.textSoft}`}>{pending.length} records</p>
           </CardContent>
         </Card>
-        <Card className="shadow-sm border-red-100 bg-red-50/40">
+        <Card className={`shadow-sm ${semanticTone.danger.surface}`}>
           <CardContent className="p-4">
-            <p className="text-xs text-red-600 mb-1">Overdue</p>
-            <p className="text-xl font-bold text-red-700">{formatRM(totalOverdue)}</p>
-            <p className="text-xs text-red-600 mt-0.5">{overdue.length} records</p>
+            <p className={`mb-1 text-xs ${semanticTone.danger.textSoft}`}>Overdue</p>
+            <p className={`text-xl font-bold ${semanticTone.danger.text}`}>{formatRM(totalOverdue)}</p>
+            <p className={`mt-0.5 text-xs ${semanticTone.danger.textSoft}`}>{overdue.length} records</p>
           </CardContent>
         </Card>
       </div>
@@ -73,22 +74,22 @@ export default async function RentPage() {
         </div>
         <div className="h-2.5 w-full rounded-full bg-muted overflow-hidden flex">
           <div
-            className="h-full bg-green-500 transition-all"
+            className={`h-full transition-all ${semanticTone.success.bgStrong}`}
             style={{ width: `${totalExpected === 0 ? 0 : (totalCollected / totalExpected) * 100}%` }}
           />
           <div
-            className="h-full bg-yellow-400 transition-all"
+            className="h-full bg-amber-500 transition-all"
             style={{ width: `${totalExpected === 0 ? 0 : (totalPending / totalExpected) * 100}%` }}
           />
           <div
-            className="h-full bg-red-400 transition-all"
+            className={`h-full transition-all ${semanticTone.danger.bgStrong}`}
             style={{ width: `${totalExpected === 0 ? 0 : (totalOverdue / totalExpected) * 100}%` }}
           />
         </div>
         <div className="flex gap-4 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500 inline-block" /> Paid</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-yellow-400 inline-block" /> Pending</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400 inline-block" /> Overdue</span>
+          <span className="flex items-center gap-1"><span className={`inline-block h-2 w-2 rounded-full ${semanticTone.success.bgStrong}`} /> Paid</span>
+          <span className="flex items-center gap-1"><span className={`inline-block h-2 w-2 rounded-full ${semanticTone.pending.bgStrong}`} /> Pending</span>
+          <span className="flex items-center gap-1"><span className={`inline-block h-2 w-2 rounded-full ${semanticTone.danger.bgStrong}`} /> Overdue</span>
         </div>
       </div>
 

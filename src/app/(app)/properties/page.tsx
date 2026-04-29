@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { deletePropertyRecord, getPropertiesWithUnits } from "@/lib/properties";
+import { semanticTone } from "@/lib/color-system";
 import type { Property, Unit } from "@/types";
 
 function formatRM(amount: number) {
@@ -22,7 +23,11 @@ function formatRM(amount: number) {
 
 function OccupancyBar({ rate }: { rate: number }) {
   const color =
-    rate >= 80 ? "bg-green-500" : rate >= 50 ? "bg-amber-400" : "bg-red-500";
+    rate >= 80
+      ? semanticTone.success.bgStrong
+      : rate >= 50
+        ? semanticTone.pending.bgStrong
+        : semanticTone.danger.bgStrong;
   return (
     <div className="space-y-1">
       <div className="flex justify-between text-xs text-muted-foreground">
@@ -184,15 +189,15 @@ export default function PropertiesPage() {
                     <p className="text-lg font-bold text-foreground">{p.unitCount}</p>
                     <p className="text-xs text-muted-foreground">units</p>
                   </div>
-                  <div className="rounded-lg bg-green-50 p-2">
-                    <p className="text-xs text-green-600">Occupied</p>
-                    <p className="text-lg font-bold text-green-700">{p.occupied}</p>
-                    <p className="text-xs text-green-600">units</p>
+                  <div className={`rounded-lg p-2 ${semanticTone.success.bg}`}>
+                    <p className={`text-xs ${semanticTone.success.textSoft}`}>Occupied</p>
+                    <p className={`text-lg font-bold ${semanticTone.success.text}`}>{p.occupied}</p>
+                    <p className={`text-xs ${semanticTone.success.textSoft}`}>units</p>
                   </div>
-                  <div className="rounded-lg bg-slate-50 p-2">
-                    <p className="text-xs text-slate-500">Vacant</p>
-                    <p className="text-lg font-bold text-slate-600">{p.vacant}</p>
-                    <p className="text-xs text-slate-500">units</p>
+                  <div className={`rounded-lg p-2 ${semanticTone.neutral.bg}`}>
+                    <p className={`text-xs ${semanticTone.neutral.textSoft}`}>Vacant</p>
+                    <p className={`text-lg font-bold ${semanticTone.neutral.text}`}>{p.vacant}</p>
+                    <p className={`text-xs ${semanticTone.neutral.textSoft}`}>units</p>
                   </div>
                 </div>
 
@@ -202,14 +207,14 @@ export default function PropertiesPage() {
                     <TrendingUp className="w-4 h-4" />
                     Expected Income
                   </div>
-                  <span className="text-sm font-bold text-emerald-600">
+                  <span className={`text-sm font-bold ${semanticTone.success.textSoft}`}>
                     {formatRM(p.monthlyIncome)}
                   </span>
                 </div>
 
                 {/* Maintenance note */}
                 {p.maintenance > 0 && (
-                  <p className="text-xs text-orange-600 bg-orange-50 border border-orange-100 rounded-md px-3 py-2">
+                  <p className={`rounded-md border px-3 py-2 text-xs ${semanticTone.maintenance.soft}`}>
                     {p.maintenance} unit{p.maintenance > 1 ? "s" : ""} under maintenance
                   </p>
                 )}
@@ -219,10 +224,10 @@ export default function PropertiesPage() {
                    <span
                     className={`shrink-0 text-xs font-semibold px-2 py-1 rounded-full ${
                       p.rate >= 80
-                        ? "bg-green-100 text-green-700"
+                        ? semanticTone.success.badge
                         : p.rate >= 50
-                        ? "bg-amber-100 text-amber-700"
-                        : "bg-red-100 text-red-700"
+                        ? semanticTone.pending.badge
+                        : semanticTone.danger.badge
                     }`}
                   >
                     {p.rate}% Occupied

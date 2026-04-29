@@ -27,6 +27,7 @@ import {
   type AppNotification,
   type NotificationType,
 } from "@/lib/notifications";
+import { semanticTone } from "@/lib/color-system";
 import { cn } from "@/lib/utils";
 
 const readStorageKey = "rentflow-read-notifications";
@@ -38,22 +39,22 @@ const notificationMeta: Record<
   payment_pending: {
     label: "Payment",
     icon: CircleDollarSign,
-    className: "bg-amber-50 text-amber-700 border-amber-100",
+    className: semanticTone.pending.soft,
   },
   lease_ending: {
     label: "Lease",
     icon: CalendarClock,
-    className: "bg-blue-50 text-blue-700 border-blue-100",
+    className: semanticTone.pending.soft,
   },
   rent_overdue: {
     label: "Rent",
     icon: AlertCircle,
-    className: "bg-red-50 text-red-700 border-red-100",
+    className: semanticTone.danger.soft,
   },
   maintenance_update: {
     label: "Maintenance",
     icon: Wrench,
-    className: "bg-violet-50 text-violet-700 border-violet-100",
+    className: semanticTone.maintenance.soft,
   },
 };
 
