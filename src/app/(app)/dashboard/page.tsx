@@ -1,13 +1,12 @@
 import {
-  Building2,
-  DoorOpen,
-  CheckCircle2,
-  XCircle,
-  TrendingUp,
   AlertCircle,
+  Building2,
+  CheckCircle2,
+  DoorOpen,
+  TrendingUp,
   Users,
+  XCircle,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -18,8 +17,6 @@ import {
 } from "@/components/ui/table";
 import RevenueChart from "@/components/dashboard/RevenueChart";
 import { getDashboardStats, type DashboardStats } from "@/lib/dashboard";
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatRM(amount: number) {
   return `RM ${amount.toLocaleString()}`;
@@ -52,33 +49,31 @@ function formatRelativeDate(dateStr: string) {
   return formatter.format(days, "day");
 }
 
-// ─── Stat card data ───────────────────────────────────────────────────────────
-
 function getStatCards(stats: DashboardStats) {
   return [
     {
-      label: "Total Properties",
+      label: "Properties",
       value: stats.totalProperties,
       icon: Building2,
       color: "text-blue-600",
       bg: "bg-blue-50",
     },
     {
-      label: "Total Units",
+      label: "Units",
       value: stats.totalUnits,
       icon: DoorOpen,
       color: "text-violet-600",
       bg: "bg-violet-50",
     },
     {
-      label: "Occupied Units",
+      label: "Occupied",
       value: `${stats.occupiedUnits} (${stats.occupancyRate}%)`,
       icon: CheckCircle2,
       color: "text-green-600",
       bg: "bg-green-50",
     },
     {
-      label: "Vacant Units",
+      label: "Vacant",
       value: stats.vacantUnits,
       icon: XCircle,
       color: "text-slate-500",
@@ -92,14 +87,14 @@ function getStatCards(stats: DashboardStats) {
       bg: "bg-cyan-50",
     },
     {
-      label: "Monthly Revenue",
+      label: "Revenue",
       value: formatRM(stats.monthlyIncome),
       icon: TrendingUp,
       color: "text-emerald-600",
       bg: "bg-emerald-50",
     },
     {
-      label: "Overdue Rent",
+      label: "Overdue",
       value: formatRM(stats.overdueRent),
       icon: AlertCircle,
       color: "text-red-600",
@@ -107,8 +102,6 @@ function getStatCards(stats: DashboardStats) {
     },
   ];
 }
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function DashboardPage() {
   const stats = await getDashboardStats();
@@ -119,58 +112,77 @@ export default async function DashboardPage() {
   }).format(new Date());
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Overview of your portfolio — {monthLabel}
-        </p>
+    <div className="space-y-7">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            Portfolio operations overview · {monthLabel}
+          </p>
+        </div>
+        <div className="inline-flex w-fit items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm">
+          <span className="text-muted-foreground">Collection focus</span>
+          <span
+            className={`font-semibold ${
+              stats.overdueRent > 0 ? "text-red-600" : "text-emerald-600"
+            }`}
+          >
+            {stats.overdueRent > 0 ? formatRM(stats.overdueRent) : "Clear"}
+          </span>
+        </div>
       </div>
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-        {statCards.map(({ label, value, icon: Icon, color, bg }) => (
-          <Card key={label} className="shadow-sm">
-            <CardContent className="flex items-center gap-4 p-5">
-              <div className={`flex items-center justify-center w-11 h-11 rounded-xl ${bg}`}>
-                <Icon className={`w-5 h-5 ${color}`} />
+      <div className="-mx-6 border-y border-border bg-card/45 px-6">
+        <div className="grid grid-cols-2 divide-y divide-border sm:grid-cols-3 xl:grid-cols-7 xl:divide-x xl:divide-y-0">
+          {statCards.map(({ label, value, icon: Icon, color, bg }) => (
+            <div
+              key={label}
+              className="flex min-h-28 items-center gap-3 px-3 py-4 first:pl-0 xl:first:pl-3"
+            >
+              <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${bg}`}>
+                <Icon className={`h-4 w-4 ${color}`} />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">{label}</p>
-                <p className="text-2xl font-bold text-foreground leading-tight">{value}</p>
+              <div className="min-w-0">
+                <p className="text-xs font-medium uppercase tracking-normal text-muted-foreground">
+                  {label}
+                </p>
+                <p className="mt-1 truncate text-xl font-bold leading-tight text-foreground">
+                  {value}
+                </p>
               </div>
-            </CardContent>
-          </Card>
-        ))}
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Chart row */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        {/* Revenue chart — 3/5 width on large screens */}
-        <Card className="lg:col-span-3 shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">
-              Monthly Rent Collection
-            </CardTitle>
-            <p className="text-xs text-muted-foreground">Approved payments by month</p>
-          </CardHeader>
-          <CardContent className="pt-0">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+        <section className="lg:col-span-3">
+          <div className="mb-3 flex items-end justify-between gap-3">
+            <div>
+              <h2 className="text-base font-semibold text-foreground">
+                Monthly Rent Collection
+              </h2>
+              <p className="text-xs text-muted-foreground">Approved payments by month</p>
+            </div>
+            <span className="text-sm font-semibold text-emerald-600">
+              {formatRM(stats.monthlyIncome)}
+            </span>
+          </div>
+          <div className="border-t border-border pt-4">
             <RevenueChart data={stats.chartData} />
-          </CardContent>
-        </Card>
+          </div>
+        </section>
 
-        {/* Upcoming lease expiries — 2/5 width */}
-        <Card className="lg:col-span-2 shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">
+        <section className="lg:col-span-2">
+          <div className="mb-3">
+            <h2 className="text-base font-semibold text-foreground">
               Upcoming Lease Expiries
-            </CardTitle>
+            </h2>
             <p className="text-xs text-muted-foreground">Next 120 days</p>
-          </CardHeader>
-          <CardContent className="pt-0 px-0">
+          </div>
+          <div className="border-t border-border">
             {stats.upcomingLeaseExpiries.length === 0 ? (
-              <p className="px-6 py-8 text-sm text-muted-foreground">
+              <p className="py-8 text-sm text-muted-foreground">
                 No leases expiring in the next 120 days.
               </p>
             ) : (
@@ -178,21 +190,26 @@ export default async function DashboardPage() {
                 {stats.upcomingLeaseExpiries.map((t) => {
                   const days = daysUntil(t.leaseEnd);
                   const urgent = days <= 30;
+
                   return (
-                    <li key={t.id} className="flex items-center justify-between px-6 py-3">
-                      <div>
-                        <p className="text-sm font-medium text-foreground leading-tight">
+                    <li key={t.id} className="flex items-center justify-between gap-4 py-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium leading-tight text-foreground">
                           {t.name}
                         </p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="truncate text-xs text-muted-foreground">
                           {t.propertyName} · Unit {t.unitNumber}
                         </p>
                       </div>
-                      <div className="text-right shrink-0 ml-3">
+                      <div className="shrink-0 text-right">
                         <p className="text-xs text-muted-foreground">
                           {formatDate(t.leaseEnd)}
                         </p>
-                        <p className={`text-xs font-semibold ${urgent ? "text-red-600" : "text-amber-600"}`}>
+                        <p
+                          className={`text-xs font-semibold ${
+                            urgent ? "text-red-600" : "text-amber-600"
+                          }`}
+                        >
                           {days}d left
                         </p>
                       </div>
@@ -201,23 +218,24 @@ export default async function DashboardPage() {
                 })}
               </ul>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </section>
       </div>
 
-      {/* Recent activity */}
-      <Card className="shadow-sm">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base font-semibold">Recent Activity</CardTitle>
-          <p className="text-xs text-muted-foreground">Latest properties, units, and tenants</p>
-        </CardHeader>
-        <CardContent className="p-0">
+      <section>
+        <div className="mb-3">
+          <h2 className="text-base font-semibold text-foreground">Recent Activity</h2>
+          <p className="text-xs text-muted-foreground">
+            Latest properties, units, payments, and tenants
+          </p>
+        </div>
+        <div className="overflow-hidden border-t border-border">
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead>Activity</TableHead>
+                <TableHead className="pl-0">Activity</TableHead>
                 <TableHead>Details</TableHead>
-                <TableHead>Date</TableHead>
+                <TableHead className="pr-0 text-right">Date</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -230,22 +248,22 @@ export default async function DashboardPage() {
               ) : (
                 stats.recentActivity.map((activity) => (
                   <TableRow key={activity.id}>
-                    <TableCell className="font-medium">
+                    <TableCell className="pl-0 font-medium">
                       <span className="inline-flex items-center gap-2">
                         <span
                           className={`h-2 w-2 rounded-full ${
                             activity.tone === "green"
                               ? "bg-green-500"
                               : activity.tone === "amber"
-                              ? "bg-amber-500"
-                              : "bg-blue-500"
+                                ? "bg-amber-500"
+                                : "bg-blue-500"
                           }`}
                         />
                         {activity.label}
                       </span>
                     </TableCell>
                     <TableCell className="text-muted-foreground">{activity.detail}</TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="pr-0 text-right text-muted-foreground">
                       {formatRelativeDate(activity.date)}
                     </TableCell>
                   </TableRow>
@@ -253,8 +271,8 @@ export default async function DashboardPage() {
               )}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
     </div>
   );
 }
