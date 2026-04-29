@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import RentTable from "@/components/rent/RentTable";
 import RentReminderCenter from "@/components/rent/RentReminderCenter";
 import PageHeader from "@/components/layout/PageHeader";
@@ -32,36 +31,29 @@ export default async function RentPage() {
         summary={`${activeRentRecords.length} records · ${collectionRate}% collection rate`}
       />
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="shadow-sm">
-          <CardContent className="p-4">
+      <div className="-mx-6 border-y border-border bg-card/35 px-6">
+        <div className="grid grid-cols-2 divide-y divide-border lg:grid-cols-4 lg:divide-x lg:divide-y-0">
+          <div className="min-h-24 px-3 py-4 first:pl-0 lg:first:pl-3">
             <p className="text-xs text-muted-foreground mb-1">Total Expected</p>
             <p className="text-xl font-bold text-foreground">{formatRM(totalExpected)}</p>
             <p className="text-xs text-muted-foreground mt-0.5">{activeRentRecords.length} records</p>
-          </CardContent>
-        </Card>
-        <Card className={`shadow-sm ${semanticTone.success.surface}`}>
-          <CardContent className="p-4">
+          </div>
+          <div className="min-h-24 px-3 py-4">
             <p className={`mb-1 text-xs ${semanticTone.success.textSoft}`}>Collected</p>
             <p className={`text-xl font-bold ${semanticTone.success.text}`}>{formatRM(totalCollected)}</p>
             <p className={`mt-0.5 text-xs ${semanticTone.success.textSoft}`}>{paid.length} payments</p>
-          </CardContent>
-        </Card>
-        <Card className={`shadow-sm ${semanticTone.pending.surface}`}>
-          <CardContent className="p-4">
+          </div>
+          <div className="min-h-24 px-3 py-4">
             <p className={`mb-1 text-xs ${semanticTone.pending.textSoft}`}>Pending</p>
             <p className={`text-xl font-bold ${semanticTone.pending.text}`}>{formatRM(totalPending)}</p>
             <p className={`mt-0.5 text-xs ${semanticTone.pending.textSoft}`}>{pending.length} records</p>
-          </CardContent>
-        </Card>
-        <Card className={`shadow-sm ${semanticTone.danger.surface}`}>
-          <CardContent className="p-4">
+          </div>
+          <div className="min-h-24 px-3 py-4">
             <p className={`mb-1 text-xs ${semanticTone.danger.textSoft}`}>Overdue</p>
             <p className={`text-xl font-bold ${semanticTone.danger.text}`}>{formatRM(totalOverdue)}</p>
             <p className={`mt-0.5 text-xs ${semanticTone.danger.textSoft}`}>{overdue.length} records</p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Collection rate bar */}
@@ -93,15 +85,17 @@ export default async function RentPage() {
 
       <RentReminderCenter records={activeRentRecords} />
 
-      {/* Records table */}
-      <Card className="shadow-sm">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base font-semibold">Rent Records</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
+      <section>
+        <div className="mb-3">
+          <h2 className="text-base font-semibold text-foreground">Rent Records</h2>
+          <p className="text-xs text-muted-foreground">
+            Current and historical rent records by tenant
+          </p>
+        </div>
+        <div className="border-t border-border pt-3">
           <RentTable records={rentRecords} />
-        </CardContent>
-      </Card>
+        </div>
+      </section>
     </div>
   );
 }

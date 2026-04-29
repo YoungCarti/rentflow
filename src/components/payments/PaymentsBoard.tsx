@@ -12,7 +12,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import StatusBadge from "@/components/ui/StatusBadge";
 import { cn } from "@/lib/utils";
@@ -148,13 +147,13 @@ function PendingCard({
   const approved = resolvedStatus === "Approved";
 
   return (
-    <Card
+    <article
       className={cn(
-        "shadow-sm transition-all",
+        "border-b border-border py-4 transition-opacity",
         resolved && "opacity-60"
       )}
     >
-      <CardContent className="p-4 space-y-3">
+      <div className="space-y-3">
         {/* Tenant + amount */}
         <div className="flex items-start justify-between gap-2">
           <div>
@@ -207,8 +206,8 @@ function PendingCard({
             )}
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </article>
   );
 }
 
@@ -285,7 +284,7 @@ export default function PaymentsBoard({ payments }: { payments: Payment[] }) {
             <p className="text-xs text-muted-foreground">No pending payments to review.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-x-6 border-t border-border sm:grid-cols-2 lg:grid-cols-3">
             {pendingPayments.map((p) => (
               <PendingCard
                 key={p.id}
@@ -332,60 +331,62 @@ export default function PaymentsBoard({ payments }: { payments: Payment[] }) {
           ))}
         </div>
 
-        <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-transparent">
-              <TableHead>Tenant</TableHead>
-              <TableHead>Property · Unit</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Method</TableHead>
-              <TableHead>Proof</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Receipt</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredHistory.map((p) => (
-              <TableRow key={p.id}>
-                <TableCell className="font-medium">{p.tenantName}</TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  {p.propertyName}
-                  <span className="text-foreground font-medium"> · {p.unitNumber}</span>
-                </TableCell>
-                <TableCell className="font-semibold">{formatRM(p.amount)}</TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  {formatDate(p.date)}
-                </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  {p.method ?? "—"}
-                </TableCell>
-                <TableCell>
-                  {p.proofUrl ? (
-                    <ProofLink proofPath={p.proofUrl} />
-                  ) : (
-                    <span className="text-sm text-muted-foreground">—</span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <StatusBadge status={effectiveStatus(p)} />
-                </TableCell>
-                <TableCell>
-                  {effectiveStatus(p) === "Approved" ? (
-                    <Button asChild variant="ghost" size="sm" className="gap-1.5">
-                      <Link href={`/receipts/${p.id}`}>
-                        <Download className="h-3.5 w-3.5" />
-                        View
-                      </Link>
-                    </Button>
-                  ) : (
-                    <span className="text-sm text-muted-foreground">—</span>
-                  )}
-                </TableCell>
+        <div className="overflow-x-auto border-t border-border">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead>Tenant</TableHead>
+                <TableHead>Property · Unit</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Method</TableHead>
+                <TableHead>Proof</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Receipt</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {filteredHistory.map((p) => (
+                <TableRow key={p.id}>
+                  <TableCell className="font-medium">{p.tenantName}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {p.propertyName}
+                    <span className="text-foreground font-medium"> · {p.unitNumber}</span>
+                  </TableCell>
+                  <TableCell className="font-semibold">{formatRM(p.amount)}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {formatDate(p.date)}
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {p.method ?? "—"}
+                  </TableCell>
+                  <TableCell>
+                    {p.proofUrl ? (
+                      <ProofLink proofPath={p.proofUrl} />
+                    ) : (
+                      <span className="text-sm text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge status={effectiveStatus(p)} />
+                  </TableCell>
+                  <TableCell>
+                    {effectiveStatus(p) === "Approved" ? (
+                      <Button asChild variant="ghost" size="sm" className="gap-1.5">
+                        <Link href={`/receipts/${p.id}`}>
+                          <Download className="h-3.5 w-3.5" />
+                          View
+                        </Link>
+                      </Button>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </div>
   );

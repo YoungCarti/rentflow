@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import EmptyState from "@/components/ui/empty-state";
 import PageHeader from "@/components/layout/PageHeader";
 import { Input } from "@/components/ui/input";
@@ -307,65 +306,62 @@ export default function MaintenancePage() {
         }
       />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="shadow-sm">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${semanticTone.pending.bg}`}>
+      <div className="-mx-6 border-y border-border bg-card/35 px-6">
+        <div className="grid grid-cols-2 divide-y divide-border lg:grid-cols-4 lg:divide-x lg:divide-y-0">
+          <div className="flex min-h-24 items-center gap-3 px-3 py-4 first:pl-0 lg:first:pl-3">
+            <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${semanticTone.pending.bg}`}>
               <AlertTriangle className={`h-5 w-5 ${semanticTone.pending.textSoft}`} />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-xs text-muted-foreground">Open</p>
               <p className="text-xl font-bold text-foreground">{open.length}</p>
             </div>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${semanticTone.scheduled.bg}`}>
+          </div>
+          <div className="flex min-h-24 items-center gap-3 px-3 py-4">
+            <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${semanticTone.scheduled.bg}`}>
               <Clock className={`h-5 w-5 ${semanticTone.scheduled.textSoft}`} />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-xs text-muted-foreground">In Progress</p>
               <p className="text-xl font-bold text-foreground">
                 {inProgress.length}
               </p>
             </div>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${semanticTone.success.bg}`}>
+          </div>
+          <div className="flex min-h-24 items-center gap-3 px-3 py-4">
+            <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${semanticTone.success.bg}`}>
               <CheckCircle2 className={`h-5 w-5 ${semanticTone.success.textSoft}`} />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-xs text-muted-foreground">Resolved</p>
               <p className="text-xl font-bold text-foreground">{resolved.length}</p>
             </div>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${semanticTone.neutral.bg}`}>
+          </div>
+          <div className="flex min-h-24 items-center gap-3 px-3 py-4">
+            <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${semanticTone.neutral.bg}`}>
               <CircleDollarSign className={`h-5 w-5 ${semanticTone.neutral.textSoft}`} />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-xs text-muted-foreground">Actual Costs</p>
-              <p className="text-xl font-bold text-foreground">
+              <p className="truncate text-xl font-bold text-foreground">
                 {formatRM(totalActualCost)}
               </p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
-      <Card className="shadow-sm">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base font-semibold">
+      <section>
+        <div className="mb-3">
+          <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
             <Plus className="h-4 w-4" />
             Log Request
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+          </h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Capture the issue, assignment, timing, and expected cost
+          </p>
+        </div>
+        <div className="border-t border-border pt-4">
           <form onSubmit={handleCreate} className="grid gap-4 lg:grid-cols-6">
             <div className="space-y-2 lg:col-span-2">
               <Label>Issue Title</Label>
@@ -549,16 +545,19 @@ export default function MaintenancePage() {
               </Button>
             </div>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
-      <Card className="shadow-sm">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base font-semibold">
+      <section>
+        <div className="mb-3">
+          <h2 className="text-base font-semibold text-foreground">
             Maintenance Requests
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
+          </h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Track status, vendors, estimates, and actual repair spend
+          </p>
+        </div>
+        <div className="border-t border-border">
           {requests.length === 0 ? (
             <EmptyState
               icon={CheckCircle2}
@@ -578,7 +577,7 @@ export default function MaintenancePage() {
               return (
                 <div
                   key={request.id}
-                  className="rounded-lg border border-border bg-card p-4 shadow-sm"
+                  className="border-b border-border py-4 last:border-b-0"
                 >
                   <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                     <div className="min-w-0 flex-1 space-y-2">
@@ -707,8 +706,8 @@ export default function MaintenancePage() {
               );
             })
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
     </div>
   );
 }

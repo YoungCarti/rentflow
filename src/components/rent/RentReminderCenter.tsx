@@ -1,7 +1,6 @@
 "use client";
 
 import { AlertCircle, CalendarClock, CheckCircle2, Clock } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import StatusBadge from "@/components/ui/StatusBadge";
 import CopyReminderMessageButton from "@/components/payments/CopyReminderMessageButton";
 import { cn } from "@/lib/utils";
@@ -58,13 +57,13 @@ export default function RentReminderCenter({ records }: { records: RentRecord[] 
   );
 
   return (
-    <Card className="shadow-sm">
-      <CardHeader className="pb-3">
+    <section>
+      <div className="mb-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle className="text-base font-semibold">
+            <h2 className="text-base font-semibold text-foreground">
               Automated Rent Reminders
-            </CardTitle>
+            </h2>
             <p className="mt-0.5 text-xs text-muted-foreground">
               WhatsApp and email messages generated from due dates and payment links
             </p>
@@ -91,10 +90,10 @@ export default function RentReminderCenter({ records }: { records: RentRecord[] 
             )}
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
+      </div>
+      <div className="space-y-0 border-t border-border">
         {reminders.length === 0 ? (
-          <div className="flex items-center justify-center gap-2 rounded-lg border border-dashed border-border py-8 text-sm text-muted-foreground">
+          <div className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
             <CheckCircle2 className={`h-4 w-4 ${semanticTone.success.textSoft}`} />
             No rent reminders needed right now.
           </div>
@@ -105,7 +104,7 @@ export default function RentReminderCenter({ records }: { records: RentRecord[] 
             return (
               <div
                 key={record.id}
-                className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 lg:flex-row lg:items-center lg:justify-between"
+                className="flex flex-col gap-3 border-b border-border py-4 last:border-b-0 lg:flex-row lg:items-center lg:justify-between"
               >
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
@@ -150,7 +149,7 @@ export default function RentReminderCenter({ records }: { records: RentRecord[] 
             );
           })
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 }

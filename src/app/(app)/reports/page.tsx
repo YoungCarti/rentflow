@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Trophy, TrendingUp, AlertCircle, BarChart2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import EmptyState from "@/components/ui/empty-state";
 import PageHeader from "@/components/layout/PageHeader";
@@ -59,101 +58,96 @@ export default async function ReportsPage() {
         }
       />
 
-      {/* KPI cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="shadow-sm">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-50">
+      <div className="-mx-6 border-y border-border bg-card/35 px-6">
+        <div className="grid grid-cols-2 divide-y divide-border md:grid-cols-4 md:divide-x md:divide-y-0">
+          <div className="flex min-h-24 items-center gap-3 px-3 py-4 first:pl-0 md:first:pl-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-emerald-50">
               <TrendingUp className="w-5 h-5 text-emerald-600" />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-xs text-muted-foreground">Total Collected</p>
-              <p className="text-lg font-bold text-foreground">{formatRM(r.totalCollected)}</p>
+              <p className="truncate text-lg font-bold text-foreground">
+                {formatRM(r.totalCollected)}
+              </p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card className="shadow-sm">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-red-50">
+          <div className="flex min-h-24 items-center gap-3 px-3 py-4">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-red-50">
               <AlertCircle className="w-5 h-5 text-red-500" />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-xs text-muted-foreground">Overdue</p>
-              <p className="text-lg font-bold text-red-600">{formatRM(r.totalOverdue)}</p>
+              <p className="truncate text-lg font-bold text-red-600">
+                {formatRM(r.totalOverdue)}
+              </p>
               <p className="text-xs text-red-400">{r.overdueCount} records</p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card className="shadow-sm">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-50">
+          <div className="flex min-h-24 items-center gap-3 px-3 py-4">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-blue-50">
               <BarChart2 className="w-5 h-5 text-blue-600" />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-xs text-muted-foreground">Collection Rate</p>
               <p className="text-lg font-bold text-foreground">{r.collectionRate}%</p>
               <p className="text-xs text-muted-foreground">of {formatRM(r.totalExpected)}</p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card className="shadow-sm">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-violet-50">
+          <div className="flex min-h-24 items-center gap-3 px-3 py-4">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-violet-50">
               <Trophy className="w-5 h-5 text-violet-600" />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-xs text-muted-foreground">Best Property</p>
-              <p className="text-sm font-bold text-foreground leading-tight">
+              <p className="truncate text-sm font-bold leading-tight text-foreground">
                 {r.best?.name ?? "No properties"}
               </p>
               <p className="text-xs text-emerald-600">
                 {formatRM(r.best?.monthlyIncome ?? 0)} / mo
               </p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
-      {/* Charts row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card className="shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Monthly Revenue</CardTitle>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <section>
+          <div className="mb-3">
+            <h2 className="text-base font-semibold text-foreground">Monthly Revenue</h2>
             <p className="text-xs text-muted-foreground">
               Current month highlighted · dashed line = 6-month average
             </p>
-          </CardHeader>
-          <CardContent className="pt-0">
+          </div>
+          <div className="border-t border-border pt-4">
             <RevenueBarChart data={r.revenueChart} />
-          </CardContent>
-        </Card>
+          </div>
+        </section>
 
-        <Card className="shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Occupancy Rate</CardTitle>
+        <section>
+          <div className="mb-3">
+            <h2 className="text-base font-semibold text-foreground">Occupancy Rate</h2>
             <p className="text-xs text-muted-foreground">
               % of units occupied · target line at 80%
             </p>
-          </CardHeader>
-          <CardContent className="pt-0">
+          </div>
+          <div className="border-t border-border pt-4">
             <OccupancyLineChart data={r.occupancyChart} />
-          </CardContent>
-        </Card>
+          </div>
+        </section>
       </div>
 
-      {/* Per-property breakdown */}
-      <Card className="shadow-sm">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base font-semibold">Property Performance</CardTitle>
+      <section>
+        <div className="mb-3">
+          <h2 className="text-base font-semibold text-foreground">Property Performance</h2>
           <p className="text-xs text-muted-foreground">
             Breakdown by property across all recorded months
           </p>
-        </CardHeader>
-        <CardContent className="p-0">
-          <table className="w-full text-sm">
+        </div>
+        <div className="overflow-x-auto border-t border-border">
+          <table className="w-full min-w-[760px] text-sm">
             <thead>
               <tr className="border-b border-border text-left">
                 <th className="px-5 py-3 font-medium text-muted-foreground">Property</th>
@@ -237,8 +231,8 @@ export default async function ReportsPage() {
               ))}
             </tbody>
           </table>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
     </div>
   );
 }

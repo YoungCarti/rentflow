@@ -12,8 +12,10 @@ import {
   CreditCard,
   BarChart3,
   Wrench,
+  PanelLeftClose,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const navItems = [
   { label: "Dashboard",      href: "/dashboard",    icon: LayoutDashboard },
@@ -27,19 +29,32 @@ const navItems = [
   { label: "Reports",        href: "/reports",      icon: BarChart3 },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ onHide }: { onHide: () => void }) {
   const pathname = usePathname();
 
   return (
     <aside className="hidden md:flex flex-col w-64 shrink-0 bg-card border-r border-border h-screen sticky top-0">
       {/* Logo */}
-      <div className="flex items-center gap-2.5 px-6 h-16 border-b border-border">
-        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary">
-          <Building2 className="w-4 h-4 text-primary-foreground" />
+      <div className="flex items-center justify-between gap-3 px-4 h-16 border-b border-border">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary">
+            <Building2 className="w-4 h-4 text-primary-foreground" />
+          </div>
+          <span className="truncate text-lg font-bold tracking-tight text-foreground">
+            RentFlow
+          </span>
         </div>
-        <span className="text-lg font-bold tracking-tight text-foreground">
-          RentFlow
-        </span>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
+          aria-label="Hide sidebar"
+          title="Hide sidebar"
+          onClick={onHide}
+        >
+          <PanelLeftClose className="h-4 w-4" />
+        </Button>
       </div>
 
       {/* Nav links */}

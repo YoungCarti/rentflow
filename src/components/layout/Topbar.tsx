@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Search } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export default function Topbar() {
+export default function Topbar({
+  sidebarVisible,
+  onShowSidebar,
+}: {
+  sidebarVisible: boolean;
+  onShowSidebar: () => void;
+}) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
 
@@ -91,12 +97,27 @@ export default function Topbar() {
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between h-16 px-6 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
       {/* Search */}
-      <div className="relative w-72 max-w-full">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-        <Input
-          placeholder="Search properties, tenants…"
-          className="pl-9 h-9 bg-muted/40 border-0 focus-visible:ring-1"
-        />
+      <div className="flex min-w-0 items-center gap-3">
+        {!sidebarVisible && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 shrink-0 text-muted-foreground hover:text-foreground"
+            aria-label="Show sidebar"
+            title="Show sidebar"
+            onClick={onShowSidebar}
+          >
+            <Menu className="h-4 w-4" />
+          </Button>
+        )}
+        <div className="relative w-72 max-w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          <Input
+            placeholder="Search properties, tenants…"
+            className="pl-9 h-9 bg-muted/40 border-0 focus-visible:ring-1"
+          />
+        </div>
       </div>
 
       {/* Right side */}
