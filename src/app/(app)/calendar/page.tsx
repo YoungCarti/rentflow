@@ -11,6 +11,10 @@ function parseMonth(value?: string) {
   return new Date(year, month - 1, 1);
 }
 
+function monthKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
 export default async function CalendarPage({
   searchParams,
 }: {
@@ -23,7 +27,7 @@ export default async function CalendarPage({
   return (
     <CalendarView
       events={events}
-      selectedMonth={selectedMonth.toISOString()}
+      selectedMonth={monthKey(selectedMonth)}
     />
   );
 }

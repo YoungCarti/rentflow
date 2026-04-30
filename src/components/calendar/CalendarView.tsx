@@ -75,6 +75,11 @@ function monthKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
+function parseMonthKey(value: string) {
+  const [year, month] = value.split("-").map(Number);
+  return new Date(year, month - 1, 1);
+}
+
 function addMonths(date: Date, months: number) {
   return new Date(date.getFullYear(), date.getMonth() + months, 1);
 }
@@ -92,7 +97,11 @@ function calendarDays(monthStart: Date) {
 }
 
 function dateKey(date: Date) {
-  return date.toISOString().slice(0, 10);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
 
 function formatRM(amount: number) {
@@ -194,7 +203,7 @@ export default function CalendarView({
   selectedMonth: string;
 }) {
   const [viewMode, setViewMode] = useState<ViewMode>("month");
-  const monthStart = useMemo(() => new Date(selectedMonth), [selectedMonth]);
+  const monthStart = useMemo(() => parseMonthKey(selectedMonth), [selectedMonth]);
   const days = useMemo(() => calendarDays(monthStart), [monthStart]);
   const eventsByDate = useMemo(
     () =>
