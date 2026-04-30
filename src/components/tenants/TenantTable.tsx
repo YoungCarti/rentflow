@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import ConfirmationDialog from "@/components/ui/confirmation-dialog";
 import {
   Dialog,
   DialogContent,
@@ -207,6 +208,7 @@ export default function TenantTable({
   const [selected, setSelected]       = useState<Tenant | null>(null);
   const [modalOpen, setModalOpen]     = useState(false);
   const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
+  const [tenantToRegenerate, setTenantToRegenerate] = useState<Tenant | null>(null);
 
   const filtered = tenants.filter((t) => {
     const q = query.toLowerCase();
@@ -223,23 +225,20 @@ export default function TenantTable({
     setModalOpen(true);
   }
 
-  async function handleRegeneratePaymentLink(tenant: Tenant) {
-    const confirmed = confirm(
-      `Regenerate ${tenant.name}'s payment link? The old link will stop working immediately.`
-    );
-
-    if (!confirmed) {
+  async function handleRegeneratePaymentLink() {
+    if (!tenantToRegenerate) {
       return;
     }
 
-    setRegeneratingId(tenant.id);
+    setRegeneratingId(tenantToRegenerate.id);
 
     try {
-      const paymentLinkId = await regenerateTenantPaymentLink(tenant.id);
-      onPaymentLinkRegenerated(tenant.id, paymentLinkId);
+      const paymentLinkId = await regenerateTenantPaymentLink(tenantToRegenerate.id);
+      onPaymentLinkRegenerated(tenantToRegenerate.id, paymentLinkId);
       setSelected((current) =>
-        current?.id === tenant.id ? { ...current, paymentLinkId } : current
+        current?.id === tenantToRegenerate.id ? { ...current, paymentLinkId } : current
       );
+      setTenantToRegenerate(null);
       toast.success("Payment link regenerated.");
     } catch (error) {
       const supabaseError = error as { message?: string };
@@ -337,7 +336,7 @@ export default function TenantTable({
                         <DropdownMenuItem onClick={() => onEdit(t)}>
                           <Edit className="w-4 h-4 mr-2" /> Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => void handleRegeneratePaymentLink(t)}>
+                        <DropdownMenuItem onClick={() => setTenantToRegenerate(t)}>
                           <RefreshCw className="w-4 h-4 mr-2" /> Regenerate link
                         </DropdownMenuItem>
                         <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onDelete(t)}>
@@ -357,8 +356,22 @@ export default function TenantTable({
         tenant={selected}
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        onRegeneratePaymentLink={(tenant) => void handleRegeneratePaymentLink(tenant)}
+        onRegeneratePaymentLink={setTenantToRegenerate}
         regenerating={selected ? regeneratingId === selected.id : false}
+      />
+      <ConfirmationDialog
+        open={Boolean(tenantToRegenerate)}
+        title="Regenerate payment link?"
+        description={
+          tenantToRegenerate
+            ? `This will replace ${tenantToRegenerate.name}'s payment link. The old link will stop working immediately.`
+            : ""
+        }
+        confirmLabel="Regenerate link"
+        variant="default"
+        loading={regeneratingId === tenantToRegenerate?.id}
+        onOpenChange={(open) => !open && setTenantToRegenerate(null)}
+        onConfirm={handleRegeneratePaymentLink}
       />
     </>
   );

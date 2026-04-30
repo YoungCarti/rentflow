@@ -7,6 +7,7 @@ import { MapPin, DoorOpen, TrendingUp, ArrowRight, Plus, MoreVertical, Edit, Tra
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import PageHeader from "@/components/layout/PageHeader";
+import ConfirmationDialog from "@/components/ui/confirmation-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +18,14 @@ import { toast } from "sonner";
 import { deletePropertyRecord, getPropertiesWithUnits } from "@/lib/properties";
 import { semanticTone } from "@/lib/color-system";
 import type { Property, Unit } from "@/types";
+
+type EnrichedProperty = Property & {
+  propUnits: Unit[];
+  occupied: number;
+  vacant: number;
+  maintenance: number;
+  rate: number;
+};
 
 function formatRM(amount: number) {
   return `RM ${amount.toLocaleString()}`;
@@ -50,6 +59,8 @@ export default function PropertiesPage() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
   const [loading, setLoading] = useState(true);
+  const [propertyToDelete, setPropertyToDelete] = useState<EnrichedProperty | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -80,7 +91,7 @@ export default function PropertiesPage() {
   }
 
   // Attach live unit counts from the units array (keeps it in sync)
-  const enriched = properties.map((p) => {
+  const enriched: EnrichedProperty[] = properties.map((p) => {
     const propUnits = units.filter((u) => u.propertyId === p.id);
     const occupied = propUnits.filter((u) => u.status === "Occupied").length;
     const vacant = propUnits.filter((u) => u.status === "Vacant").length;
@@ -95,24 +106,32 @@ export default function PropertiesPage() {
   const totalRevenue = enriched.reduce((s, p) => s + p.monthlyIncome, 0);
   const totalUnits = enriched.reduce((s, p) => s + p.unitCount, 0);
 
-  const handleDelete = async (p: typeof enriched[0]) => {
+  const requestDelete = (p: EnrichedProperty) => {
     if (p.occupied > 0) {
       toast.error("This property has active tenants. Please remove or reassign tenants before deleting this property.");
       return;
     }
-    
-    if (!confirm(`Are you sure you want to delete ${p.name}?`)) {
+
+    setPropertyToDelete(p);
+  };
+
+  const handleDelete = async () => {
+    if (!propertyToDelete) {
       return;
     }
 
     try {
-      await deletePropertyRecord(p.id);
-      setProperties((current) => current.filter((property) => property.id !== p.id));
-      setUnits((current) => current.filter((unit) => unit.propertyId !== p.id));
+      setDeletingId(propertyToDelete.id);
+      await deletePropertyRecord(propertyToDelete.id);
+      setProperties((current) => current.filter((property) => property.id !== propertyToDelete.id));
+      setUnits((current) => current.filter((unit) => unit.propertyId !== propertyToDelete.id));
+      setPropertyToDelete(null);
       toast.success("Property deleted successfully.");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to delete property.";
       toast.error(message);
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -154,7 +173,7 @@ export default function PropertiesPage() {
                     <DropdownMenuItem onClick={() => router.push(`/properties/${p.id}`)}>
                       <Edit className="w-4 h-4 mr-2" /> Edit Details
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => handleDelete(p)}>
+                    <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => requestDelete(p)}>
                       <Trash2 className="w-4 h-4 mr-2" /> Delete
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -296,6 +315,20 @@ export default function PropertiesPage() {
           </div>
         </Card>
       )}
+
+      <ConfirmationDialog
+        open={Boolean(propertyToDelete)}
+        title="Delete property?"
+        description={
+          propertyToDelete
+            ? `This will permanently delete ${propertyToDelete.name} and its vacant units. This cannot be undone.`
+            : ""
+        }
+        confirmLabel="Delete property"
+        loading={deletingId === propertyToDelete?.id}
+        onOpenChange={(open) => !open && setPropertyToDelete(null)}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }

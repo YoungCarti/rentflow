@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import PageHeader from "@/components/layout/PageHeader";
+import ConfirmationDialog from "@/components/ui/confirmation-dialog";
 import TenantTable from "@/components/tenants/TenantTable";
 import { toast } from "sonner";
 import type { Tenant } from "@/types";
@@ -16,6 +17,8 @@ export default function TenantsPage() {
   const router = useRouter();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tenantToDelete, setTenantToDelete] = useState<Tenant | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -49,18 +52,22 @@ export default function TenantsPage() {
   const pending = tenants.filter((t) => t.rentStatus === "Pending").length;
   const overdue = tenants.filter((t) => t.rentStatus === "Overdue").length;
 
-  const handleDelete = async (tenant: Tenant) => {
-    if (!confirm(`Are you sure you want to remove ${tenant.name}? Their unit will become vacant.`)) {
+  const handleDelete = async () => {
+    if (!tenantToDelete) {
       return;
     }
 
     try {
-      await deleteTenantRecord(tenant.id);
-      setTenants((current) => current.filter((record) => record.id !== tenant.id));
+      setDeletingId(tenantToDelete.id);
+      await deleteTenantRecord(tenantToDelete.id);
+      setTenants((current) => current.filter((record) => record.id !== tenantToDelete.id));
+      setTenantToDelete(null);
       toast.success("Tenant removed successfully.");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to remove tenant.";
       toast.error(message);
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -114,11 +121,25 @@ export default function TenantsPage() {
           <TenantTable 
             tenants={tenants} 
             onEdit={(t) => router.push(`/tenants/${t.id}`)} 
-            onDelete={handleDelete} 
+            onDelete={setTenantToDelete}
             onPaymentLinkRegenerated={handlePaymentLinkRegenerated}
           />
         </CardContent>
       </Card>
+
+      <ConfirmationDialog
+        open={Boolean(tenantToDelete)}
+        title="Remove tenant?"
+        description={
+          tenantToDelete
+            ? `This will remove ${tenantToDelete.name} and mark Unit ${tenantToDelete.unitNumber} as vacant. This cannot be undone.`
+            : ""
+        }
+        confirmLabel="Remove tenant"
+        loading={deletingId === tenantToDelete?.id}
+        onOpenChange={(open) => !open && setTenantToDelete(null)}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }
