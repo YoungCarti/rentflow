@@ -21,6 +21,26 @@ interface PropertyFormProps {
   initialUnits?: Unit[];
 }
 
+function normalizeUnitNumber(unitNumber: string) {
+  return unitNumber.trim();
+}
+
+function duplicateUnitNumber(units: Partial<Unit>[]) {
+  const seen = new Set<string>();
+
+  for (const unit of units) {
+    const unitNumber = normalizeUnitNumber(unit.unitNumber ?? "");
+    const key = unitNumber.toLowerCase();
+
+    if (!key) continue;
+    if (seen.has(key)) return unitNumber;
+
+    seen.add(key);
+  }
+
+  return null;
+}
+
 export default function PropertyForm({ initialProperty, initialUnits }: PropertyFormProps) {
   const router = useRouter();
   
@@ -72,15 +92,22 @@ export default function PropertyForm({ initialProperty, initialUnits }: Property
     }
 
     for (const u of units) {
-      if (!u.unitNumber || (u.rent ?? 0) <= 0) {
+      if (!normalizeUnitNumber(u.unitNumber ?? "") || (u.rent ?? 0) <= 0) {
         toast.error("Please fill in all unit details correctly.");
         return;
       }
     }
 
+    const repeatedUnitNumber = duplicateUnitNumber(units);
+
+    if (repeatedUnitNumber) {
+      toast.error(`Unit ${repeatedUnitNumber} already exists in this property.`);
+      return;
+    }
+
     const propertyUnits: PropertyUnitInput[] = units.map((u) => {
       const unit: PropertyUnitInput = {
-        unitNumber: u.unitNumber!,
+        unitNumber: normalizeUnitNumber(u.unitNumber!),
         rent: u.rent!,
         status: (u.status ?? "Vacant") as OccupancyStatus,
         tenantName: u.tenantName || null,

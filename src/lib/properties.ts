@@ -66,7 +66,7 @@ function toPropertyWithUnits(row: PropertyRow): PropertyWithUnits {
 function toUnitRow(propertyId: string, unit: PropertyUnitInput) {
   const row = {
     property_id: propertyId,
-    unit_number: unit.unitNumber,
+    unit_number: unit.unitNumber.trim(),
     rent: unit.rent,
     status: unit.status,
     tenant_name: unit.tenantName ?? null,
@@ -84,6 +84,19 @@ function isUuid(value: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
     value
   );
+}
+
+function isDuplicateUnitNumberError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "23505"
+  );
+}
+
+function duplicateUnitNumberError() {
+  return new Error("Each unit number must be unique within the property.");
 }
 
 export async function getPropertiesWithUnits() {
@@ -147,6 +160,10 @@ export async function createPropertyWithUnits(input: {
 
   if (unitsError) {
     await supabase.from("properties").delete().eq("id", propertyId);
+    if (isDuplicateUnitNumberError(unitsError)) {
+      throw duplicateUnitNumberError();
+    }
+
     throw unitsError;
   }
 
@@ -213,6 +230,10 @@ export async function updatePropertyWithUnits(
       .upsert(existingRows, { onConflict: "id" });
 
     if (upsertError) {
+      if (isDuplicateUnitNumberError(upsertError)) {
+        throw duplicateUnitNumberError();
+      }
+
       throw upsertError;
     }
   }
@@ -221,6 +242,10 @@ export async function updatePropertyWithUnits(
     const { error: unitsError } = await supabase.from("units").insert(newRows);
 
     if (unitsError) {
+      if (isDuplicateUnitNumberError(unitsError)) {
+        throw duplicateUnitNumberError();
+      }
+
       throw unitsError;
     }
   }
