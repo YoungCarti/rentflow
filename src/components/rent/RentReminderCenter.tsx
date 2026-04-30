@@ -93,7 +93,7 @@ export default function RentReminderCenter({ records }: { records: RentRecord[] 
       </div>
       <div className="space-y-0 border-t border-border">
         {reminders.length === 0 ? (
-          <div className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
             <CheckCircle2 className={`h-4 w-4 ${semanticTone.success.textSoft}`} />
             No rent reminders needed right now.
           </div>
@@ -104,7 +104,10 @@ export default function RentReminderCenter({ records }: { records: RentRecord[] 
             return (
               <div
                 key={record.id}
-                className="flex flex-col gap-3 border-b border-border py-4 last:border-b-0 lg:flex-row lg:items-center lg:justify-between"
+                className={cn(
+                  "flex flex-col gap-3 border-b border-border py-4 last:border-b-0 lg:flex-row lg:items-center lg:justify-between",
+                  timing === "Overdue" && "bg-red-50/35 px-3 dark:bg-red-500/10"
+                )}
               >
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">

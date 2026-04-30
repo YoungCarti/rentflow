@@ -101,7 +101,7 @@ export default function CopyReminderMessageButton({
     <div className="inline-flex items-center gap-1.5">
       <Button type="button" variant="ghost" size="sm" onClick={copyReminder}>
         <MessageCircle className="h-3.5 w-3.5" />
-        Copy
+        Copy Reminder
       </Button>
       <Button type="button" variant="outline" size="sm" onClick={openWhatsApp}>
         <MessageCircle className="h-3.5 w-3.5" />

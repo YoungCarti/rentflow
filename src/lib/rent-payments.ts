@@ -72,7 +72,11 @@ function monthStart(date = new Date()) {
 }
 
 function toDateInput(date: Date) {
-  return date.toISOString().slice(0, 10);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
 
 function dueDateForMonth(leaseStart: string, month: Date) {
@@ -157,6 +161,23 @@ async function ensureCurrentMonthRentRecordsWithClient(
   const currentMonth = monthStart();
   const monthStartInput = toDateInput(currentMonth);
   const todayInput = toDateInput(new Date());
+
+  const refreshOverduePendingRecords = async () => {
+    const { error } = await supabase
+      .from("rent_records")
+      .update({ status: "Overdue" })
+      .eq("status", "Pending")
+      .lt("due_date", todayInput);
+
+    if (error) {
+      if (isRentPaymentsSchemaMissing(error)) {
+        return;
+      }
+
+      throw error;
+    }
+  };
+
   const { data: tenants, error } = await supabase
     .from("tenants")
     .select("id, property_id, unit_id, lease_start, lease_end, units ( rent )")
@@ -169,6 +190,7 @@ async function ensureCurrentMonthRentRecordsWithClient(
 
   const rows = ((tenants ?? []) as TenantRentSeedRow[]).map((tenant) => {
     const dueDate = dueDateForMonth(tenant.lease_start, currentMonth);
+    const dueDateInput = toDateInput(dueDate);
 
     return {
       tenant_id: tenant.id,
@@ -176,12 +198,13 @@ async function ensureCurrentMonthRentRecordsWithClient(
       unit_id: tenant.unit_id,
       month_start: monthStartInput,
       amount: Number(relationValue(tenant.units)?.rent ?? 0),
-      due_date: toDateInput(dueDate),
-      status: dueDate < new Date() ? "Overdue" : "Pending",
+      due_date: dueDateInput,
+      status: dueDateInput < todayInput ? "Overdue" : "Pending",
     };
   });
 
   if (rows.length === 0) {
+    await refreshOverduePendingRecords();
     return;
   }
 
@@ -196,6 +219,8 @@ async function ensureCurrentMonthRentRecordsWithClient(
 
     throw upsertError;
   }
+
+  await refreshOverduePendingRecords();
 }
 
 export async function ensureCurrentMonthRentRecords() {
