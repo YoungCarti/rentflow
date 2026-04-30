@@ -15,9 +15,7 @@ import {
   BarChart3,
   Wrench,
   PanelLeftClose,
-  Plug,
   UserCircle,
-  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -38,18 +36,9 @@ const settingsGroups = [
   {
     label: "General Settings",
     items: [
-      { label: "Apps", href: "/settings?section=apps", icon: Plug, section: "apps" },
       { label: "Account", href: "/settings?section=account", icon: UserCircle, section: "account" },
       { label: "Notification", href: "/settings?section=notifications", icon: Bell, section: "notifications" },
       { label: "Language & Region", href: "/settings?section=language-region", icon: Globe2, section: "language-region" },
-    ],
-  },
-  {
-    label: "Workspace Settings",
-    items: [
-      { label: "General", href: "/settings?section=workspace-general", icon: Settings, section: "workspace-general" },
-      { label: "Members", href: "/settings?section=members", icon: Users, section: "members" },
-      { label: "Billing", href: "/settings?section=billing", icon: CreditCard, section: "billing" },
     ],
   },
 ];
