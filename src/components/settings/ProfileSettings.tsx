@@ -42,6 +42,14 @@ type SessionRow = {
   current: boolean;
 };
 
+type TotpFactor = {
+  id: string;
+  friendly_name?: string;
+  factor_type: "totp";
+  status: "verified" | "unverified";
+  created_at?: string;
+};
+
 export default function ProfileSettings({ showHeading = true }: { showHeading?: boolean }) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -63,8 +71,12 @@ export default function ProfileSettings({ showHeading = true }: { showHeading?: 
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [twoStepOpen, setTwoStepOpen] = useState(false);
   const [twoStepEnabled, setTwoStepEnabled] = useState(false);
-  const [twoStepMethod, setTwoStepMethod] = useState<"email" | "authenticator">("email");
   const [twoStepSaving, setTwoStepSaving] = useState(false);
+  const [totpFactor, setTotpFactor] = useState<TotpFactor | null>(null);
+  const [enrollmentFactorId, setEnrollmentFactorId] = useState("");
+  const [enrollmentQr, setEnrollmentQr] = useState("");
+  const [enrollmentSecret, setEnrollmentSecret] = useState("");
+  const [totpCode, setTotpCode] = useState("");
   const [supportAccess, setSupportAccess] = useState(true);
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [sessionSaving, setSessionSaving] = useState(false);
@@ -99,9 +111,9 @@ export default function ProfileSettings({ showHeading = true }: { showHeading?: 
         });
         setNewEmail(currentUser?.email ?? "");
         setNewPhone(currentUser?.phone || (typeof metadata.phone === "string" ? metadata.phone : ""));
-        setTwoStepEnabled(metadata.mfa_enabled === true);
-        setTwoStepMethod(metadata.mfa_method === "authenticator" ? "authenticator" : "email");
       });
+
+      void refreshMfaFactors();
 
       supabase.auth.getSession().then(({ data }) => {
         const lastActive = data.session?.user.last_sign_in_at
@@ -182,8 +194,6 @@ export default function ProfileSettings({ showHeading = true }: { showHeading?: 
           company: form.company,
           role: form.role,
           avatar_url: form.avatarUrl,
-          mfa_enabled: twoStepEnabled,
-          mfa_method: twoStepMethod,
         },
       });
 
@@ -351,16 +361,40 @@ export default function ProfileSettings({ showHeading = true }: { showHeading?: 
     }
   }
 
-  async function handleTwoStepSave() {
+  async function refreshMfaFactors() {
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.mfa.listFactors();
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      const verifiedTotp = data.totp.find((factor) => factor.status === "verified") as TotpFactor | undefined;
+      setTotpFactor(verifiedTotp ?? null);
+      setTwoStepEnabled(Boolean(verifiedTotp));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unable to load MFA factors.";
+      toast.error(message);
+    }
+  }
+
+  async function handleTwoStepOpen() {
+    setTwoStepOpen(true);
+    setTotpCode("");
+
+    if (twoStepEnabled || enrollmentFactorId) {
+      return;
+    }
+
     setTwoStepSaving(true);
 
     try {
       const supabase = createClient();
-      const { error } = await supabase.auth.updateUser({
-        data: {
-          mfa_enabled: twoStepEnabled,
-          mfa_method: twoStepMethod,
-        },
+      const { data, error } = await supabase.auth.mfa.enroll({
+        factorType: "totp",
+        friendlyName: "RentFlow Authenticator",
       });
 
       if (error) {
@@ -368,10 +402,84 @@ export default function ProfileSettings({ showHeading = true }: { showHeading?: 
         return;
       }
 
-      toast.success("2-step verification preference saved.");
+      setEnrollmentFactorId(data.id);
+      setEnrollmentQr(data.totp.qr_code);
+      setEnrollmentSecret(data.totp.secret);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unable to start 2-step verification setup.";
+      toast.error(message);
+    } finally {
+      setTwoStepSaving(false);
+    }
+  }
+
+  async function handleTwoStepVerify(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    if (!enrollmentFactorId || totpCode.trim().length < 6) {
+      toast.error("Enter the 6-digit code from your authenticator app.");
+      return;
+    }
+
+    setTwoStepSaving(true);
+
+    try {
+      const supabase = createClient();
+      const challenge = await supabase.auth.mfa.challenge({ factorId: enrollmentFactorId });
+
+      if (challenge.error) {
+        toast.error(challenge.error.message);
+        return;
+      }
+
+      const verify = await supabase.auth.mfa.verify({
+        factorId: enrollmentFactorId,
+        challengeId: challenge.data.id,
+        code: totpCode.trim(),
+      });
+
+      if (verify.error) {
+        toast.error(verify.error.message);
+        return;
+      }
+
+      toast.success("2-step verification is now enabled.");
+      await refreshMfaFactors();
+      setEnrollmentFactorId("");
+      setEnrollmentQr("");
+      setEnrollmentSecret("");
+      setTotpCode("");
       setTwoStepOpen(false);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Unable to save 2-step verification.";
+      const message = err instanceof Error ? err.message : "Unable to verify authenticator code.";
+      toast.error(message);
+    } finally {
+      setTwoStepSaving(false);
+    }
+  }
+
+  async function handleTwoStepDisable() {
+    if (!totpFactor) {
+      return;
+    }
+
+    setTwoStepSaving(true);
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.mfa.unenroll({ factorId: totpFactor.id });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      toast.success("2-step verification has been disabled.");
+      setTwoStepEnabled(false);
+      setTotpFactor(null);
+      setTwoStepOpen(false);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unable to disable 2-step verification.";
       toast.error(message);
     } finally {
       setTwoStepSaving(false);
@@ -632,8 +740,8 @@ export default function ProfileSettings({ showHeading = true }: { showHeading?: 
 
         <SettingActionRow
           label="2-Step Verifications"
-          description={`Add an additional layer of security to your account during login. ${twoStepEnabled ? `Method: ${twoStepMethod}.` : ""}`}
-          action={<Button type="button" variant="secondary" size="sm" onClick={() => setTwoStepOpen(true)}>Set up</Button>}
+          description={`Add an additional layer of security to your account during login. ${twoStepEnabled ? "Authenticator app enabled." : ""}`}
+          action={<Button type="button" variant="secondary" size="sm" onClick={handleTwoStepOpen}>{twoStepEnabled ? "Manage" : "Set up"}</Button>}
         />
       </section>
 
@@ -749,12 +857,15 @@ export default function ProfileSettings({ showHeading = true }: { showHeading?: 
       <TwoStepDialog
         open={twoStepOpen}
         enabled={twoStepEnabled}
-        method={twoStepMethod}
+        factor={totpFactor}
+        qr={enrollmentQr}
+        secret={enrollmentSecret}
+        code={totpCode}
         loading={twoStepSaving}
-        onEnabledChange={setTwoStepEnabled}
-        onMethodChange={setTwoStepMethod}
+        onCodeChange={setTotpCode}
         onOpenChange={setTwoStepOpen}
-        onSave={handleTwoStepSave}
+        onVerify={handleTwoStepVerify}
+        onDisable={handleTwoStepDisable}
       />
       <DeleteAccountDialog
         open={deleteOpen}
@@ -1015,73 +1126,109 @@ function ChangePasswordDialog({
 function TwoStepDialog({
   open,
   enabled,
-  method,
+  factor,
+  qr,
+  secret,
+  code,
   loading,
-  onEnabledChange,
-  onMethodChange,
+  onCodeChange,
   onOpenChange,
-  onSave,
+  onVerify,
+  onDisable,
 }: {
   open: boolean;
   enabled: boolean;
-  method: "email" | "authenticator";
+  factor: TotpFactor | null;
+  qr: string;
+  secret: string;
+  code: string;
   loading: boolean;
-  onEnabledChange: (enabled: boolean) => void;
-  onMethodChange: (method: "email" | "authenticator") => void;
+  onCodeChange: (code: string) => void;
   onOpenChange: (open: boolean) => void;
-  onSave: () => void;
+  onVerify: (e: React.FormEvent<HTMLFormElement>) => void;
+  onDisable: () => void;
 }) {
   return (
     <Dialog open={open} onOpenChange={(nextOpen) => !loading && onOpenChange(nextOpen)}>
       <DialogContent>
-        <DialogHeader>
-          <div className="mb-1 flex h-10 w-10 items-center justify-center rounded-md bg-muted">
-            <ShieldCheck className="h-5 w-5 text-muted-foreground" />
-          </div>
-          <DialogTitle>2-step verification</DialogTitle>
-          <DialogDescription>
-            Choose how you want to verify your identity during login.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between rounded-md border border-border p-3">
-            <div>
-              <p className="text-sm font-semibold text-foreground">Enable 2-step verification</p>
-              <p className="text-sm text-muted-foreground">Require an extra check after password login.</p>
+        {enabled ? (
+          <div className="space-y-4">
+            <DialogHeader>
+              <div className="mb-1 flex h-10 w-10 items-center justify-center rounded-md bg-muted">
+                <ShieldCheck className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <DialogTitle>2-step verification is enabled</DialogTitle>
+              <DialogDescription>
+                Your account requires an authenticator code after password login.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="rounded-md border border-border p-3">
+              <p className="text-sm font-semibold text-foreground">
+                {factor?.friendly_name || "Authenticator app"}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Verified TOTP factor
+              </p>
             </div>
-            <SwitchToggle checked={enabled} onChange={onEnabledChange} label="Enable 2-step verification" />
+            <DialogFooter>
+              <Button type="button" variant="destructive" disabled={loading} onClick={onDisable}>
+                {loading ? "Disabling..." : "Disable 2-step"}
+              </Button>
+              <Button type="button" variant="outline" disabled={loading} onClick={() => onOpenChange(false)}>
+                Close
+              </Button>
+            </DialogFooter>
           </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <button
-              type="button"
-              className={`rounded-md border p-3 text-left transition-colors ${
-                method === "email" ? "border-foreground bg-muted" : "border-border hover:bg-muted/70"
-              }`}
-              onClick={() => onMethodChange("email")}
-            >
-              <p className="text-sm font-semibold text-foreground">Email code</p>
-              <p className="mt-1 text-xs text-muted-foreground">Send a one-time code to your verified email.</p>
-            </button>
-            <button
-              type="button"
-              className={`rounded-md border p-3 text-left transition-colors ${
-                method === "authenticator" ? "border-foreground bg-muted" : "border-border hover:bg-muted/70"
-              }`}
-              onClick={() => onMethodChange("authenticator")}
-            >
-              <p className="text-sm font-semibold text-foreground">Authenticator app</p>
-              <p className="mt-1 text-xs text-muted-foreground">Use an app such as Google Authenticator.</p>
-            </button>
-          </div>
-        </div>
-        <DialogFooter>
-          <Button type="button" disabled={loading} onClick={onSave}>
-            {loading ? "Saving..." : "Save setup"}
-          </Button>
-          <Button type="button" variant="outline" disabled={loading} onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-        </DialogFooter>
+        ) : (
+          <form onSubmit={onVerify} className="space-y-4">
+            <DialogHeader>
+              <div className="mb-1 flex h-10 w-10 items-center justify-center rounded-md bg-muted">
+                <ShieldCheck className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <DialogTitle>Set up authenticator app</DialogTitle>
+              <DialogDescription>
+                Scan the QR code with an authenticator app, then enter the 6-digit code.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-[12rem_1fr]">
+              <div className="flex h-48 items-center justify-center rounded-md border border-border bg-white p-3">
+                {qr ? (
+                  // Supabase returns a QR code as an SVG data URL.
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={qr} alt="Authenticator QR code" className="h-full w-full object-contain" />
+                ) : (
+                  <p className="text-sm text-muted-foreground">Preparing QR...</p>
+                )}
+              </div>
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="totp-secret">Manual setup key</Label>
+                  <Input id="totp-secret" value={secret} readOnly className="font-mono text-xs" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="totp-code">Authenticator code</Label>
+                  <Input
+                    id="totp-code"
+                    value={code}
+                    onChange={(e) => onCodeChange(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    placeholder="123456"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={loading || !qr}>
+                {loading ? "Verifying..." : "Enable 2-step"}
+              </Button>
+              <Button type="button" variant="outline" disabled={loading} onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+            </DialogFooter>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );

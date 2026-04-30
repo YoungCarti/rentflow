@@ -54,8 +54,20 @@ function SignInForm() {
         return;
       }
 
+      const aal = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+
+      if (aal.error) {
+        setError(aal.error.message);
+        toast.error(aal.error.message);
+        return;
+      }
+
       toast.success("Welcome back!");
-      router.replace(next);
+      if (aal.data.nextLevel === "aal2" && aal.data.currentLevel !== aal.data.nextLevel) {
+        router.replace(`/verify-mfa?next=${encodeURIComponent(next)}`);
+      } else {
+        router.replace(next);
+      }
       router.refresh();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unable to sign in.";

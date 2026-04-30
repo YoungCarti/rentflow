@@ -14,6 +14,7 @@ const protectedRoutes = [
   "/subscription",
   "/settings",
   "/profile",
+  "/verify-mfa",
 ];
 
 const authRoutes = ["/sign-in", "/register", "/forgot-password"];
