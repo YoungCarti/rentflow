@@ -217,7 +217,7 @@ function SettingsContent() {
   }
 
   return (
-    <div className={`space-y-8 ${activeSection === "account" ? "max-w-5xl" : "max-w-2xl"}`}>
+    <div className={`mx-auto w-full space-y-8 ${activeSection === "account" ? "max-w-5xl" : "max-w-2xl"}`}>
       {activeSection !== "account" && (
         <PageHeader
           title={sectionCopy.title}
