@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Menu, Search } from "lucide-react";
+import { LayoutDashboard, Menu, Search } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,8 @@ export default function Topbar({
   onShowSidebar: () => void;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const isSettings = pathname === "/settings";
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -118,13 +120,25 @@ export default function Topbar({
             <Menu className="h-4 w-4" />
           </Button>
         </div>
-        <div className="relative w-72 max-w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-          <Input
-            placeholder="Search properties, tenants…"
-            className="pl-9 h-9 bg-muted/40 border-0 focus-visible:ring-1"
-          />
-        </div>
+        {isSettings ? (
+          <Button
+            type="button"
+            variant="secondary"
+            className="h-9 gap-2 px-3"
+            onClick={() => router.push("/dashboard")}
+          >
+            <LayoutDashboard className="h-4 w-4" />
+            Go to Dashboard
+          </Button>
+        ) : (
+          <div className="relative w-72 max-w-full">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <Input
+              placeholder="Search properties, tenants…"
+              className="pl-9 h-9 bg-muted/40 border-0 focus-visible:ring-1"
+            />
+          </div>
+        )}
       </div>
 
       {/* Right side */}
