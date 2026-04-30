@@ -21,6 +21,7 @@ const paymentSelect =
   "id, rent_record_id, tenant_id, amount, paid_on, method, approval_status, proof_url, tenants ( name ), properties ( name ), units ( unit_number )";
 
 const PAYMENT_PROOFS_BUCKET = "payment-proofs";
+const ACTIVE_PAYMENT_STATUSES: PaymentApprovalStatus[] = ["Pending", "Approved"];
 
 function relationValue<T>(relation: Relation<T> | undefined) {
   if (Array.isArray(relation)) {
@@ -48,6 +49,37 @@ function toPayment(row: PaymentRow): Payment {
 
 function safeFileName(fileName: string) {
   return fileName.replace(/[^a-zA-Z0-9._-]/g, "-").replace(/-+/g, "-");
+}
+
+function isActivePaymentConflict(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "23505"
+  );
+}
+
+function activePaymentError() {
+  return new Error("This rent record already has a pending or approved payment.");
+}
+
+async function assertNoActivePayment(rentRecordId: string) {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("payments")
+    .select("id")
+    .eq("rent_record_id", rentRecordId)
+    .in("approval_status", ACTIVE_PAYMENT_STATUSES)
+    .limit(1);
+
+  if (error) {
+    throw error;
+  }
+
+  if ((data ?? []).length > 0) {
+    throw activePaymentError();
+  }
 }
 
 async function uploadPaymentProof(input: {
@@ -93,10 +125,8 @@ export async function submitPayment(input: {
   proofFile: File;
 }) {
   const supabase = createClient();
-  const proofPath = await uploadPaymentProof({
-    rentRecordId: input.rentRecordId,
-    file: input.proofFile,
-  });
+  await assertNoActivePayment(input.rentRecordId);
+
   const { data: rentRecord, error: rentRecordError } = await supabase
     .from("rent_records")
     .select("id, tenant_id, property_id, unit_id")
@@ -106,6 +136,11 @@ export async function submitPayment(input: {
   if (rentRecordError) {
     throw rentRecordError;
   }
+
+  const proofPath = await uploadPaymentProof({
+    rentRecordId: input.rentRecordId,
+    file: input.proofFile,
+  });
 
   const { data, error } = await supabase
     .from("payments")
@@ -124,6 +159,12 @@ export async function submitPayment(input: {
     .single();
 
   if (error) {
+    await supabase.storage.from(PAYMENT_PROOFS_BUCKET).remove([proofPath]);
+
+    if (isActivePaymentConflict(error)) {
+      throw activePaymentError();
+    }
+
     throw error;
   }
 
