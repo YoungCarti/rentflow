@@ -1,15 +1,26 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Plus } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Monitor, Plus, ShieldCheck, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { createClient } from "@/lib/supabase/client";
+
+const MAX_AVATAR_SIZE = 2 * 1024 * 1024;
 
 const DEFAULT = {
   firstName: "",
@@ -18,15 +29,48 @@ const DEFAULT = {
   phone: "",
   company: "",
   role: "Owner",
+  avatarUrl: "",
+};
+
+type ProfileForm = typeof DEFAULT;
+
+type SessionRow = {
+  id: string;
+  device: string;
+  location: string;
+  lastActive: string;
+  current: boolean;
 };
 
 export default function ProfileSettings({ showHeading = true }: { showHeading?: boolean }) {
-  const [form, setForm] = useState(DEFAULT);
+  const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [form, setForm] = useState<ProfileForm>(DEFAULT);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [twoStepEnabled, setTwoStepEnabled] = useState(true);
+  const [avatarPreview, setAvatarPreview] = useState("");
+  const [emailOpen, setEmailOpen] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [emailSaving, setEmailSaving] = useState(false);
+  const [phoneOpen, setPhoneOpen] = useState(false);
+  const [newPhone, setNewPhone] = useState("");
+  const [pendingPhone, setPendingPhone] = useState("");
+  const [phoneOtp, setPhoneOtp] = useState("");
+  const [phoneStep, setPhoneStep] = useState<"phone" | "verify">("phone");
+  const [phoneSaving, setPhoneSaving] = useState(false);
+  const [passwordOpen, setPasswordOpen] = useState(false);
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [twoStepOpen, setTwoStepOpen] = useState(false);
+  const [twoStepEnabled, setTwoStepEnabled] = useState(false);
+  const [twoStepMethod, setTwoStepMethod] = useState<"email" | "authenticator">("email");
+  const [twoStepSaving, setTwoStepSaving] = useState(false);
   const [supportAccess, setSupportAccess] = useState(true);
+  const [sessions, setSessions] = useState<SessionRow[]>([]);
+  const [sessionSaving, setSessionSaving] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deleteSaving, setDeleteSaving] = useState(false);
 
   useEffect(() => {
     try {
@@ -48,10 +92,31 @@ export default function ProfileSettings({ showHeading = true }: { showHeading?: 
             typeof metadata.first_name === "string" ? metadata.first_name : emailPrefix,
           lastName: typeof metadata.last_name === "string" ? metadata.last_name : "",
           email: currentUser?.email ?? "",
-          phone: typeof metadata.phone === "string" ? metadata.phone : "",
+          phone: currentUser?.phone || (typeof metadata.phone === "string" ? metadata.phone : ""),
           company: typeof metadata.company === "string" ? metadata.company : "",
           role: typeof metadata.role === "string" ? metadata.role : "Owner",
+          avatarUrl: typeof metadata.avatar_url === "string" ? metadata.avatar_url : "",
         });
+        setNewEmail(currentUser?.email ?? "");
+        setNewPhone(currentUser?.phone || (typeof metadata.phone === "string" ? metadata.phone : ""));
+        setTwoStepEnabled(metadata.mfa_enabled === true);
+        setTwoStepMethod(metadata.mfa_method === "authenticator" ? "authenticator" : "email");
+      });
+
+      supabase.auth.getSession().then(({ data }) => {
+        const lastActive = data.session?.user.last_sign_in_at
+          ? new Date(data.session.user.last_sign_in_at).toLocaleString()
+          : "Now";
+
+        setSessions([
+          {
+            id: "current",
+            device: getDeviceName(),
+            location: "Current device",
+            lastActive,
+            current: true,
+          },
+        ]);
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unable to load profile.";
@@ -59,11 +124,48 @@ export default function ProfileSettings({ showHeading = true }: { showHeading?: 
     }
   }, []);
 
-  function handleChange(key: keyof typeof DEFAULT) {
+  function handleChange(key: keyof ProfileForm) {
     return (e: React.ChangeEvent<HTMLInputElement>) => {
       setForm((f) => ({ ...f, [key]: e.target.value }));
       setSaved(false);
     };
+  }
+
+  function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    if (!["image/png", "image/jpeg", "image/gif"].includes(file.type)) {
+      toast.error("Please upload a PNG, JPEG, or GIF.");
+      return;
+    }
+
+    if (file.size > MAX_AVATAR_SIZE) {
+      toast.error("Profile images must be under 2MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = typeof reader.result === "string" ? reader.result : "";
+      setAvatarPreview(dataUrl);
+      setForm((f) => ({ ...f, avatarUrl: dataUrl }));
+      setSaved(false);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function handleRemoveAvatar() {
+    setAvatarPreview("");
+    setForm((f) => ({ ...f, avatarUrl: "" }));
+    setSaved(false);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -74,13 +176,14 @@ export default function ProfileSettings({ showHeading = true }: { showHeading?: 
     try {
       const supabase = createClient();
       const { error } = await supabase.auth.updateUser({
-        email: form.email,
         data: {
           first_name: form.firstName,
           last_name: form.lastName,
-          phone: form.phone,
           company: form.company,
           role: form.role,
+          avatar_url: form.avatarUrl,
+          mfa_enabled: twoStepEnabled,
+          mfa_method: twoStepMethod,
         },
       });
 
@@ -91,6 +194,7 @@ export default function ProfileSettings({ showHeading = true }: { showHeading?: 
 
       const { data } = await supabase.auth.getUser();
       setUser(data.user);
+      setAvatarPreview("");
       setSaved(true);
       toast.success("Profile updated successfully.");
     } catch (err) {
@@ -98,6 +202,251 @@ export default function ProfileSettings({ showHeading = true }: { showHeading?: 
       toast.error(message);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleEmailSave(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    if (!newEmail || newEmail === form.email) {
+      setEmailOpen(false);
+      return;
+    }
+
+    setEmailSaving(true);
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.updateUser({ email: newEmail });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      toast.success("Verification email sent. Confirm the new address to finish changing email.");
+      setEmailOpen(false);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unable to change email.";
+      toast.error(message);
+    } finally {
+      setEmailSaving(false);
+    }
+  }
+
+  async function handlePhoneOtpRequest(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    const normalizedPhone = normalizePhone(newPhone);
+
+    if (!isValidPhone(normalizedPhone)) {
+      toast.error("Use an international phone number, for example +60123456789.");
+      return;
+    }
+
+    if (normalizedPhone === form.phone) {
+      setPhoneOpen(false);
+      return;
+    }
+
+    setPhoneSaving(true);
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.updateUser({ phone: normalizedPhone });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      setPendingPhone(normalizedPhone);
+      setPhoneOtp("");
+      setPhoneStep("verify");
+      toast.success("OTP sent to your new phone number.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unable to send phone OTP.";
+      toast.error(message);
+    } finally {
+      setPhoneSaving(false);
+    }
+  }
+
+  async function handlePhoneOtpVerify(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    if (!pendingPhone || phoneOtp.trim().length < 4) {
+      toast.error("Enter the OTP sent to your phone.");
+      return;
+    }
+
+    setPhoneSaving(true);
+
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.verifyOtp({
+        phone: pendingPhone,
+        token: phoneOtp.trim(),
+        type: "phone_change",
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      const verifiedPhone = data.user?.phone ?? pendingPhone;
+      setUser(data.user);
+      setForm((current) => ({ ...current, phone: verifiedPhone }));
+      setNewPhone(verifiedPhone);
+      setPhoneOpen(false);
+      setPhoneStep("phone");
+      setPendingPhone("");
+      setPhoneOtp("");
+      toast.success("Phone number verified successfully.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unable to verify phone OTP.";
+      toast.error(message);
+    } finally {
+      setPhoneSaving(false);
+    }
+  }
+
+  async function handlePasswordSave(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    const formData = new FormData(e.currentTarget);
+    const password = String(formData.get("password") ?? "");
+    const confirmPassword = String(formData.get("confirmPassword") ?? "");
+
+    if (password.length < 8) {
+      toast.error("Password must be at least 8 characters.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match.");
+      return;
+    }
+
+    setPasswordSaving(true);
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.updateUser({ password });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      toast.success("Password updated successfully.");
+      setPasswordOpen(false);
+      e.currentTarget.reset();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unable to update password.";
+      toast.error(message);
+    } finally {
+      setPasswordSaving(false);
+    }
+  }
+
+  async function handleTwoStepSave() {
+    setTwoStepSaving(true);
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          mfa_enabled: twoStepEnabled,
+          mfa_method: twoStepMethod,
+        },
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      toast.success("2-step verification preference saved.");
+      setTwoStepOpen(false);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unable to save 2-step verification.";
+      toast.error(message);
+    } finally {
+      setTwoStepSaving(false);
+    }
+  }
+
+  async function handleSignOutOthers() {
+    setSessionSaving(true);
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signOut({ scope: "others" });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      toast.success("Other active sessions have been signed out.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unable to sign out other devices.";
+      toast.error(message);
+    } finally {
+      setSessionSaving(false);
+    }
+  }
+
+  async function handleRevokeCurrentSession() {
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signOut({ scope: "local" });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      toast.success("This session has been revoked.");
+      router.replace("/sign-in");
+      router.refresh();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unable to revoke session.";
+      toast.error(message);
+    }
+  }
+
+  async function handleDeleteRequest() {
+    if (deleteConfirm !== "DELETE") {
+      toast.error("Type DELETE to confirm.");
+      return;
+    }
+
+    setDeleteSaving(true);
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          delete_requested_at: new Date().toISOString(),
+        },
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      toast.success("Account deletion request recorded.");
+      setDeleteOpen(false);
+      setDeleteConfirm("");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unable to request account deletion.";
+      toast.error(message);
+    } finally {
+      setDeleteSaving(false);
     }
   }
 
@@ -109,6 +458,7 @@ export default function ProfileSettings({ showHeading = true }: { showHeading?: 
 
     return displayName.slice(0, 2).toUpperCase();
   }, [displayName, form.firstName, form.lastName]);
+  const avatarSource = avatarPreview || form.avatarUrl;
 
   return (
     <section id="account" className="scroll-mt-24 space-y-7" aria-labelledby="account-settings">
@@ -127,18 +477,38 @@ export default function ProfileSettings({ showHeading = true }: { showHeading?: 
 
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
             <Avatar className="h-16 w-16">
+              {avatarSource && <AvatarImage src={avatarSource} alt={displayName} />}
               <AvatarFallback className="bg-slate-200 text-lg font-semibold text-slate-700 dark:bg-muted dark:text-foreground">
                 {initials}
               </AvatarFallback>
             </Avatar>
 
             <div className="space-y-3">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/gif"
+                className="hidden"
+                onChange={handleAvatarChange}
+              />
               <div className="flex flex-wrap gap-3">
-                <Button type="button" size="sm" className="h-9 bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90">
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-9 bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
+                  onClick={() => fileInputRef.current?.click()}
+                >
                   <Plus className="h-4 w-4" />
                   Change Image
                 </Button>
-                <Button type="button" variant="secondary" size="sm" className="h-9">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  className="h-9"
+                  onClick={handleRemoveAvatar}
+                  disabled={!avatarSource}
+                >
                   Remove Image
                 </Button>
               </div>
@@ -169,6 +539,49 @@ export default function ProfileSettings({ showHeading = true }: { showHeading?: 
                 className="h-10"
               />
             </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="phone">Phone Number</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={form.phone}
+                  readOnly
+                  disabled
+                  placeholder="Not verified"
+                  className="h-10 disabled:opacity-70"
+                />
+                <Button type="button" variant="secondary" className="h-10 shrink-0" onClick={() => {
+                  setNewPhone(form.phone);
+                  setPhoneStep("phone");
+                  setPendingPhone("");
+                  setPhoneOtp("");
+                  setPhoneOpen(true);
+                }}>
+                  Change
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="company">Company / Business Name</Label>
+              <Input
+                id="company"
+                value={form.company}
+                onChange={handleChange("company")}
+                placeholder="My Property Sdn. Bhd."
+                className="h-10"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="role">Role</Label>
+              <Input
+                id="role"
+                value={form.role}
+                readOnly
+                disabled
+                className="h-10 disabled:opacity-70"
+              />
+            </div>
           </div>
 
           <div className="flex items-center justify-end gap-3">
@@ -194,7 +607,7 @@ export default function ProfileSettings({ showHeading = true }: { showHeading?: 
 
         <SettingActionRow
           label="Email"
-          action={<Button type="button" variant="secondary" size="sm">Change email</Button>}
+          action={<Button type="button" variant="secondary" size="sm" onClick={() => setEmailOpen(true)}>Change email</Button>}
         >
           <Input
             value={form.email}
@@ -206,7 +619,7 @@ export default function ProfileSettings({ showHeading = true }: { showHeading?: 
 
         <SettingActionRow
           label="Password"
-          action={<Button type="button" variant="secondary" size="sm">Change password</Button>}
+          action={<Button type="button" variant="secondary" size="sm" onClick={() => setPasswordOpen(true)}>Change password</Button>}
         >
           <Input
             value="***********"
@@ -219,15 +632,43 @@ export default function ProfileSettings({ showHeading = true }: { showHeading?: 
 
         <SettingActionRow
           label="2-Step Verifications"
-          description="Add an additional layer of security to your account during login."
-          action={
-            <SwitchToggle
-              checked={twoStepEnabled}
-              onChange={setTwoStepEnabled}
-              label="Toggle 2-step verification"
-            />
-          }
+          description={`Add an additional layer of security to your account during login. ${twoStepEnabled ? `Method: ${twoStepMethod}.` : ""}`}
+          action={<Button type="button" variant="secondary" size="sm" onClick={() => setTwoStepOpen(true)}>Set up</Button>}
         />
+      </section>
+
+      <section className="space-y-5" aria-labelledby="active-sessions">
+        <div className="space-y-3">
+          <h2 id="active-sessions" className="text-xl font-semibold text-foreground">
+            Active Sessions
+          </h2>
+          <Separator />
+        </div>
+
+        <div className="space-y-3">
+          {sessions.map((session) => (
+            <div
+              key={session.id}
+              className="grid grid-cols-1 gap-3 rounded-md border border-border p-4 sm:grid-cols-[1fr_auto] sm:items-center"
+            >
+              <div className="flex min-w-0 gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted">
+                  <Monitor className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-foreground">
+                    {session.device} {session.current && <span className="text-muted-foreground">(current)</span>}
+                  </p>
+                  <p className="text-sm text-muted-foreground">{session.location}</p>
+                  <p className="text-xs text-muted-foreground">Last active: {session.lastActive}</p>
+                </div>
+              </div>
+              <Button type="button" variant="secondary" size="sm" onClick={handleRevokeCurrentSession}>
+                Revoke
+              </Button>
+            </div>
+          ))}
+        </div>
       </section>
 
       <section className="space-y-5" aria-labelledby="support-access">
@@ -253,7 +694,11 @@ export default function ProfileSettings({ showHeading = true }: { showHeading?: 
         <SettingActionRow
           label="Log out of all devices"
           description="Log out of all other active sessions on other devices besides this one."
-          action={<Button type="button" variant="secondary" size="sm">Log out</Button>}
+          action={
+            <Button type="button" variant="secondary" size="sm" disabled={sessionSaving} onClick={handleSignOutOthers}>
+              {sessionSaving ? "Logging out..." : "Log out"}
+            </Button>
+          }
         />
 
         <SettingActionRow
@@ -266,13 +711,59 @@ export default function ProfileSettings({ showHeading = true }: { showHeading?: 
               variant="secondary"
               size="sm"
               className="text-foreground"
-              disabled
+              onClick={() => setDeleteOpen(true)}
             >
               Delete Account
             </Button>
           }
         />
       </section>
+
+      <ChangeEmailDialog
+        open={emailOpen}
+        email={newEmail}
+        loading={emailSaving}
+        onEmailChange={setNewEmail}
+        onOpenChange={setEmailOpen}
+        onSubmit={handleEmailSave}
+      />
+      <ChangePhoneDialog
+        open={phoneOpen}
+        step={phoneStep}
+        phone={newPhone}
+        pendingPhone={pendingPhone}
+        otp={phoneOtp}
+        loading={phoneSaving}
+        onPhoneChange={setNewPhone}
+        onOtpChange={setPhoneOtp}
+        onOpenChange={setPhoneOpen}
+        onRequestOtp={handlePhoneOtpRequest}
+        onVerifyOtp={handlePhoneOtpVerify}
+      />
+      <ChangePasswordDialog
+        open={passwordOpen}
+        loading={passwordSaving}
+        onOpenChange={setPasswordOpen}
+        onSubmit={handlePasswordSave}
+      />
+      <TwoStepDialog
+        open={twoStepOpen}
+        enabled={twoStepEnabled}
+        method={twoStepMethod}
+        loading={twoStepSaving}
+        onEnabledChange={setTwoStepEnabled}
+        onMethodChange={setTwoStepMethod}
+        onOpenChange={setTwoStepOpen}
+        onSave={handleTwoStepSave}
+      />
+      <DeleteAccountDialog
+        open={deleteOpen}
+        confirmValue={deleteConfirm}
+        loading={deleteSaving}
+        onConfirmValueChange={setDeleteConfirm}
+        onOpenChange={setDeleteOpen}
+        onConfirm={handleDeleteRequest}
+      />
     </section>
   );
 }
@@ -335,4 +826,346 @@ function SwitchToggle({
       />
     </button>
   );
+}
+
+function ChangeEmailDialog({
+  open,
+  email,
+  loading,
+  onEmailChange,
+  onOpenChange,
+  onSubmit,
+}: {
+  open: boolean;
+  email: string;
+  loading: boolean;
+  onEmailChange: (email: string) => void;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={(nextOpen) => !loading && onOpenChange(nextOpen)}>
+      <DialogContent>
+        <form onSubmit={onSubmit} className="space-y-4">
+          <DialogHeader>
+            <DialogTitle>Change email</DialogTitle>
+            <DialogDescription>
+              We will send a verification message to the new email address.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-1.5">
+            <Label htmlFor="new-email">New email</Label>
+            <Input
+              id="new-email"
+              type="email"
+              value={email}
+              onChange={(e) => onEmailChange(e.target.value)}
+              required
+            />
+          </div>
+          <DialogFooter>
+            <Button type="submit" disabled={loading}>
+              {loading ? "Sending..." : "Send verification"}
+            </Button>
+            <Button type="button" variant="outline" disabled={loading} onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ChangePhoneDialog({
+  open,
+  step,
+  phone,
+  pendingPhone,
+  otp,
+  loading,
+  onPhoneChange,
+  onOtpChange,
+  onOpenChange,
+  onRequestOtp,
+  onVerifyOtp,
+}: {
+  open: boolean;
+  step: "phone" | "verify";
+  phone: string;
+  pendingPhone: string;
+  otp: string;
+  loading: boolean;
+  onPhoneChange: (phone: string) => void;
+  onOtpChange: (otp: string) => void;
+  onOpenChange: (open: boolean) => void;
+  onRequestOtp: (e: React.FormEvent<HTMLFormElement>) => void;
+  onVerifyOtp: (e: React.FormEvent<HTMLFormElement>) => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={(nextOpen) => !loading && onOpenChange(nextOpen)}>
+      <DialogContent>
+        {step === "phone" ? (
+          <form onSubmit={onRequestOtp} className="space-y-4">
+            <DialogHeader>
+              <DialogTitle>Change phone number</DialogTitle>
+              <DialogDescription>
+                Enter an international phone number. Supabase will send an SMS OTP to verify it.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-1.5">
+              <Label htmlFor="new-phone">New phone number</Label>
+              <Input
+                id="new-phone"
+                type="tel"
+                value={phone}
+                onChange={(e) => onPhoneChange(e.target.value)}
+                placeholder="+60123456789"
+                required
+              />
+              <p className="text-xs text-muted-foreground">
+                Use E.164 format, including the country code.
+              </p>
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={loading}>
+                {loading ? "Sending..." : "Send OTP"}
+              </Button>
+              <Button type="button" variant="outline" disabled={loading} onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+            </DialogFooter>
+          </form>
+        ) : (
+          <form onSubmit={onVerifyOtp} className="space-y-4">
+            <DialogHeader>
+              <DialogTitle>Verify phone number</DialogTitle>
+              <DialogDescription>
+                Enter the OTP sent to {pendingPhone}. Once verified, this becomes your account phone number.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-1.5">
+              <Label htmlFor="phone-otp">OTP code</Label>
+              <Input
+                id="phone-otp"
+                value={otp}
+                onChange={(e) => onOtpChange(e.target.value)}
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                placeholder="123456"
+                required
+              />
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={loading}>
+                {loading ? "Verifying..." : "Verify phone"}
+              </Button>
+              <Button type="button" variant="outline" disabled={loading} onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+            </DialogFooter>
+          </form>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ChangePasswordDialog({
+  open,
+  loading,
+  onOpenChange,
+  onSubmit,
+}: {
+  open: boolean;
+  loading: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={(nextOpen) => !loading && onOpenChange(nextOpen)}>
+      <DialogContent>
+        <form onSubmit={onSubmit} className="space-y-4">
+          <DialogHeader>
+            <DialogTitle>Change password</DialogTitle>
+            <DialogDescription>Use at least 8 characters for your new password.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-1.5">
+            <Label htmlFor="new-password">New password</Label>
+            <Input id="new-password" name="password" type="password" minLength={8} required />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="confirm-password">Confirm password</Label>
+            <Input id="confirm-password" name="confirmPassword" type="password" minLength={8} required />
+          </div>
+          <DialogFooter>
+            <Button type="submit" disabled={loading}>
+              {loading ? "Updating..." : "Update password"}
+            </Button>
+            <Button type="button" variant="outline" disabled={loading} onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function TwoStepDialog({
+  open,
+  enabled,
+  method,
+  loading,
+  onEnabledChange,
+  onMethodChange,
+  onOpenChange,
+  onSave,
+}: {
+  open: boolean;
+  enabled: boolean;
+  method: "email" | "authenticator";
+  loading: boolean;
+  onEnabledChange: (enabled: boolean) => void;
+  onMethodChange: (method: "email" | "authenticator") => void;
+  onOpenChange: (open: boolean) => void;
+  onSave: () => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={(nextOpen) => !loading && onOpenChange(nextOpen)}>
+      <DialogContent>
+        <DialogHeader>
+          <div className="mb-1 flex h-10 w-10 items-center justify-center rounded-md bg-muted">
+            <ShieldCheck className="h-5 w-5 text-muted-foreground" />
+          </div>
+          <DialogTitle>2-step verification</DialogTitle>
+          <DialogDescription>
+            Choose how you want to verify your identity during login.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between rounded-md border border-border p-3">
+            <div>
+              <p className="text-sm font-semibold text-foreground">Enable 2-step verification</p>
+              <p className="text-sm text-muted-foreground">Require an extra check after password login.</p>
+            </div>
+            <SwitchToggle checked={enabled} onChange={onEnabledChange} label="Enable 2-step verification" />
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              className={`rounded-md border p-3 text-left transition-colors ${
+                method === "email" ? "border-foreground bg-muted" : "border-border hover:bg-muted/70"
+              }`}
+              onClick={() => onMethodChange("email")}
+            >
+              <p className="text-sm font-semibold text-foreground">Email code</p>
+              <p className="mt-1 text-xs text-muted-foreground">Send a one-time code to your verified email.</p>
+            </button>
+            <button
+              type="button"
+              className={`rounded-md border p-3 text-left transition-colors ${
+                method === "authenticator" ? "border-foreground bg-muted" : "border-border hover:bg-muted/70"
+              }`}
+              onClick={() => onMethodChange("authenticator")}
+            >
+              <p className="text-sm font-semibold text-foreground">Authenticator app</p>
+              <p className="mt-1 text-xs text-muted-foreground">Use an app such as Google Authenticator.</p>
+            </button>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button type="button" disabled={loading} onClick={onSave}>
+            {loading ? "Saving..." : "Save setup"}
+          </Button>
+          <Button type="button" variant="outline" disabled={loading} onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function DeleteAccountDialog({
+  open,
+  confirmValue,
+  loading,
+  onConfirmValueChange,
+  onOpenChange,
+  onConfirm,
+}: {
+  open: boolean;
+  confirmValue: string;
+  loading: boolean;
+  onConfirmValueChange: (value: string) => void;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={(nextOpen) => !loading && onOpenChange(nextOpen)}>
+      <DialogContent>
+        <DialogHeader>
+          <div className="mb-1 flex h-10 w-10 items-center justify-center rounded-md bg-destructive/10 text-destructive">
+            <Trash2 className="h-5 w-5" />
+          </div>
+          <DialogTitle>Delete account</DialogTitle>
+          <DialogDescription>
+            This records an account deletion request. Permanent deletion should be completed by a secure server action.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-1.5">
+          <Label htmlFor="delete-confirm">Type DELETE to confirm</Label>
+          <Input
+            id="delete-confirm"
+            value={confirmValue}
+            onChange={(e) => onConfirmValueChange(e.target.value)}
+            placeholder="DELETE"
+          />
+        </div>
+        <DialogFooter>
+          <Button type="button" variant="destructive" disabled={loading || confirmValue !== "DELETE"} onClick={onConfirm}>
+            {loading ? "Requesting..." : "Delete Account"}
+          </Button>
+          <Button type="button" variant="outline" disabled={loading} onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function getDeviceName() {
+  if (typeof navigator === "undefined") {
+    return "Current browser";
+  }
+
+  const userAgent = navigator.userAgent;
+
+  if (userAgent.includes("Firefox")) {
+    return "Firefox on this device";
+  }
+
+  if (userAgent.includes("Edg")) {
+    return "Edge on this device";
+  }
+
+  if (userAgent.includes("Chrome")) {
+    return "Chrome on this device";
+  }
+
+  if (userAgent.includes("Safari")) {
+    return "Safari on this device";
+  }
+
+  return "Current browser";
+}
+
+function normalizePhone(phone: string) {
+  return phone.replace(/[^\d+]/g, "").trim();
+}
+
+function isValidPhone(phone: string) {
+  return /^\+[1-9]\d{7,14}$/.test(phone);
 }
