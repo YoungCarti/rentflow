@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import PageHeader from "@/components/layout/PageHeader";
 import { Separator } from "@/components/ui/separator";
 import { createClient } from "@/lib/supabase/client";
+import ProfileSettings from "@/components/settings/ProfileSettings";
 
 // ─── Toggle row ───────────────────────────────────────────────────────────────
 
@@ -122,8 +123,10 @@ export default function SettingsPage() {
     <div className="space-y-8 max-w-2xl">
       <PageHeader
         title="Settings"
-        summary="Manage your notifications and preferences"
+        summary="Manage your profile, notifications, and preferences"
       />
+
+      <ProfileSettings />
 
       {/* Notifications */}
       <Card className="shadow-sm">
