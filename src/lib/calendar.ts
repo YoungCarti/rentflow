@@ -118,6 +118,10 @@ function addDays(dateStr: string, days: number) {
   return toLocalDateKey(date);
 }
 
+function dateInsideRange(date: string, start: string, end: string) {
+  return date >= start && date <= end;
+}
+
 function rentEvent(record: RentRecord): CalendarEvent {
   return {
     id: `rent-${record.id}`,
@@ -141,11 +145,17 @@ function leaseExpiryEvent(tenant: Tenant): CalendarEvent {
   };
 }
 
-function inspectionEvent(tenant: Tenant): CalendarEvent {
+function inspectionEvent(tenant: Tenant): CalendarEvent | null {
+  const inspectionDate = addDays(tenant.leaseEnd, -14);
+
+  if (!dateInsideRange(inspectionDate, tenant.leaseStart, tenant.leaseEnd)) {
+    return null;
+  }
+
   return {
     id: `inspection-${tenant.id}`,
     type: "inspection",
-    date: addDays(tenant.leaseEnd, -14),
+    date: inspectionDate,
     title: `${tenant.name} inspection`,
     description: `${tenant.propertyName} · Unit ${tenant.unitNumber}`,
   };
@@ -245,6 +255,7 @@ export async function getCalendarEvents(monthStart: Date) {
 
   const inspectionEvents = tenants
     .map(inspectionEvent)
+    .filter((event): event is CalendarEvent => event !== null)
     .filter((event) => dateWithinMonth(event.date, monthStart));
 
   const maintenance = maintenanceRequests
