@@ -9,7 +9,7 @@ export default function ProfilePage() {
         summary="Manage your personal information"
       />
 
-      <ProfileSettings />
+      <ProfileSettings showHeading={false} />
     </div>
   );
 }

@@ -1,15 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Camera, User } from "lucide-react";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { createClient } from "@/lib/supabase/client";
 
 const DEFAULT = {
@@ -26,6 +25,8 @@ export default function ProfileSettings({ showHeading = true }: { showHeading?: 
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [twoStepEnabled, setTwoStepEnabled] = useState(true);
+  const [supportAccess, setSupportAccess] = useState(true);
 
   useEffect(() => {
     try {
@@ -110,143 +111,228 @@ export default function ProfileSettings({ showHeading = true }: { showHeading?: 
   }, [displayName, form.firstName, form.lastName]);
 
   return (
-    <section id="account" className="scroll-mt-24 space-y-5" aria-labelledby="account-settings">
+    <section id="account" className="scroll-mt-24 space-y-7" aria-labelledby="account-settings">
       {showHeading && (
-        <div>
-          <h2 id="account-settings" className="text-lg font-semibold text-foreground">
-            Account
+        <div className="space-y-3">
+          <h2 id="account-settings" className="text-xl font-semibold text-foreground">
+            My Profile
           </h2>
-          <p className="text-sm text-muted-foreground">Manage your personal information</p>
+          <Separator />
         </div>
       )}
 
-      <Card className="shadow-sm">
-        <CardContent className="p-5 flex items-center gap-5">
-          <div className="relative">
-            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground text-xl font-bold">
-              {initials}
-            </div>
-            <button
-              className="absolute -bottom-1 -right-1 flex items-center justify-center w-6 h-6 rounded-full bg-background border border-border shadow-sm hover:bg-muted transition-colors"
-              title="Change Avatar"
-              type="button"
-            >
-              <Camera className="w-3 h-3 text-muted-foreground" />
-            </button>
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <p className="font-semibold text-foreground">{form.firstName} {form.lastName}</p>
-              <Badge className="bg-primary/10 text-primary border-0 text-xs hover:bg-primary/10">
-                {form.role}
-              </Badge>
-            </div>
-            <p className="text-sm text-muted-foreground">{form.email || "No email loaded"}</p>
-          </div>
-        </CardContent>
-      </Card>
+      <form onSubmit={handleSave} className="space-y-7">
+        <div className="space-y-6">
+          {!showHeading && <Separator />}
 
-      <Card className="shadow-sm">
-        <CardHeader className="pb-2">
-          <div className="flex items-center gap-2">
-            <User className="w-4 h-4 text-muted-foreground" />
-            <p className="font-semibold text-base text-foreground">Personal Information</p>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <form onSubmit={handleSave} className="space-y-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="firstName">First name</Label>
-                <Input
-                  id="firstName"
-                  value={form.firstName}
-                  onChange={handleChange("firstName")}
-                  required
-                />
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+            <Avatar className="h-16 w-16">
+              <AvatarFallback className="bg-slate-200 text-lg font-semibold text-slate-700 dark:bg-muted dark:text-foreground">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+
+            <div className="space-y-3">
+              <div className="flex flex-wrap gap-3">
+                <Button type="button" size="sm" className="h-9 bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90">
+                  <Plus className="h-4 w-4" />
+                  Change Image
+                </Button>
+                <Button type="button" variant="secondary" size="sm" className="h-9">
+                  Remove Image
+                </Button>
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="lastName">Last name</Label>
-                <Input
-                  id="lastName"
-                  value={form.lastName}
-                  onChange={handleChange("lastName")}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="email">Email address</Label>
-              <Input
-                id="email"
-                type="email"
-                value={form.email}
-                onChange={handleChange("email")}
-                required
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="phone">Phone number</Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={form.phone}
-                onChange={handleChange("phone")}
-                placeholder="+60 12-345 6789"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="company">Company / Business name</Label>
-              <Input
-                id="company"
-                value={form.company}
-                onChange={handleChange("company")}
-                placeholder="My Property Sdn. Bhd."
-              />
-            </div>
-
-            <Separator />
-
-            <div className="flex items-center justify-between">
-              {saved && (
-                <p className="text-sm text-green-600 font-medium">
-                  Changes saved successfully.
-                </p>
-              )}
-              <Button type="submit" className="ml-auto" disabled={saving}>
-                {saving ? "Saving..." : "Save changes"}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-
-      <Card className="shadow-sm border-red-100">
-        <CardHeader className="pb-2">
-          <p className="font-semibold text-base text-red-600">Danger Zone</p>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-medium text-foreground">Delete account</p>
               <p className="text-xs text-muted-foreground">
-                Permanently remove your account and all associated data. This cannot be undone.
+                We support PNGs, JPEGs and GIFs under 2MB
               </p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-red-200 text-red-600 hover:bg-red-50 shrink-0"
-              disabled
-            >
-              Delete account
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="firstName">First Name</Label>
+              <Input
+                id="firstName"
+                value={form.firstName}
+                onChange={handleChange("firstName")}
+                required
+                className="h-10"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input
+                id="lastName"
+                value={form.lastName}
+                onChange={handleChange("lastName")}
+                required
+                className="h-10"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-3">
+            {saved && (
+              <p className="text-sm font-medium text-green-600">
+                Changes saved successfully.
+              </p>
+            )}
+            <Button type="submit" size="sm" disabled={saving}>
+              {saving ? "Saving..." : "Save changes"}
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </form>
+
+      <section className="space-y-5" aria-labelledby="account-security">
+        <div className="space-y-3">
+          <h2 id="account-security" className="text-xl font-semibold text-foreground">
+            Account Security
+          </h2>
+          <Separator />
+        </div>
+
+        <SettingActionRow
+          label="Email"
+          action={<Button type="button" variant="secondary" size="sm">Change email</Button>}
+        >
+          <Input
+            value={form.email}
+            disabled
+            readOnly
+            className="h-10 max-w-md disabled:opacity-60"
+          />
+        </SettingActionRow>
+
+        <SettingActionRow
+          label="Password"
+          action={<Button type="button" variant="secondary" size="sm">Change password</Button>}
+        >
+          <Input
+            value="***********"
+            disabled
+            readOnly
+            type="password"
+            className="h-10 max-w-md disabled:opacity-60"
+          />
+        </SettingActionRow>
+
+        <SettingActionRow
+          label="2-Step Verifications"
+          description="Add an additional layer of security to your account during login."
+          action={
+            <SwitchToggle
+              checked={twoStepEnabled}
+              onChange={setTwoStepEnabled}
+              label="Toggle 2-step verification"
+            />
+          }
+        />
+      </section>
+
+      <section className="space-y-5" aria-labelledby="support-access">
+        <div className="space-y-3">
+          <h2 id="support-access" className="text-xl font-semibold text-foreground">
+            Support Access
+          </h2>
+          <Separator />
+        </div>
+
+        <SettingActionRow
+          label="Support access"
+          description="You have granted us to access to your account for support purposes until Aug 31, 2023, 9:40 PM."
+          action={
+            <SwitchToggle
+              checked={supportAccess}
+              onChange={setSupportAccess}
+              label="Toggle support access"
+            />
+          }
+        />
+
+        <SettingActionRow
+          label="Log out of all devices"
+          description="Log out of all other active sessions on other devices besides this one."
+          action={<Button type="button" variant="secondary" size="sm">Log out</Button>}
+        />
+
+        <SettingActionRow
+          label="Delete my account"
+          description="Permanently delete the account and remove access from all workspaces."
+          destructive
+          action={
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="text-foreground"
+              disabled
+            >
+              Delete Account
+            </Button>
+          }
+        />
+      </section>
     </section>
+  );
+}
+
+function SettingActionRow({
+  label,
+  description,
+  action,
+  destructive = false,
+  children,
+}: {
+  label: string;
+  description?: string;
+  action: React.ReactNode;
+  destructive?: boolean;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
+      <div className="min-w-0 space-y-2">
+        <div>
+          <p className={`text-sm font-semibold ${destructive ? "text-red-600" : "text-foreground"}`}>
+            {label}
+          </p>
+          {description && (
+            <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+          )}
+        </div>
+        {children}
+      </div>
+      <div className="flex justify-start sm:justify-end">{action}</div>
+    </div>
+  );
+}
+
+function SwitchToggle({
+  checked,
+  onChange,
+  label,
+}: {
+  checked: boolean;
+  onChange: (value: boolean) => void;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-label={label}
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className={`relative inline-flex h-5 w-10 shrink-0 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+        checked ? "bg-black dark:bg-white" : "bg-muted-foreground/30"
+      }`}
+    >
+      <span
+        className={`h-4 w-4 rounded-full bg-white shadow-sm transition-transform dark:bg-black ${
+          checked ? "translate-x-5" : "translate-x-0.5"
+        }`}
+      />
+    </button>
   );
 }

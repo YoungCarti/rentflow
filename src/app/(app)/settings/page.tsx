@@ -202,7 +202,7 @@ function SettingsContent() {
           </Card>
         );
       case "account":
-        return <ProfileSettings showHeading={false} />;
+        return <ProfileSettings />;
       case "notifications":
         return (
           <Card className="shadow-sm">
@@ -491,11 +491,13 @@ function SettingsContent() {
   }
 
   return (
-    <div className="space-y-8 max-w-2xl">
-      <PageHeader
-        title={sectionCopy.title}
-        summary={sectionCopy.summary}
-      />
+    <div className={`space-y-8 ${activeSection === "account" ? "max-w-5xl" : "max-w-2xl"}`}>
+      {activeSection !== "account" && (
+        <PageHeader
+          title={sectionCopy.title}
+          summary={sectionCopy.summary}
+        />
+      )}
 
       {renderActiveSection()}
     </div>
