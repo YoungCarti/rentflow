@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { Bell, Globe, Lock, Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Bell, CreditCard, Eye, EyeOff, Globe, Lock, Plug, Settings, UserPlus, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +13,47 @@ import PageHeader from "@/components/layout/PageHeader";
 import { Separator } from "@/components/ui/separator";
 import { createClient } from "@/lib/supabase/client";
 import ProfileSettings from "@/components/settings/ProfileSettings";
+
+const settingsSections = {
+  apps: {
+    title: "Apps",
+    summary: "Manage connected services and automation tools",
+  },
+  account: {
+    title: "Account",
+    summary: "Manage your personal information and account access",
+  },
+  notifications: {
+    title: "Notification",
+    summary: "Choose which email updates RentFlow sends you",
+  },
+  "language-region": {
+    title: "Language & Region",
+    summary: "Set your language, timezone, and currency display",
+  },
+  "workspace-general": {
+    title: "General",
+    summary: "Manage basic workspace defaults",
+  },
+  members: {
+    title: "Members",
+    summary: "Manage people with access to this workspace",
+  },
+  billing: {
+    title: "Billing",
+    summary: "Review your subscription and billing preferences",
+  },
+} as const;
+
+type SettingsSection = keyof typeof settingsSections;
+
+function getSettingsSection(value: string | null): SettingsSection {
+  if (value && Object.prototype.hasOwnProperty.call(settingsSections, value)) {
+    return value as SettingsSection;
+  }
+
+  return "account";
+}
 
 // ─── Toggle row ───────────────────────────────────────────────────────────────
 
@@ -52,7 +95,11 @@ function ToggleRow({
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function SettingsPage() {
+function SettingsContent() {
+  const searchParams = useSearchParams();
+  const activeSection = getSettingsSection(searchParams.get("section"));
+  const sectionCopy = settingsSections[activeSection];
+
   // Notifications
   const [notifs, setNotifs] = useState({
     rentDue: true,
@@ -119,211 +166,346 @@ export default function SettingsPage() {
     }
   }
 
+  function renderActiveSection() {
+    switch (activeSection) {
+      case "apps":
+        return (
+          <Card className="shadow-sm">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <Plug className="w-4 h-4 text-muted-foreground" />
+                <p className="font-semibold text-base text-foreground">Connected Apps</p>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0 space-y-5">
+              <ToggleRow
+                label="Email reminders"
+                description="Use RentFlow reminders for rent due and overdue notices"
+                checked
+                onChange={() => undefined}
+              />
+              <Separator />
+              <ToggleRow
+                label="Calendar sync"
+                description="Sync rent dates and lease milestones to your calendar"
+                checked={false}
+                onChange={() => undefined}
+              />
+              <Separator />
+              <ToggleRow
+                label="Payment receipt automation"
+                description="Generate receipts when payment proof is approved"
+                checked
+                onChange={() => undefined}
+              />
+            </CardContent>
+          </Card>
+        );
+      case "account":
+        return <ProfileSettings showHeading={false} />;
+      case "notifications":
+        return (
+          <Card className="shadow-sm">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <Bell className="w-4 h-4 text-muted-foreground" />
+                <p className="font-semibold text-base text-foreground">Email Notifications</p>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0 space-y-5">
+              <ToggleRow
+                label="Rent due reminders"
+                description="Notify me 3 days before rent is due"
+                checked={notifs.rentDue}
+                onChange={(v) => setNotifs((n) => ({ ...n, rentDue: v }))}
+              />
+              <Separator />
+              <ToggleRow
+                label="Overdue rent alerts"
+                description="Notify me when a payment becomes overdue"
+                checked={notifs.overdueReminder}
+                onChange={(v) => setNotifs((n) => ({ ...n, overdueReminder: v }))}
+              />
+              <Separator />
+              <ToggleRow
+                label="Payment received"
+                description="Notify me when a tenant submits a payment proof"
+                checked={notifs.paymentReceived}
+                onChange={(v) => setNotifs((n) => ({ ...n, paymentReceived: v }))}
+              />
+              <Separator />
+              <ToggleRow
+                label="Lease expiry warnings"
+                description="Notify me 30 days before a lease expires"
+                checked={notifs.leaseExpiry}
+                onChange={(v) => setNotifs((n) => ({ ...n, leaseExpiry: v }))}
+              />
+              <Separator />
+              <ToggleRow
+                label="Weekly summary report"
+                description="Receive a weekly email with portfolio performance"
+                checked={notifs.weeklyReport}
+                onChange={(v) => setNotifs((n) => ({ ...n, weeklyReport: v }))}
+              />
+              <Separator />
+              <ToggleRow
+                label="Product updates & news"
+                description="Receive news about RentFlow features and offers"
+                checked={notifs.marketingEmails}
+                onChange={(v) => setNotifs((n) => ({ ...n, marketingEmails: v }))}
+              />
+            </CardContent>
+          </Card>
+        );
+      case "language-region":
+        return (
+          <Card className="shadow-sm">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <Globe className="w-4 h-4 text-muted-foreground" />
+                <p className="font-semibold text-base text-foreground">Preferences</p>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="language">Language</Label>
+                  <select
+                    id="language"
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value)}
+                    className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  >
+                    <option value="en-MY">English (Malaysia)</option>
+                    <option value="en-US">English (US)</option>
+                    <option value="ms-MY">Bahasa Malaysia</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="timezone">Timezone</Label>
+                  <select
+                    id="timezone"
+                    value={timezone}
+                    onChange={(e) => setTimezone(e.target.value)}
+                    className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  >
+                    <option value="Asia/Kuala_Lumpur">Kuala Lumpur (GMT+8)</option>
+                    <option value="Asia/Singapore">Singapore (GMT+8)</option>
+                    <option value="UTC">UTC</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="currency">Currency display</Label>
+                  <select
+                    id="currency"
+                    value={currency}
+                    onChange={(e) => setCurrency(e.target.value)}
+                    className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  >
+                    <option value="MYR">MYR - Malaysian Ringgit (RM)</option>
+                    <option value="SGD">SGD - Singapore Dollar (S$)</option>
+                    <option value="USD">USD - US Dollar ($)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-1">
+                <Button size="sm">Save preferences</Button>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      case "workspace-general":
+        return (
+          <div className="space-y-5">
+            <Card className="shadow-sm">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <Settings className="w-4 h-4 text-muted-foreground" />
+                  <p className="font-semibold text-base text-foreground">Workspace Details</p>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0 space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="workspace-name">Workspace name</Label>
+                  <Input id="workspace-name" defaultValue="RentFlow Workspace" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="workspace-role">Default member role</Label>
+                  <select
+                    id="workspace-role"
+                    defaultValue="viewer"
+                    className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  >
+                    <option value="viewer">Viewer</option>
+                    <option value="manager">Manager</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+                <div className="flex justify-end">
+                  <Button size="sm">Save workspace</Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-sm">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-muted-foreground" />
+                  <p className="font-semibold text-base text-foreground">Change Password</p>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <form onSubmit={handlePasswordSave} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="current-password">Current password</Label>
+                    <div className="relative">
+                      <Input
+                        id="current-password"
+                        name="currentPassword"
+                        type={showCurrent ? "text" : "password"}
+                        placeholder="••••••••"
+                        required
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowCurrent((v) => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        tabIndex={-1}
+                      >
+                        {showCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="new-password">New password</Label>
+                    <div className="relative">
+                      <Input
+                        id="new-password"
+                        name="newPassword"
+                        type={showNew ? "text" : "password"}
+                        placeholder="Min. 8 characters"
+                        minLength={8}
+                        required
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNew((v) => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        tabIndex={-1}
+                      >
+                        {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="confirm-new-password">Confirm new password</Label>
+                    <Input
+                      id="confirm-new-password"
+                      name="confirmNewPassword"
+                      type="password"
+                      placeholder="Re-enter new password"
+                      minLength={8}
+                      required
+                    />
+                  </div>
+
+                  <Separator />
+
+                  {pwError && (
+                    <p className="text-sm text-red-600 font-medium">{pwError}</p>
+                  )}
+
+                  <div className="flex items-center justify-between">
+                    {pwSaved && (
+                      <p className="text-sm text-green-600 font-medium">Password updated successfully.</p>
+                    )}
+                    <Button type="submit" size="sm" className="ml-auto" disabled={pwSaving}>
+                      {pwSaving ? "Updating..." : "Update password"}
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      case "members":
+        return (
+          <Card className="shadow-sm">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-muted-foreground" />
+                <p className="font-semibold text-base text-foreground">Workspace Members</p>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0 space-y-5">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]">
+                <Input type="email" placeholder="member@example.com" />
+                <Button type="button" size="sm" className="gap-2">
+                  <UserPlus className="h-4 w-4" />
+                  Invite
+                </Button>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-medium text-foreground">Saabiresh Test</p>
+                  <p className="text-xs text-muted-foreground">Workspace owner</p>
+                </div>
+                <span className="rounded-md bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                  Owner
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      case "billing":
+        return (
+          <Card className="shadow-sm">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <CreditCard className="w-4 h-4 text-muted-foreground" />
+                <p className="font-semibold text-base text-foreground">Subscription</p>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0 space-y-4">
+              <div className="rounded-md border border-border p-4">
+                <p className="text-sm font-medium text-foreground">Current plan</p>
+                <p className="mt-1 text-sm text-muted-foreground">RentFlow MVP</p>
+              </div>
+              <div className="flex justify-end">
+                <Button asChild size="sm">
+                  <Link href="/subscription">Manage subscription</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        );
+    }
+  }
+
   return (
     <div className="space-y-8 max-w-2xl">
       <PageHeader
-        title="Settings"
-        summary="Manage your profile, notifications, and preferences"
+        title={sectionCopy.title}
+        summary={sectionCopy.summary}
       />
 
-      <ProfileSettings />
-
-      {/* Notifications */}
-      <Card className="shadow-sm">
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-2">
-            <Bell className="w-4 h-4 text-muted-foreground" />
-            <p className="font-semibold text-base text-foreground">Email Notifications</p>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-0 space-y-5">
-          <ToggleRow
-            label="Rent due reminders"
-            description="Notify me 3 days before rent is due"
-            checked={notifs.rentDue}
-            onChange={(v) => setNotifs((n) => ({ ...n, rentDue: v }))}
-          />
-          <Separator />
-          <ToggleRow
-            label="Overdue rent alerts"
-            description="Notify me when a payment becomes overdue"
-            checked={notifs.overdueReminder}
-            onChange={(v) => setNotifs((n) => ({ ...n, overdueReminder: v }))}
-          />
-          <Separator />
-          <ToggleRow
-            label="Payment received"
-            description="Notify me when a tenant submits a payment proof"
-            checked={notifs.paymentReceived}
-            onChange={(v) => setNotifs((n) => ({ ...n, paymentReceived: v }))}
-          />
-          <Separator />
-          <ToggleRow
-            label="Lease expiry warnings"
-            description="Notify me 30 days before a lease expires"
-            checked={notifs.leaseExpiry}
-            onChange={(v) => setNotifs((n) => ({ ...n, leaseExpiry: v }))}
-          />
-          <Separator />
-          <ToggleRow
-            label="Weekly summary report"
-            description="Receive a weekly email with portfolio performance"
-            checked={notifs.weeklyReport}
-            onChange={(v) => setNotifs((n) => ({ ...n, weeklyReport: v }))}
-          />
-          <Separator />
-          <ToggleRow
-            label="Product updates & news"
-            description="Receive news about RentFlow features and offers"
-            checked={notifs.marketingEmails}
-            onChange={(v) => setNotifs((n) => ({ ...n, marketingEmails: v }))}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Preferences */}
-      <Card className="shadow-sm">
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-2">
-            <Globe className="w-4 h-4 text-muted-foreground" />
-            <p className="font-semibold text-base text-foreground">Preferences</p>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-0 space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="language">Language</Label>
-              <select
-                id="language"
-                value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-                className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              >
-                <option value="en-MY">English (Malaysia)</option>
-                <option value="en-US">English (US)</option>
-                <option value="ms-MY">Bahasa Malaysia</option>
-              </select>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="timezone">Timezone</Label>
-              <select
-                id="timezone"
-                value={timezone}
-                onChange={(e) => setTimezone(e.target.value)}
-                className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              >
-                <option value="Asia/Kuala_Lumpur">Kuala Lumpur (GMT+8)</option>
-                <option value="Asia/Singapore">Singapore (GMT+8)</option>
-                <option value="UTC">UTC</option>
-              </select>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="currency">Currency display</Label>
-              <select
-                id="currency"
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              >
-                <option value="MYR">MYR – Malaysian Ringgit (RM)</option>
-                <option value="SGD">SGD – Singapore Dollar (S$)</option>
-                <option value="USD">USD – US Dollar ($)</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="flex justify-end pt-1">
-            <Button size="sm">Save preferences</Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Change password */}
-      <Card className="shadow-sm">
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-2">
-            <Lock className="w-4 h-4 text-muted-foreground" />
-            <p className="font-semibold text-base text-foreground">Change Password</p>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <form onSubmit={handlePasswordSave} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="current-password">Current password</Label>
-              <div className="relative">
-                <Input
-                  id="current-password"
-                  name="currentPassword"
-                  type={showCurrent ? "text" : "password"}
-                  placeholder="••••••••"
-                  required
-                  className="pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowCurrent((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  tabIndex={-1}
-                >
-                  {showCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="new-password">New password</Label>
-              <div className="relative">
-                <Input
-                  id="new-password"
-                  name="newPassword"
-                  type={showNew ? "text" : "password"}
-                  placeholder="Min. 8 characters"
-                  minLength={8}
-                  required
-                  className="pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowNew((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  tabIndex={-1}
-                >
-                  {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="confirm-new-password">Confirm new password</Label>
-              <Input
-                id="confirm-new-password"
-                name="confirmNewPassword"
-                type="password"
-                placeholder="Re-enter new password"
-                minLength={8}
-                required
-              />
-            </div>
-
-            <Separator />
-
-            {pwError && (
-              <p className="text-sm text-red-600 font-medium">{pwError}</p>
-            )}
-
-            <div className="flex items-center justify-between">
-              {pwSaved && (
-                <p className="text-sm text-green-600 font-medium">Password updated successfully.</p>
-              )}
-              <Button type="submit" size="sm" className="ml-auto" disabled={pwSaving}>
-                {pwSaving ? "Updating..." : "Update password"}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+      {renderActiveSection()}
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={null}>
+      <SettingsContent />
+    </Suspense>
   );
 }

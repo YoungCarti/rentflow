@@ -21,7 +21,7 @@ const DEFAULT = {
   role: "Owner",
 };
 
-export default function ProfileSettings() {
+export default function ProfileSettings({ showHeading = true }: { showHeading?: boolean }) {
   const [form, setForm] = useState(DEFAULT);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [saved, setSaved] = useState(false);
@@ -110,13 +110,15 @@ export default function ProfileSettings() {
   }, [displayName, form.firstName, form.lastName]);
 
   return (
-    <section className="space-y-5" aria-labelledby="profile-settings">
-      <div>
-        <h2 id="profile-settings" className="text-lg font-semibold text-foreground">
-          Profile
-        </h2>
-        <p className="text-sm text-muted-foreground">Manage your personal information</p>
-      </div>
+    <section id="account" className="scroll-mt-24 space-y-5" aria-labelledby="account-settings">
+      {showHeading && (
+        <div>
+          <h2 id="account-settings" className="text-lg font-semibold text-foreground">
+            Account
+          </h2>
+          <p className="text-sm text-muted-foreground">Manage your personal information</p>
+        </div>
+      )}
 
       <Card className="shadow-sm">
         <CardContent className="p-5 flex items-center gap-5">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Sidebar from "@/components/layout/Sidebar";
 import Topbar from "@/components/layout/Topbar";
 
@@ -9,10 +9,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-full bg-background">
-      <Sidebar
-        visible={sidebarVisible}
-        onHide={() => setSidebarVisible(false)}
-      />
+      <Suspense fallback={null}>
+        <Sidebar
+          visible={sidebarVisible}
+          onHide={() => setSidebarVisible(false)}
+        />
+      </Suspense>
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Topbar
           sidebarVisible={sidebarVisible}
