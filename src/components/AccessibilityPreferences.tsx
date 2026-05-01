@@ -4,11 +4,9 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState } from 
 
 const STORAGE_KEY = "rentflow-accessibility-preferences";
 
-export type TextSizePreference = "default" | "large" | "larger";
 export type DensityPreference = "comfortable" | "compact";
 
 export type AccessibilityPreferences = {
-  textSize: TextSizePreference;
   density: DensityPreference;
   reduceMotion: boolean;
   highContrast: boolean;
@@ -27,7 +25,6 @@ type AccessibilityPreferencesContextValue = {
 };
 
 const defaultPreferences: AccessibilityPreferences = {
-  textSize: "default",
   density: "comfortable",
   reduceMotion: false,
   highContrast: false,
@@ -66,7 +63,6 @@ function applyPreferences(preferences: AccessibilityPreferences) {
   }
 
   const root = document.documentElement;
-  root.dataset.textSize = preferences.textSize;
   root.dataset.density = preferences.density;
   root.classList.toggle("a11y-reduce-motion", preferences.reduceMotion);
   root.classList.toggle("a11y-high-contrast", preferences.highContrast);

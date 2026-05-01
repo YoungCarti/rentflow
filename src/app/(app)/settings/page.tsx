@@ -350,22 +350,6 @@ function SettingsContent() {
           <div className="space-y-7">
             <SettingsSection title="Display">
               <SettingsRow
-                label="Text size"
-                description="Increase app text across dashboards, forms, tables, and receipts."
-              >
-                <SegmentedControl
-                  label="Text size"
-                  value={preferences.textSize}
-                  onChange={(value) => updatePreference("textSize", value)}
-                  options={[
-                    { label: "Default", value: "default" },
-                    { label: "Large", value: "large" },
-                    { label: "Larger", value: "larger" },
-                  ]}
-                />
-              </SettingsRow>
-
-              <SettingsRow
                 label="Interface density"
                 description="Use a tighter layout for record-heavy views like rent, payments, and tenants."
               >
