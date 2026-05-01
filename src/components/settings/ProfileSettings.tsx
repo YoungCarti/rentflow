@@ -536,22 +536,31 @@ export default function ProfileSettings({ showHeading = true }: { showHeading?: 
 
     try {
       const supabase = createClient();
-      const { error } = await supabase.auth.updateUser({
-        data: {
-          delete_requested_at: new Date().toISOString(),
+      const response = await fetch("/api/account", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify({ confirm: deleteConfirm }),
       });
 
-      if (error) {
-        toast.error(error.message);
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as {
+          message?: string;
+        } | null;
+
+        toast.error(payload?.message ?? "Unable to delete account.");
         return;
       }
 
-      toast.success("Account deletion request recorded.");
+      await supabase.auth.signOut({ scope: "local" });
+      toast.success("Account deleted.");
       setDeleteOpen(false);
       setDeleteConfirm("");
+      router.replace("/sign-in");
+      router.refresh();
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Unable to request account deletion.";
+      const message = err instanceof Error ? err.message : "Unable to delete account.";
       toast.error(message);
     } finally {
       setDeleteSaving(false);
@@ -1258,7 +1267,7 @@ function DeleteAccountDialog({
           </div>
           <DialogTitle>Delete account</DialogTitle>
           <DialogDescription>
-            This records an account deletion request. Permanent deletion should be completed by a secure server action.
+            This permanently deletes your account and removes your RentFlow data. This action cannot be undone.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-1.5">
@@ -1272,7 +1281,7 @@ function DeleteAccountDialog({
         </div>
         <DialogFooter>
           <Button type="button" variant="destructive" disabled={loading || confirmValue !== "DELETE"} onClick={onConfirm}>
-            {loading ? "Requesting..." : "Delete Account"}
+            {loading ? "Deleting..." : "Delete Account"}
           </Button>
           <Button type="button" variant="outline" disabled={loading} onClick={() => onOpenChange(false)}>
             Cancel
