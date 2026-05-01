@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Phone, Mail, CalendarDays, Home, MoreVertical, Edit, Trash2, RefreshCw } from "lucide-react";
+import { Search, Phone, Mail, CalendarDays, Home, MoreVertical, Edit, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import ConfirmationDialog from "@/components/ui/confirmation-dialog";
 import {
   Dialog,
   DialogContent,
@@ -27,9 +26,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import StatusBadge from "@/components/ui/StatusBadge";
-import CopyPaymentLinkButton from "@/components/payments/CopyPaymentLinkButton";
-import { regenerateTenantPaymentLink } from "@/lib/tenants";
-import { toast } from "sonner";
 import type { Tenant } from "@/types";
 
 function formatDate(dateStr: string) {
@@ -64,14 +60,10 @@ function TenantModal({
   tenant,
   open,
   onClose,
-  onRegeneratePaymentLink,
-  regenerating,
 }: {
   tenant: Tenant | null;
   open: boolean;
   onClose: () => void;
-  onRegeneratePaymentLink: (tenant: Tenant) => void;
-  regenerating: boolean;
 }) {
   if (!tenant) return null;
   const leaseDays = daysUntil(tenant.leaseEnd);
@@ -119,28 +111,6 @@ function TenantModal({
               <span>
                 {tenant.propertyName} · Unit {tenant.unitNumber}
               </span>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Payment link */}
-          <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Payment Link
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <CopyPaymentLinkButton paymentLinkId={tenant.paymentLinkId} showOpen />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={regenerating}
-                onClick={() => onRegeneratePaymentLink(tenant)}
-              >
-                <RefreshCw className="h-3.5 w-3.5" />
-                {regenerating ? "Regenerating..." : "Regenerate"}
-              </Button>
             </div>
           </div>
 
@@ -197,18 +167,14 @@ export default function TenantTable({
   tenants, 
   onEdit, 
   onDelete,
-  onPaymentLinkRegenerated,
 }: { 
   tenants: Tenant[],
   onEdit: (t: Tenant) => void,
   onDelete: (t: Tenant) => void,
-  onPaymentLinkRegenerated: (tenantId: string, paymentLinkId: string) => void,
 }) {
   const [query, setQuery]             = useState("");
   const [selected, setSelected]       = useState<Tenant | null>(null);
   const [modalOpen, setModalOpen]     = useState(false);
-  const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
-  const [tenantToRegenerate, setTenantToRegenerate] = useState<Tenant | null>(null);
 
   const filtered = tenants.filter((t) => {
     const q = query.toLowerCase();
@@ -223,33 +189,6 @@ export default function TenantTable({
   function openModal(tenant: Tenant) {
     setSelected(tenant);
     setModalOpen(true);
-  }
-
-  async function handleRegeneratePaymentLink() {
-    if (!tenantToRegenerate) {
-      return;
-    }
-
-    setRegeneratingId(tenantToRegenerate.id);
-
-    try {
-      const paymentLinkId = await regenerateTenantPaymentLink(tenantToRegenerate.id);
-      onPaymentLinkRegenerated(tenantToRegenerate.id, paymentLinkId);
-      setSelected((current) =>
-        current?.id === tenantToRegenerate.id ? { ...current, paymentLinkId } : current
-      );
-      setTenantToRegenerate(null);
-      toast.success("Payment link regenerated.");
-    } catch (error) {
-      const supabaseError = error as { message?: string };
-      const message =
-        error instanceof Error
-          ? error.message
-          : supabaseError.message ?? "Unable to regenerate payment link.";
-      toast.error(message);
-    } finally {
-      setRegeneratingId(null);
-    }
   }
 
   return (
@@ -274,14 +213,13 @@ export default function TenantTable({
             <TableHead>Property · Unit</TableHead>
             <TableHead>Lease Period</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Payment Link</TableHead>
             <TableHead className="text-right">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {filtered.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} className="text-center text-muted-foreground py-10">
+              <TableCell colSpan={6} className="text-center text-muted-foreground py-10">
                 No tenants match your search.
               </TableCell>
             </TableRow>
@@ -314,9 +252,6 @@ export default function TenantTable({
                 <TableCell>
                   <StatusBadge status={t.rentStatus} />
                 </TableCell>
-                <TableCell onClick={(e) => e.stopPropagation()}>
-                  <CopyPaymentLinkButton paymentLinkId={t.paymentLinkId} />
-                </TableCell>
                 <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                   <div className="flex items-center justify-end gap-2">
                     <Button
@@ -336,9 +271,6 @@ export default function TenantTable({
                         <DropdownMenuItem onClick={() => onEdit(t)}>
                           <Edit className="w-4 h-4 mr-2" /> Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setTenantToRegenerate(t)}>
-                          <RefreshCw className="w-4 h-4 mr-2" /> Regenerate link
-                        </DropdownMenuItem>
                         <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onDelete(t)}>
                           <Trash2 className="w-4 h-4 mr-2" /> Remove
                         </DropdownMenuItem>
@@ -356,22 +288,6 @@ export default function TenantTable({
         tenant={selected}
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        onRegeneratePaymentLink={setTenantToRegenerate}
-        regenerating={selected ? regeneratingId === selected.id : false}
-      />
-      <ConfirmationDialog
-        open={Boolean(tenantToRegenerate)}
-        title="Regenerate payment link?"
-        description={
-          tenantToRegenerate
-            ? `This will replace ${tenantToRegenerate.name}'s payment link. The old link will stop working immediately.`
-            : ""
-        }
-        confirmLabel="Regenerate link"
-        variant="default"
-        loading={regeneratingId === tenantToRegenerate?.id}
-        onOpenChange={(open) => !open && setTenantToRegenerate(null)}
-        onConfirm={handleRegeneratePaymentLink}
       />
     </>
   );

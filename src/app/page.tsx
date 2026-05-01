@@ -10,9 +10,9 @@ export default function LandingPage() {
       {/* Background abstract gradients */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/20 rounded-full blur-[120px] pointer-events-none" />
-      
+
       <div className="z-10 text-center px-4 max-w-3xl">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
@@ -22,8 +22,8 @@ export default function LandingPage() {
             <Building2 className="w-8 h-8 text-primary" />
           </div>
         </motion.div>
-        
-        <motion.h1 
+
+        <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
@@ -31,8 +31,8 @@ export default function LandingPage() {
         >
           Manage properties with <span className="text-primary italic">elegance.</span>
         </motion.h1>
-        
-        <motion.p 
+
+        <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
@@ -40,8 +40,8 @@ export default function LandingPage() {
         >
           RentFlow provides the most premium, seamless experience for landlords and property managers to oversee their portfolios in real-time.
         </motion.p>
-        
-        <motion.div 
+
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }}
