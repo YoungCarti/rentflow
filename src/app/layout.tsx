@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
+import { AccessibilityPreferencesProvider } from "@/components/AccessibilityPreferences";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import "./globals.css";
 
@@ -23,8 +24,10 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          {children}
-          <Toaster position="bottom-right" richColors />
+          <AccessibilityPreferencesProvider>
+            {children}
+            <Toaster position="bottom-right" richColors />
+          </AccessibilityPreferencesProvider>
         </ThemeProvider>
       </body>
     </html>

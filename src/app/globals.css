@@ -125,6 +125,80 @@ body {
   font-family: var(--font-geist-sans);
 }
 
+html[data-text-size="large"] {
+  font-size: 17px;
+}
+
+html[data-text-size="larger"] {
+  font-size: 18px;
+}
+
+html.a11y-reduce-motion *,
+html.a11y-reduce-motion *::before,
+html.a11y-reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  scroll-behavior: auto !important;
+  transition-duration: 0.01ms !important;
+}
+
+html.a11y-high-contrast {
+  --background: oklch(0.08 0 0);
+  --foreground: oklch(1 0 0);
+  --card: oklch(0.12 0 0);
+  --card-foreground: oklch(1 0 0);
+  --popover: oklch(0.12 0 0);
+  --popover-foreground: oklch(1 0 0);
+  --primary: oklch(1 0 0);
+  --primary-foreground: oklch(0.08 0 0);
+  --secondary: oklch(0.22 0 0);
+  --secondary-foreground: oklch(1 0 0);
+  --muted: oklch(0.2 0 0);
+  --muted-foreground: oklch(0.88 0 0);
+  --accent: oklch(0.24 0 0);
+  --accent-foreground: oklch(1 0 0);
+  --border: oklch(0.72 0 0);
+  --input: oklch(0.82 0 0);
+  --ring: oklch(0.88 0.18 95);
+  --sidebar: oklch(0.1 0 0);
+  --sidebar-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.22 0 0);
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(0.72 0 0);
+}
+
+html.a11y-enhanced-focus :focus-visible {
+  outline: 3px solid var(--ring) !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 5px color-mix(in oklch, var(--ring) 28%, transparent) !important;
+}
+
+html.a11y-underlined-links a {
+  text-decoration-line: underline;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+}
+
+html[data-density="compact"] th {
+  height: 2.5rem !important;
+}
+
+html[data-density="compact"] td {
+  padding-bottom: 0.625rem !important;
+  padding-top: 0.625rem !important;
+}
+
+html[data-density="compact"] input,
+html[data-density="compact"] select,
+html[data-density="compact"] textarea {
+  min-height: 2.25rem;
+}
+
+html.a11y-status-patterns [data-status-badge] {
+  border-style: dashed;
+  box-shadow: inset 0 -2px 0 currentColor;
+}
+
 .dark .shadow-sm {
   box-shadow: 0 1px 0 rgb(255 255 255 / 0.04), 0 12px 28px rgb(0 0 0 / 0.28);
 }

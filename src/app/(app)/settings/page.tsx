@@ -2,6 +2,7 @@
 
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useAccessibilityPreferences } from "@/components/AccessibilityPreferences";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import PageHeader from "@/components/layout/PageHeader";
@@ -20,6 +21,10 @@ const settingsSections = {
   "language-region": {
     title: "Language & Region",
     summary: "Set your language, timezone, and currency display",
+  },
+  accessibility: {
+    title: "Accessibility",
+    summary: "Tune RentFlow for readability, motion comfort, and keyboard navigation",
   },
 } as const;
 
@@ -135,10 +140,51 @@ function SelectControl({
   );
 }
 
+function SegmentedControl<Value extends string>({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: Value;
+  options: { label: string; value: Value }[];
+  onChange: (value: Value) => void;
+}) {
+  return (
+    <div
+      role="group"
+      aria-label={label}
+      className="inline-flex w-full rounded-md border border-border bg-muted/35 p-1 sm:w-auto"
+    >
+      {options.map((option) => {
+        const active = option.value === value;
+
+        return (
+          <button
+            key={option.value}
+            type="button"
+            aria-pressed={active}
+            onClick={() => onChange(option.value)}
+            className={`h-8 flex-1 rounded-sm px-3 text-sm font-medium transition-colors sm:flex-none ${
+              active
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {option.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function SettingsContent() {
   const searchParams = useSearchParams();
   const activeSection = getSettingsSection(searchParams.get("section"));
   const sectionCopy = settingsSections[activeSection];
+  const { preferences, updatePreference, resetPreferences } = useAccessibilityPreferences();
 
   // Notifications
   const [notifs, setNotifs] = useState({
@@ -296,6 +342,113 @@ function SettingsContent() {
 
             <div className="flex justify-end">
               <Button size="sm">Save preferences</Button>
+            </div>
+          </div>
+        );
+      case "accessibility":
+        return (
+          <div className="space-y-7">
+            <SettingsSection title="Display">
+              <SettingsRow
+                label="Text size"
+                description="Increase app text across dashboards, forms, tables, and receipts."
+              >
+                <SegmentedControl
+                  label="Text size"
+                  value={preferences.textSize}
+                  onChange={(value) => updatePreference("textSize", value)}
+                  options={[
+                    { label: "Default", value: "default" },
+                    { label: "Large", value: "large" },
+                    { label: "Larger", value: "larger" },
+                  ]}
+                />
+              </SettingsRow>
+
+              <SettingsRow
+                label="Interface density"
+                description="Use a tighter layout for record-heavy views like rent, payments, and tenants."
+              >
+                <SegmentedControl
+                  label="Interface density"
+                  value={preferences.density}
+                  onChange={(value) => updatePreference("density", value)}
+                  options={[
+                    { label: "Comfortable", value: "comfortable" },
+                    { label: "Compact", value: "compact" },
+                  ]}
+                />
+              </SettingsRow>
+
+              <SettingsRow
+                label="High contrast"
+                description="Strengthen text, borders, inputs, and page contrast."
+                action={
+                  <SwitchToggle
+                    checked={preferences.highContrast}
+                    onChange={(value) => updatePreference("highContrast", value)}
+                    label="Toggle high contrast"
+                  />
+                }
+              />
+            </SettingsSection>
+
+            <SettingsSection title="Motion and Navigation">
+              <SettingsRow
+                label="Reduce motion"
+                description="Minimize animations and transitions throughout the app."
+                action={
+                  <SwitchToggle
+                    checked={preferences.reduceMotion}
+                    onChange={(value) => updatePreference("reduceMotion", value)}
+                    label="Toggle reduced motion"
+                  />
+                }
+              />
+
+              <SettingsRow
+                label="Enhanced focus indicators"
+                description="Make keyboard focus outlines easier to see while tabbing through controls."
+                action={
+                  <SwitchToggle
+                    checked={preferences.enhancedFocus}
+                    onChange={(value) => updatePreference("enhancedFocus", value)}
+                    label="Toggle enhanced focus indicators"
+                  />
+                }
+              />
+
+              <SettingsRow
+                label="Underline links"
+                description="Show underlines on links so clickable text does not rely on color alone."
+                action={
+                  <SwitchToggle
+                    checked={preferences.underlineLinks}
+                    onChange={(value) => updatePreference("underlineLinks", value)}
+                    label="Toggle underlined links"
+                  />
+                }
+              />
+            </SettingsSection>
+
+            <SettingsSection title="Data Visibility">
+              <SettingsRow
+                label="Color-blind friendly statuses"
+                description="Add a non-color visual marker to status badges like Paid, Pending, and Overdue."
+                action={
+                  <SwitchToggle
+                    checked={preferences.colorBlindStatuses}
+                    onChange={(value) => updatePreference("colorBlindStatuses", value)}
+                    label="Toggle color-blind friendly statuses"
+                  />
+                }
+              />
+            </SettingsSection>
+
+            <div className="flex justify-end">
+              <Button type="button" variant="secondary" size="sm" onClick={resetPreferences}>
+                Reset accessibility
+              </Button>
             </div>
           </div>
         );

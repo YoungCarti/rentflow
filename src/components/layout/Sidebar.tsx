@@ -16,6 +16,7 @@ import {
   Wrench,
   PanelLeftClose,
   UserCircle,
+  Accessibility,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,7 @@ const settingsGroups = [
       { label: "Account", href: "/settings?section=account", icon: UserCircle, section: "account" },
       { label: "Notification", href: "/settings?section=notifications", icon: Bell, section: "notifications" },
       { label: "Language & Region", href: "/settings?section=language-region", icon: Globe2, section: "language-region" },
+      { label: "Accessibility", href: "/settings?section=accessibility", icon: Accessibility, section: "accessibility" },
     ],
   },
 ];

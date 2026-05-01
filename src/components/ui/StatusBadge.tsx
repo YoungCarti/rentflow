@@ -31,6 +31,7 @@ interface Props {
 export default function StatusBadge({ status, className }: Props) {
   return (
     <span
+      data-status-badge
       className={cn(
         "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border",
         statusStyles[status] ?? semanticTone.neutral.badge,
