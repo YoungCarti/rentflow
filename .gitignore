@@ -24,6 +24,9 @@
 .DS_Store
 *.pem
 
+# local brand assets
+src/components/brand/RentFlowLogo.tsx
+
 # debug
 npm-debug.log*
 yarn-debug.log*
