@@ -104,17 +104,17 @@ function SignInForm() {
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       className="w-full"
     >
-      <div className="mb-8 text-center">
-        <RentFlowLogo className="mx-auto h-16 w-16" />
-        <h1 className="mt-6 font-mono text-2xl uppercase tracking-[0.12em] text-white">
+      <div className="mb-7 text-center">
+        <RentFlowLogo className="mx-auto h-14 w-14" />
+        <h1 className="mt-5 font-mono text-2xl uppercase tracking-[0.12em] text-white">
           Welcome Back
         </h1>
         <p className="mt-2 text-sm text-white/50">Sign in to continue managing your portfolio</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <div className="rounded-lg border border-white/10 bg-white/[0.03] px-5 py-4">
-          <Label htmlFor="email" className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/55">
+      <form onSubmit={handleSubmit} className="mx-auto w-full max-w-[420px] space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="email" className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/60">
             Your Email
           </Label>
           <Input
@@ -124,20 +124,20 @@ function SignInForm() {
             placeholder="you@example.com"
             required
             autoComplete="email"
-            className="mt-3 h-11 border-0 bg-transparent px-0 text-base text-white shadow-none placeholder:text-white/25 focus-visible:ring-0"
+            className="h-12 rounded-md border-white/12 bg-white/[0.055] px-4 text-sm text-white shadow-none transition-[border-color,box-shadow,background-color] placeholder:text-white/35 focus-visible:border-cyan-300/80 focus-visible:bg-white/[0.075] focus-visible:ring-2 focus-visible:ring-cyan-300/20 focus-visible:ring-offset-0"
           />
         </div>
 
-        <div className="rounded-lg border border-white/10 bg-white/[0.03] px-5 py-4">
-          <div className="flex items-center justify-between gap-3">
-            <Label htmlFor="password" className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/55">
+        <div className="space-y-2">
+          <div className="flex h-4 items-center justify-between gap-3">
+            <Label htmlFor="password" className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/60">
               Password
             </Label>
-            <Link href="/forgot-password" className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/40 transition-colors hover:text-white">
+            <Link href="/forgot-password" className="font-mono text-[10px] uppercase tracking-[0.14em] text-white/45 transition-colors hover:text-cyan-200">
               Forgot?
             </Link>
           </div>
-          <div className="relative mt-3">
+          <div className="relative">
             <Input
               id="password"
               name="password"
@@ -145,12 +145,12 @@ function SignInForm() {
               placeholder="Enter your password"
               required
               autoComplete="current-password"
-              className="h-11 border-0 bg-transparent px-0 pr-10 text-base text-white shadow-none placeholder:text-white/25 focus-visible:ring-0"
+              className="h-12 rounded-md border-white/12 bg-white/[0.055] px-4 pr-11 text-sm text-white shadow-none transition-[border-color,box-shadow,background-color] placeholder:text-white/35 focus-visible:border-cyan-300/80 focus-visible:bg-white/[0.075] focus-visible:ring-2 focus-visible:ring-cyan-300/20 focus-visible:ring-offset-0"
             />
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
-              className="absolute right-0 top-1/2 -translate-y-1/2 text-white/40 transition-colors hover:text-white"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-white/45 transition-colors hover:text-white"
               tabIndex={-1}
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -166,7 +166,7 @@ function SignInForm() {
 
         <Button
           type="submit"
-          className="group h-14 w-full rounded-lg border border-cyan-300/70 bg-white/[0.03] font-mono text-sm uppercase tracking-[0.16em] text-cyan-200 hover:bg-cyan-300/10"
+          className="group mt-2 h-12 w-full rounded-md border border-cyan-300/70 bg-cyan-300 text-sm font-bold uppercase tracking-[0.14em] text-black shadow-[0_0_24px_rgba(103,232,249,0.16)] transition-all hover:border-cyan-200 hover:bg-cyan-200 focus-visible:ring-cyan-200/40 focus-visible:ring-offset-0"
           disabled={loading}
         >
           {loading ? (
@@ -184,7 +184,7 @@ function SignInForm() {
         </Button>
       </form>
 
-      <p className="pt-6 text-center text-sm text-white/45">
+      <p className="pt-5 text-center text-sm text-white/45">
         Don&apos;t have an account?{" "}
         <Link href="/register" className="font-medium text-white transition-colors hover:text-cyan-200">
           Create one
