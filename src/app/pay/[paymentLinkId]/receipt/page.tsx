@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ReceiptActions from "@/components/receipts/ReceiptActions";
 import ReceiptDocument from "@/components/receipts/ReceiptDocument";
+import RentFlowLogo from "@/components/brand/RentFlowLogo";
 import { getPublicPaymentReceipt } from "@/lib/receipts";
 
 function ReceiptUnavailable({ paymentLinkId }: { paymentLinkId: string }) {
@@ -12,8 +12,8 @@ function ReceiptUnavailable({ paymentLinkId }: { paymentLinkId: string }) {
       <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-md items-center">
         <Card className="w-full shadow-sm">
           <CardHeader className="items-center text-center">
-            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Building2 className="h-5 w-5" />
+            <div className="flex h-11 w-11 items-center justify-center">
+              <RentFlowLogo className="h-11 w-11" />
             </div>
             <CardTitle>Receipt unavailable</CardTitle>
           </CardHeader>

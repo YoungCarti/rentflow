@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
-  Building2,
   CheckCircle2,
   CreditCard,
   Download,
@@ -14,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import StatusBadge from "@/components/ui/StatusBadge";
+import RentFlowLogo from "@/components/brand/RentFlowLogo";
 import {
   createPublicMaintenanceRequest,
   getPublicRentPayment,
@@ -46,8 +46,8 @@ function InvalidPaymentLink() {
       <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-md items-center">
         <Card className="w-full shadow-sm">
           <CardHeader className="items-center text-center">
-            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Building2 className="h-5 w-5" />
+            <div className="flex h-11 w-11 items-center justify-center">
+              <RentFlowLogo className="h-11 w-11" />
             </div>
             <CardTitle>Payment link unavailable</CardTitle>
           </CardHeader>
@@ -154,8 +154,8 @@ export default async function PublicPaymentPage({
         <div className="grid w-full gap-6 lg:grid-cols-[1fr_380px]">
           <section className="space-y-6">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <Building2 className="h-5 w-5" />
+              <div className="flex h-11 w-11 items-center justify-center">
+                <RentFlowLogo className="h-11 w-11" />
               </div>
               <div>
                 <p className="text-sm font-semibold text-foreground">RentFlow</p>

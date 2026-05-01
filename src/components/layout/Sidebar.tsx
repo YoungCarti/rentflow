@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import RentFlowLogo from "@/components/brand/RentFlowLogo";
 
 const navItems = [
   { label: "Dashboard",      href: "/dashboard",    icon: LayoutDashboard },
@@ -131,8 +132,8 @@ export default function Sidebar({
             {/* Logo */}
             <div className="flex items-center justify-between gap-3 px-4 h-16 border-b border-border">
               <div className="flex min-w-0 items-center gap-2.5">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary">
-                  <Building2 className="w-4 h-4 text-primary-foreground" />
+                <div className="flex items-center justify-center w-8 h-8">
+                  <RentFlowLogo className="h-8 w-8" />
                 </div>
                 <span className="truncate text-lg font-bold tracking-tight text-foreground">
                   RentFlow

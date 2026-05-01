@@ -4,12 +4,13 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowRight, Building2, Eye, EyeOff } from "lucide-react";
+import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import RentFlowLogo from "@/components/brand/RentFlowLogo";
 import { createClient } from "@/lib/supabase/client";
 
 export default function UpdatePasswordPage() {
@@ -71,8 +72,8 @@ export default function UpdatePasswordPage() {
             transition={{ delay: 0.2, duration: 0.5 }}
             className="flex items-center justify-center gap-2"
           >
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/20 border border-primary/30 shadow-[0_0_20px_rgba(var(--primary),0.2)]">
-              <Building2 className="w-5 h-5 text-primary" />
+            <div className="flex items-center justify-center w-10 h-10 drop-shadow-[0_0_18px_rgba(6,200,238,0.22)]">
+              <RentFlowLogo className="h-10 w-10" />
             </div>
           </motion.div>
           <div>

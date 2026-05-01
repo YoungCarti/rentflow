@@ -1,4 +1,5 @@
-import { Building2, CheckCircle2 } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
+import RentFlowLogo from "@/components/brand/RentFlowLogo";
 import type { PaymentReceipt } from "@/lib/receipts";
 
 function formatRM(amount: number) {
@@ -25,8 +26,8 @@ export default function ReceiptDocument({ receipt }: { receipt: PaymentReceipt }
     <article className="overflow-hidden rounded-lg border border-border bg-card shadow-sm print:rounded-none print:border-0 print:shadow-none">
       <header className="flex flex-col gap-6 border-b border-border p-6 sm:flex-row sm:items-start sm:justify-between print:p-0 print:pb-6">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Building2 className="h-5 w-5" />
+          <div className="flex h-11 w-11 items-center justify-center">
+            <RentFlowLogo className="h-11 w-11" />
           </div>
           <div>
             <p className="text-lg font-bold text-foreground">RentFlow</p>

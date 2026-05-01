@@ -7,7 +7,7 @@ import { LayoutDashboard, Menu, Search } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import NotificationCenter from "@/components/layout/NotificationCenter";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -76,6 +76,12 @@ export default function Topbar({
 
     return displayName.slice(0, 2).toUpperCase();
   }, [displayName]);
+
+  const avatarUrl = useMemo(() => {
+    const value = user?.user_metadata?.avatar_url;
+
+    return typeof value === "string" ? value : "";
+  }, [user]);
 
   async function handleSignOut() {
     try {
@@ -150,6 +156,7 @@ export default function Topbar({
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="flex items-center gap-2 h-9 px-2">
               <Avatar className="h-7 w-7">
+                {avatarUrl && <AvatarImage src={avatarUrl} alt={displayName} />}
                 <AvatarFallback className="text-xs bg-primary text-primary-foreground">
                   {initials}
                 </AvatarFallback>

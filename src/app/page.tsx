@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Building2, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import RentFlowLogo from "@/components/brand/RentFlowLogo";
 
 export default function LandingPage() {
   return (
@@ -18,8 +19,8 @@ export default function LandingPage() {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="flex justify-center mb-6"
         >
-          <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 shadow-[0_0_40px_rgba(var(--primary),0.3)]">
-            <Building2 className="w-8 h-8 text-primary" />
+          <div className="flex items-center justify-center w-16 h-16 drop-shadow-[0_0_28px_rgba(6,200,238,0.24)]">
+            <RentFlowLogo className="h-16 w-16" />
           </div>
         </motion.div>
 
