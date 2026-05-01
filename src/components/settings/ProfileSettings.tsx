@@ -21,6 +21,7 @@ import { Separator } from "@/components/ui/separator";
 import { createClient } from "@/lib/supabase/client";
 
 const MAX_AVATAR_SIZE = 2 * 1024 * 1024;
+const PROFILE_AVATARS_BUCKET = "profile-avatars";
 
 const DEFAULT = {
   firstName: "",
@@ -33,6 +34,16 @@ const DEFAULT = {
 };
 
 type ProfileForm = typeof DEFAULT;
+
+type ProfileMetadata = {
+  avatar_path?: unknown;
+  avatar_url?: unknown;
+  company?: unknown;
+  first_name?: unknown;
+  last_name?: unknown;
+  phone?: unknown;
+  role?: unknown;
+};
 
 type SessionRow = {
   id: string;
@@ -58,6 +69,8 @@ export default function ProfileSettings({ showHeading = true }: { showHeading?: 
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState("");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarRemoved, setAvatarRemoved] = useState(false);
   const [emailOpen, setEmailOpen] = useState(false);
   const [newEmail, setNewEmail] = useState("");
   const [emailSaving, setEmailSaving] = useState(false);
@@ -95,7 +108,7 @@ export default function ProfileSettings({ showHeading = true }: { showHeading?: 
         }
 
         const currentUser = data.user;
-        const metadata = currentUser?.user_metadata ?? {};
+        const metadata = (currentUser?.user_metadata ?? {}) as ProfileMetadata;
         const emailPrefix = currentUser?.email?.split("@")[0] ?? "";
 
         setUser(currentUser);
@@ -136,6 +149,14 @@ export default function ProfileSettings({ showHeading = true }: { showHeading?: 
     }
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (avatarPreview.startsWith("blob:")) {
+        URL.revokeObjectURL(avatarPreview);
+      }
+    };
+  }, [avatarPreview]);
+
   function handleChange(key: keyof ProfileForm) {
     return (e: React.ChangeEvent<HTMLInputElement>) => {
       setForm((f) => ({ ...f, [key]: e.target.value }));
@@ -160,24 +181,56 @@ export default function ProfileSettings({ showHeading = true }: { showHeading?: 
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = typeof reader.result === "string" ? reader.result : "";
-      setAvatarPreview(dataUrl);
-      setForm((f) => ({ ...f, avatarUrl: dataUrl }));
-      setSaved(false);
-    };
-    reader.readAsDataURL(file);
+    const objectUrl = URL.createObjectURL(file);
+
+    if (avatarPreview.startsWith("blob:")) {
+      URL.revokeObjectURL(avatarPreview);
+    }
+
+    setAvatarPreview(objectUrl);
+    setAvatarFile(file);
+    setAvatarRemoved(false);
+    setSaved(false);
   }
 
   function handleRemoveAvatar() {
+    if (avatarPreview.startsWith("blob:")) {
+      URL.revokeObjectURL(avatarPreview);
+    }
+
     setAvatarPreview("");
+    setAvatarFile(null);
+    setAvatarRemoved(true);
     setForm((f) => ({ ...f, avatarUrl: "" }));
     setSaved(false);
 
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+  }
+
+  async function uploadAvatar(supabase: ReturnType<typeof createClient>, file: File, userId: string) {
+    const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const filePath = `${userId}/${crypto.randomUUID()}.${extension}`;
+    const { error } = await supabase.storage
+      .from(PROFILE_AVATARS_BUCKET)
+      .upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (error) {
+      throw error;
+    }
+
+    const { data } = supabase.storage
+      .from(PROFILE_AVATARS_BUCKET)
+      .getPublicUrl(filePath);
+
+    return {
+      path: filePath,
+      url: data.publicUrl,
+    };
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -187,24 +240,68 @@ export default function ProfileSettings({ showHeading = true }: { showHeading?: 
 
     try {
       const supabase = createClient();
+      const {
+        data: { user: currentUser },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) {
+        toast.error(userError.message);
+        return;
+      }
+
+      if (!currentUser) {
+        toast.error("You must be signed in to update your profile.");
+        return;
+      }
+
+      const metadata = (currentUser.user_metadata ?? {}) as ProfileMetadata;
+      const previousAvatarPath =
+        typeof metadata.avatar_path === "string" ? metadata.avatar_path : "";
+      let nextAvatarUrl = form.avatarUrl.startsWith("data:image/") ? "" : form.avatarUrl;
+      let nextAvatarPath = previousAvatarPath;
+      let uploadedAvatarPath = "";
+
+      if (avatarFile) {
+        const uploadedAvatar = await uploadAvatar(supabase, avatarFile, currentUser.id);
+        nextAvatarUrl = uploadedAvatar.url;
+        nextAvatarPath = uploadedAvatar.path;
+        uploadedAvatarPath = uploadedAvatar.path;
+      } else if (avatarRemoved) {
+        nextAvatarUrl = "";
+        nextAvatarPath = "";
+      }
+
       const { error } = await supabase.auth.updateUser({
         data: {
           first_name: form.firstName,
           last_name: form.lastName,
           company: form.company,
           role: form.role,
-          avatar_url: form.avatarUrl,
+          avatar_url: nextAvatarUrl,
+          avatar_path: nextAvatarPath,
         },
       });
 
       if (error) {
+        if (uploadedAvatarPath) {
+          await supabase.storage.from(PROFILE_AVATARS_BUCKET).remove([uploadedAvatarPath]);
+        }
+
         toast.error(error.message);
         return;
+      }
+
+      if ((avatarFile || avatarRemoved) && previousAvatarPath && previousAvatarPath !== nextAvatarPath) {
+        await supabase.storage.from(PROFILE_AVATARS_BUCKET).remove([previousAvatarPath]);
       }
 
       const { data } = await supabase.auth.getUser();
       setUser(data.user);
       setAvatarPreview("");
+      setAvatarFile(null);
+      setAvatarRemoved(false);
+      setForm((f) => ({ ...f, avatarUrl: nextAvatarUrl }));
       setSaved(true);
       toast.success("Profile updated successfully.");
     } catch (err) {

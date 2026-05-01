@@ -173,17 +173,122 @@ html.a11y-underlined-links a {
 
 html[data-density="compact"] th {
   height: 2.5rem !important;
+  padding-left: 0.75rem !important;
+  padding-right: 0.75rem !important;
 }
 
 html[data-density="compact"] td {
   padding-bottom: 0.625rem !important;
+  padding-left: 0.75rem !important;
+  padding-right: 0.75rem !important;
   padding-top: 0.625rem !important;
 }
 
 html[data-density="compact"] input,
 html[data-density="compact"] select,
 html[data-density="compact"] textarea {
-  min-height: 2.25rem;
+  min-height: 2.25rem !important;
+}
+
+html[data-density="compact"] main.p-6 {
+  padding: 1rem !important;
+}
+
+html[data-density="compact"] .p-6 {
+  padding: 1rem !important;
+}
+
+html[data-density="compact"] .p-5 {
+  padding: 0.875rem !important;
+}
+
+html[data-density="compact"] .p-4 {
+  padding: 0.75rem !important;
+}
+
+html[data-density="compact"] .px-6 {
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+}
+
+html[data-density="compact"] .px-4 {
+  padding-left: 0.75rem !important;
+  padding-right: 0.75rem !important;
+}
+
+html[data-density="compact"] .py-4 {
+  padding-bottom: 0.75rem !important;
+  padding-top: 0.75rem !important;
+}
+
+html[data-density="compact"] .py-3 {
+  padding-bottom: 0.625rem !important;
+  padding-top: 0.625rem !important;
+}
+
+html[data-density="compact"] .gap-6 {
+  gap: 1rem !important;
+}
+
+html[data-density="compact"] .gap-5 {
+  gap: 0.875rem !important;
+}
+
+html[data-density="compact"] .gap-4 {
+  gap: 0.75rem !important;
+}
+
+html[data-density="compact"] .gap-3 {
+  gap: 0.625rem !important;
+}
+
+html[data-density="compact"] .space-y-8 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 1.5rem !important;
+}
+
+html[data-density="compact"] .space-y-7 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 1.25rem !important;
+}
+
+html[data-density="compact"] .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 1rem !important;
+}
+
+html[data-density="compact"] .space-y-5 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 0.875rem !important;
+}
+
+html[data-density="compact"] .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 0.75rem !important;
+}
+
+html[data-density="compact"] button.h-11,
+html[data-density="compact"] a.h-11 {
+  height: 2.5rem !important;
+}
+
+html[data-density="compact"] button.h-10,
+html[data-density="compact"] a.h-10,
+html[data-density="compact"] input.h-10,
+html[data-density="compact"] select.h-10 {
+  height: 2.25rem !important;
+}
+
+html[data-density="compact"] button.h-9,
+html[data-density="compact"] a.h-9 {
+  height: 2rem !important;
+}
+
+html[data-density="compact"] button.px-4,
+html[data-density="compact"] a.px-4 {
+  padding-left: 0.875rem !important;
+  padding-right: 0.875rem !important;
+}
+
+html[data-density="compact"] button.px-3,
+html[data-density="compact"] a.px-3 {
+  padding-left: 0.625rem !important;
+  padding-right: 0.625rem !important;
 }
 
 html.a11y-status-patterns [data-status-badge] {

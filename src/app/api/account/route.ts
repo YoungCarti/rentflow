@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 const PAYMENT_PROOFS_BUCKET = "payment-proofs";
+const PROFILE_AVATARS_BUCKET = "profile-avatars";
 const USER_OWNED_TABLES = [
   "payments",
   "rent_records",
@@ -103,6 +104,32 @@ async function deletePaymentProofs(
   }
 }
 
+async function deleteProfileAvatars(
+  admin: ReturnType<typeof createAdminClient>,
+  userId: string
+) {
+  const { data, error } = await admin.storage.from(PROFILE_AVATARS_BUCKET).list(userId);
+
+  if (error) {
+    console.error("Unable to list profile avatars", error);
+    return;
+  }
+
+  const avatarPaths = (data ?? []).map((item) => `${userId}/${item.name}`);
+
+  if (avatarPaths.length === 0) {
+    return;
+  }
+
+  const { error: removeError } = await admin.storage
+    .from(PROFILE_AVATARS_BUCKET)
+    .remove(avatarPaths);
+
+  if (removeError) {
+    console.error("Unable to delete profile avatars", removeError);
+  }
+}
+
 export async function DELETE(request: NextRequest) {
   const confirm = await getConfirmation(request);
 
@@ -146,6 +173,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     await deletePaymentProofs(admin, proofPaths);
+    await deleteProfileAvatars(admin, user.id);
     await supabase.auth.signOut({ scope: "local" });
 
     return NextResponse.json({ ok: true });
