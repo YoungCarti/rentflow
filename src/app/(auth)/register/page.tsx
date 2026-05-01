@@ -96,7 +96,7 @@ export default function RegisterPage() {
             <Input
               id="first-name"
               name="firstName"
-              placeholder="John"
+              placeholder=""
               required
               autoComplete="given-name"
               className="h-12 rounded-md border-white/12 bg-white/[0.055] px-4 text-sm text-white shadow-none transition-[border-color,box-shadow,background-color] placeholder:text-white/35 focus-visible:border-cyan-300/80 focus-visible:bg-white/[0.075] focus-visible:ring-2 focus-visible:ring-cyan-300/20 focus-visible:ring-offset-0"
@@ -109,7 +109,7 @@ export default function RegisterPage() {
             <Input
               id="last-name"
               name="lastName"
-              placeholder="Doe"
+              placeholder=""
               required
               autoComplete="family-name"
               className="h-12 rounded-md border-white/12 bg-white/[0.055] px-4 text-sm text-white shadow-none transition-[border-color,box-shadow,background-color] placeholder:text-white/35 focus-visible:border-cyan-300/80 focus-visible:bg-white/[0.075] focus-visible:ring-2 focus-visible:ring-cyan-300/20 focus-visible:ring-offset-0"
@@ -125,7 +125,7 @@ export default function RegisterPage() {
             id="email"
             name="email"
             type="email"
-            placeholder="you@example.com"
+            placeholder=""
             required
             autoComplete="email"
             className="h-12 rounded-md border-white/12 bg-white/[0.055] px-4 text-sm text-white shadow-none transition-[border-color,box-shadow,background-color] placeholder:text-white/35 focus-visible:border-cyan-300/80 focus-visible:bg-white/[0.075] focus-visible:ring-2 focus-visible:ring-cyan-300/20 focus-visible:ring-offset-0"
@@ -139,7 +139,7 @@ export default function RegisterPage() {
           <Input
             id="company"
             name="company"
-            placeholder="My Property Sdn Bhd"
+            placeholder=""
             autoComplete="organization"
             className="h-12 rounded-md border-white/12 bg-white/[0.055] px-4 text-sm text-white shadow-none transition-[border-color,box-shadow,background-color] placeholder:text-white/35 focus-visible:border-cyan-300/80 focus-visible:bg-white/[0.075] focus-visible:ring-2 focus-visible:ring-cyan-300/20 focus-visible:ring-offset-0"
           />
