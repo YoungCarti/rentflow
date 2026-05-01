@@ -1,3 +1,4 @@
+import RotatingAuthHeadline from "@/components/auth/RotatingAuthHeadline";
 import RentFlowLogo from "@/components/brand/RentFlowLogo";
 
 export default function AuthLayout({
@@ -29,9 +30,7 @@ export default function AuthLayout({
             </div>
 
             <div className="max-w-md">
-              <p className="text-2xl font-semibold leading-9 tracking-tight text-white">
-                Track rent, tenants, payments, and maintenance from one focused workspace.
-              </p>
+              <RotatingAuthHeadline />
               <p className="mt-4 max-w-sm text-sm leading-6 text-white/55">
                 Build your portfolio once, then let RentFlow organize the monthly work around it.
               </p>
