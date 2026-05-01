@@ -19,6 +19,16 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
+      if (next === "/dashboard") {
+        const { count } = await supabase
+          .from("properties")
+          .select("id", { count: "exact", head: true });
+
+        if (count === 0) {
+          return NextResponse.redirect(new URL("/onboarding/welcome", requestUrl.origin));
+        }
+      }
+
       return NextResponse.redirect(new URL(next, requestUrl.origin));
     }
   }

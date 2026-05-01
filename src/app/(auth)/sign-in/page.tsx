@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,6 +30,23 @@ function SignInForm() {
       ? "We could not complete that auth link. Please try signing in again."
       : null
   );
+
+  async function getPostSignInPath(next: string) {
+    if (next !== "/dashboard") {
+      return next;
+    }
+
+    const supabase = createClient();
+    const { count, error } = await supabase
+      .from("properties")
+      .select("id", { count: "exact", head: true });
+
+    if (error) {
+      return next;
+    }
+
+    return count === 0 ? "/onboarding/welcome" : next;
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -63,11 +79,13 @@ function SignInForm() {
         return;
       }
 
+      const destination = await getPostSignInPath(next);
+
       toast.success("Welcome back!");
       if (aal.data.nextLevel === "aal2" && aal.data.currentLevel !== aal.data.nextLevel) {
-        router.replace(`/verify-mfa?next=${encodeURIComponent(next)}`);
+        router.replace(`/verify-mfa?next=${encodeURIComponent(destination)}`);
       } else {
-        router.replace(next);
+        router.replace(destination);
       }
       router.refresh();
     } catch (err) {
@@ -84,116 +102,94 @@ function SignInForm() {
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className="w-full"
     >
-      <Card className="w-full shadow-2xl border-white/10 bg-black/40 backdrop-blur-xl relative overflow-hidden">
-        {/* Subtle top glare */}
-        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+      <div className="mb-8 text-center">
+        <RentFlowLogo className="mx-auto h-16 w-16" />
+        <h1 className="mt-6 font-mono text-2xl uppercase tracking-[0.12em] text-white">
+          Welcome Back
+        </h1>
+        <p className="mt-2 text-sm text-white/50">Sign in to continue managing your portfolio</p>
+      </div>
 
-        <CardHeader className="pb-2 text-center space-y-3 relative z-10">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="flex items-center justify-center gap-2"
-          >
-            <div className="flex items-center justify-center w-10 h-10 drop-shadow-[0_0_18px_rgba(6,200,238,0.22)]">
-              <RentFlowLogo className="h-10 w-10" />
-            </div>
-          </motion.div>
-          <div>
-            <h1 className="text-2xl font-semibold text-white tracking-tight">Welcome back</h1>
-            <p className="text-sm text-white/60 mt-1">Sign in to your account</p>
-          </div>
-        </CardHeader>
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <div className="rounded-lg border border-white/10 bg-white/[0.03] px-5 py-4">
+          <Label htmlFor="email" className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/55">
+            Your Email
+          </Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="you@example.com"
+            required
+            autoComplete="email"
+            className="mt-3 h-11 border-0 bg-transparent px-0 text-base text-white shadow-none placeholder:text-white/25 focus-visible:ring-0"
+          />
+        </div>
 
-        <CardContent className="space-y-4 pt-4 relative z-10">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-white/80">Email address</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="you@example.com"
-                required
-                autoComplete="email"
-                className="bg-black/50 border-white/10 focus-visible:ring-primary/50 focus-visible:border-primary text-white placeholder:text-white/30 h-11"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-white/80">Password</Label>
-                <Link
-                  href="/forgot-password"
-                  className="text-xs text-white/50 hover:text-white transition-colors"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-              <div className="relative">
-                <Input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  required
-                  autoComplete="current-password"
-                  className="bg-black/50 border-white/10 focus-visible:ring-primary/50 focus-visible:border-primary text-white placeholder:text-white/30 h-11 pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors"
-                  tabIndex={-1}
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <input
-                id="remember"
-                type="checkbox"
-                defaultChecked
-                className="w-4 h-4 rounded border-white/20 bg-black/50 checked:bg-primary accent-primary"
-              />
-              <Label htmlFor="remember" className="text-sm font-normal text-white/60 cursor-pointer">
-                Remember me for 30 days
-              </Label>
-            </div>
-
-            {error && (
-              <p className="rounded-md border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-200">
-                {error}
-              </p>
-            )}
-
-            <Button type="submit" className="w-full h-11 bg-white text-black hover:bg-white/90 font-medium transition-all group" disabled={loading}>
-              {loading ? (
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                  className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full"
-                />
-              ) : (
-                <>
-                  Sign In
-                  <ArrowRight className="w-4 h-4 ml-2 opacity-70 group-hover:translate-x-1 transition-transform" />
-                </>
-              )}
-            </Button>
-          </form>
-
-          <p className="text-center text-sm text-white/50 pt-2">
-            Don&apos;t have an account?{" "}
-            <Link href="/register" className="text-white hover:text-primary font-medium transition-colors">
-              Create one
+        <div className="rounded-lg border border-white/10 bg-white/[0.03] px-5 py-4">
+          <div className="flex items-center justify-between gap-3">
+            <Label htmlFor="password" className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/55">
+              Password
+            </Label>
+            <Link href="/forgot-password" className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/40 transition-colors hover:text-white">
+              Forgot?
             </Link>
+          </div>
+          <div className="relative mt-3">
+            <Input
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Enter your password"
+              required
+              autoComplete="current-password"
+              className="h-11 border-0 bg-transparent px-0 pr-10 text-base text-white shadow-none placeholder:text-white/25 focus-visible:ring-0"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute right-0 top-1/2 -translate-y-1/2 text-white/40 transition-colors hover:text-white"
+              tabIndex={-1}
+            >
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+        </div>
+
+        {error && (
+          <p className="rounded-md border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            {error}
           </p>
-        </CardContent>
-      </Card>
+        )}
+
+        <Button
+          type="submit"
+          className="group h-14 w-full rounded-lg border border-cyan-300/70 bg-white/[0.03] font-mono text-sm uppercase tracking-[0.16em] text-cyan-200 hover:bg-cyan-300/10"
+          disabled={loading}
+        >
+          {loading ? (
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+              className="h-5 w-5 rounded-full border-2 border-cyan-200/25 border-t-cyan-200"
+            />
+          ) : (
+            <>
+              Sign In
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </>
+          )}
+        </Button>
+      </form>
+
+      <p className="pt-6 text-center text-sm text-white/45">
+        Don&apos;t have an account?{" "}
+        <Link href="/register" className="font-medium text-white transition-colors hover:text-cyan-200">
+          Create one
+        </Link>
+      </p>
     </motion.div>
   );
 }

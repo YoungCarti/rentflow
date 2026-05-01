@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,6 +42,7 @@ export default function RegisterPage() {
             first_name: firstName,
             last_name: lastName,
             company,
+            onboarding_completed: false,
           },
         },
       });
@@ -61,7 +61,7 @@ export default function RegisterPage() {
       }
 
       toast.success("Account created!");
-      router.replace("/dashboard");
+      router.replace("/onboarding/welcome");
       router.refresh();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unable to create account.";
@@ -77,146 +77,145 @@ export default function RegisterPage() {
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className="w-full"
     >
-      <Card className="w-full shadow-2xl border-white/10 bg-black/40 backdrop-blur-xl relative overflow-hidden">
-        {/* Subtle top glare */}
-        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-        
-        <CardHeader className="pb-2 text-center space-y-3 relative z-10">
-          <motion.div 
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="flex items-center justify-center gap-2"
-          >
-            <div className="flex items-center justify-center w-10 h-10 drop-shadow-[0_0_18px_rgba(6,200,238,0.22)]">
-              <RentFlowLogo className="h-10 w-10" />
-            </div>
-          </motion.div>
-          <div>
-            <h1 className="text-2xl font-semibold text-white tracking-tight">Create an account</h1>
-            <p className="text-sm text-white/60 mt-1">Start managing your properties today</p>
+      <div className="mb-8 text-center">
+        <RentFlowLogo className="mx-auto h-16 w-16" />
+        <h1 className="mt-6 font-mono text-2xl uppercase tracking-[0.12em] text-white">
+          Create Account
+        </h1>
+        <p className="mt-2 text-sm text-white/50">Start your property workspace</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="rounded-lg border border-white/10 bg-white/[0.03] px-5 py-4">
+            <Label htmlFor="first-name" className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/55">
+              First Name
+            </Label>
+            <Input
+              id="first-name"
+              name="firstName"
+              placeholder="John"
+              required
+              autoComplete="given-name"
+              className="mt-3 h-11 border-0 bg-transparent px-0 text-base text-white shadow-none placeholder:text-white/25 focus-visible:ring-0"
+            />
           </div>
-        </CardHeader>
+          <div className="rounded-lg border border-white/10 bg-white/[0.03] px-5 py-4">
+            <Label htmlFor="last-name" className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/55">
+              Last Name
+            </Label>
+            <Input
+              id="last-name"
+              name="lastName"
+              placeholder="Doe"
+              required
+              autoComplete="family-name"
+              className="mt-3 h-11 border-0 bg-transparent px-0 text-base text-white shadow-none placeholder:text-white/25 focus-visible:ring-0"
+            />
+          </div>
+        </div>
 
-        <CardContent className="space-y-4 pt-4 relative z-10">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="first-name" className="text-white/80">First name</Label>
-                <Input 
-                  id="first-name" 
-                  name="firstName"
-                  placeholder="John" 
-                  required 
-                  autoComplete="given-name" 
-                  className="bg-black/50 border-white/10 focus-visible:ring-primary/50 focus-visible:border-primary text-white placeholder:text-white/30 h-11"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="last-name" className="text-white/80">Last name</Label>
-                <Input 
-                  id="last-name" 
-                  name="lastName"
-                  placeholder="Doe" 
-                  required 
-                  autoComplete="family-name" 
-                  className="bg-black/50 border-white/10 focus-visible:ring-primary/50 focus-visible:border-primary text-white placeholder:text-white/30 h-11"
-                />
-              </div>
-            </div>
+        <div className="rounded-lg border border-white/10 bg-white/[0.03] px-5 py-4">
+          <Label htmlFor="email" className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/55">
+            Your Email
+          </Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="you@example.com"
+            required
+            autoComplete="email"
+            className="mt-3 h-11 border-0 bg-transparent px-0 text-base text-white shadow-none placeholder:text-white/25 focus-visible:ring-0"
+          />
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-white/80">Email address</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="you@example.com"
-                required
-                autoComplete="email"
-                className="bg-black/50 border-white/10 focus-visible:ring-primary/50 focus-visible:border-primary text-white placeholder:text-white/30 h-11"
-              />
-            </div>
+        <div className="rounded-lg border border-white/10 bg-white/[0.03] px-5 py-4">
+          <Label htmlFor="company" className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/55">
+            Company <span className="tracking-normal text-white/30">(Optional)</span>
+          </Label>
+          <Input
+            id="company"
+            name="company"
+            placeholder="My Property Sdn Bhd"
+            autoComplete="organization"
+            className="mt-3 h-11 border-0 bg-transparent px-0 text-base text-white shadow-none placeholder:text-white/25 focus-visible:ring-0"
+          />
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="company" className="text-white/80">Company name <span className="text-white/40 font-normal">(Optional)</span></Label>
-              <Input 
-                id="company" 
-                name="company"
-                placeholder="My Property Sdn Bhd" 
-                autoComplete="organization" 
-                className="bg-black/50 border-white/10 focus-visible:ring-primary/50 focus-visible:border-primary text-white placeholder:text-white/30 h-11"
-              />
-            </div>
+        <div className="rounded-lg border border-white/10 bg-white/[0.03] px-5 py-4">
+          <Label htmlFor="password" className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/55">
+            Password
+          </Label>
+          <div className="relative mt-3">
+            <Input
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Min. 8 characters"
+              minLength={8}
+              required
+              autoComplete="new-password"
+              className="h-11 border-0 bg-transparent px-0 pr-10 text-base text-white shadow-none placeholder:text-white/25 focus-visible:ring-0"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute right-0 top-1/2 -translate-y-1/2 text-white/40 transition-colors hover:text-white"
+              tabIndex={-1}
+            >
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-white/80">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Min. 8 characters"
-                  minLength={8}
-                  required
-                  autoComplete="new-password"
-                  className="bg-black/50 border-white/10 focus-visible:ring-primary/50 focus-visible:border-primary text-white placeholder:text-white/30 h-11 pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors"
-                  tabIndex={-1}
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
+        <p className="text-xs leading-5 text-white/40">
+          By creating an account, you agree to our{" "}
+          <Link href="#" className="text-white/65 underline decoration-white/20 underline-offset-2 hover:text-white">Terms</Link>
+          {" "}and{" "}
+          <Link href="#" className="text-white/65 underline decoration-white/20 underline-offset-2 hover:text-white">Privacy Policy</Link>.
+        </p>
 
-            <p className="text-xs text-white/40">
-              By creating an account, you agree to our{" "}
-              <Link href="#" className="text-white/60 hover:text-white transition-colors underline decoration-white/20 underline-offset-2">Terms</Link>
-              {" "}and{" "}
-              <Link href="#" className="text-white/60 hover:text-white transition-colors underline decoration-white/20 underline-offset-2">Privacy Policy</Link>.
-            </p>
-
-            {error && (
-              <p className="rounded-md border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-200">
-                {error}
-              </p>
-            )}
-
-            {success && (
-              <p className="rounded-md border border-green-500/20 bg-green-500/10 px-3 py-2 text-sm text-green-200">
-                {success}
-              </p>
-            )}
-
-            <Button type="submit" className="w-full h-11 bg-white text-black hover:bg-white/90 font-medium transition-all group" disabled={loading}>
-              {loading ? (
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                  className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full"
-                />
-              ) : (
-                <>
-                  Create Account
-                  <ArrowRight className="w-4 h-4 ml-2 opacity-70 group-hover:translate-x-1 transition-transform" />
-                </>
-              )}
-            </Button>
-          </form>
-
-          <p className="text-center text-sm text-white/50 pt-2">
-            Already have an account?{" "}
-            <Link href="/sign-in" className="text-white hover:text-primary font-medium transition-colors">
-              Sign in
-            </Link>
+        {error && (
+          <p className="rounded-md border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            {error}
           </p>
-        </CardContent>
-      </Card>
+        )}
+
+        {success && (
+          <p className="rounded-md border border-green-500/25 bg-green-500/10 px-4 py-3 text-sm text-green-200">
+            {success}
+          </p>
+        )}
+
+        <Button
+          type="submit"
+          className="group h-14 w-full rounded-lg border border-cyan-300/70 bg-white/[0.03] font-mono text-sm uppercase tracking-[0.16em] text-cyan-200 hover:bg-cyan-300/10"
+          disabled={loading}
+        >
+          {loading ? (
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+              className="h-5 w-5 rounded-full border-2 border-cyan-200/25 border-t-cyan-200"
+            />
+          ) : (
+            <>
+              Create Account
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </>
+          )}
+        </Button>
+      </form>
+
+      <p className="pt-6 text-center text-sm text-white/45">
+        Already have an account?{" "}
+        <Link href="/sign-in" className="font-medium text-white transition-colors hover:text-cyan-200">
+          Sign in
+        </Link>
+      </p>
     </motion.div>
   );
 }
