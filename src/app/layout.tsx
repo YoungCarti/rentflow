@@ -15,12 +15,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className="dark h-full antialiased">
+    <html lang="en" suppressHydrationWarning className="h-full antialiased">
       <body className="h-full">
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
-          forcedTheme="dark"
           enableSystem={false}
           disableTransitionOnChange
         >

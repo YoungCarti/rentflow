@@ -1,6 +1,7 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useTheme } from "next-themes";
 import { useSearchParams } from "next/navigation";
 import { useAccessibilityPreferences } from "@/components/AccessibilityPreferences";
 import { Button } from "@/components/ui/button";
@@ -185,6 +186,14 @@ function SettingsContent() {
   const activeSection = getSettingsSection(searchParams.get("section"));
   const sectionCopy = settingsSections[activeSection];
   const { preferences, updatePreference, resetPreferences } = useAccessibilityPreferences();
+  const { resolvedTheme, setTheme } = useTheme();
+  const [themeMounted, setThemeMounted] = useState(false);
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setThemeMounted(true));
+
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   // Notifications
   const [notifs, setNotifs] = useState({
@@ -349,6 +358,21 @@ function SettingsContent() {
         return (
           <div className="space-y-7">
             <SettingsSection title="Display">
+              <SettingsRow
+                label="Theme"
+                description="Switch between light and dark mode for the interface."
+              >
+                <SegmentedControl
+                  label="Theme"
+                  value={themeMounted && resolvedTheme === "light" ? "light" : "dark"}
+                  onChange={(value) => setTheme(value)}
+                  options={[
+                    { label: "Dark", value: "dark" },
+                    { label: "Light", value: "light" },
+                  ]}
+                />
+              </SettingsRow>
+
               <SettingsRow
                 label="Interface density"
                 description="Use a tighter layout for record-heavy views like rent, payments, and tenants."
