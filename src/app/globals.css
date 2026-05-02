@@ -123,6 +123,11 @@ body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans);
+  overflow-x: hidden;
+}
+
+html {
+  overflow-x: hidden;
 }
 
 html.a11y-reduce-motion *,

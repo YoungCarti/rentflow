@@ -62,7 +62,7 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-foreground flex flex-col justify-center items-center relative overflow-hidden dark">
+    <div className="min-h-screen w-full overflow-x-clip bg-[#0A0A0A] text-foreground flex flex-col justify-center items-center relative dark">
       <div
         className="absolute inset-0 opacity-[0.08] pointer-events-none"
         style={{
@@ -126,7 +126,7 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <main className="relative z-10 flex w-full flex-col items-center px-4 pb-24 pt-36 sm:pt-44">
+      <main className="relative z-10 flex min-h-screen w-full flex-col items-center overflow-hidden px-4 pb-0 pt-50 sm:pb-0 sm:pt-50 lg:pb-0">
         <div className="max-w-3xl text-center">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
@@ -216,20 +216,72 @@ export default function LandingPage() {
           </motion.div>
         </motion.div>
       </main>
+      <FeaturesSection />
     </div>
   );
 }
 
 function DashboardPreviewImage() {
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/12 bg-white/5 shadow-[0_32px_120px_rgba(0,0,0,0.48)]">
+    <div className="relative h-[clamp(360px,44vw,520px)] overflow-hidden rounded-t-2xl border-x border-t border-white/12 bg-white/5 shadow-[0_32px_120px_rgba(0,0,0,0.48)]">
       <Image
         src="/dashboard-preview.png"
         alt="RentFlow dashboard preview"
-        width={1600}
-        height={1000}
-        className="block h-auto w-full"
+        width={1898}
+        height={993}
+        className="block h-auto w-full translate-y-3 sm:translate-y-4"
+        priority
       />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-b from-transparent to-[#0A0A0A]/80 sm:h-12" />
     </div>
+  );
+}
+
+function FeaturesSection() {
+  const features = [
+    {
+      title: "Portfolio overview",
+      description: "See properties, occupancy, rent, and overdue work from one focused dashboard.",
+    },
+    {
+      title: "Tenant operations",
+      description: "Keep lease details, contacts, rent status, and payment links organized.",
+    },
+    {
+      title: "Maintenance tracking",
+      description: "Log issues, assign priority, and track repair costs through completion.",
+    },
+  ];
+
+  return (
+    <section
+      id="features"
+      className="relative z-20 w-full bg-background px-6 py-20 text-foreground"
+    >
+      <div className="mx-auto max-w-6xl">
+        <div className="max-w-2xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            Features
+          </p>
+          <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
+            Everything your rental workflow needs.
+          </h2>
+        </div>
+
+        <div className="mt-10 grid gap-4 md:grid-cols-3">
+          {features.map((feature) => (
+            <div
+              key={feature.title}
+              className="rounded-lg border border-border bg-card p-5"
+            >
+              <h3 className="font-semibold">{feature.title}</h3>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                {feature.description}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
