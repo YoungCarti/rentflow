@@ -15,8 +15,14 @@ const navLinks = [
   { label: "Contact Us", href: "#contact" },
 ];
 
+const heroWords = ["elegance.", "clarity.", "control.", "confidence."];
+
 export default function LandingPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [heroWordState, setHeroWordState] = useState<{
+    current: number;
+    previous: number | null;
+  }>({ current: 0, previous: null });
 
   useEffect(() => {
     const supabase = createClient();
@@ -32,6 +38,17 @@ export default function LandingPage() {
     });
 
     return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setHeroWordState(({ current }) => ({
+        current: (current + 1) % heroWords.length,
+        previous: current,
+      }));
+    }, 3000);
+
+    return () => window.clearInterval(intervalId);
   }, []);
 
   return (
@@ -106,7 +123,34 @@ export default function LandingPage() {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="text-5xl md:text-7xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-br from-white to-white/60"
         >
-          Manage properties with <span className="text-primary italic">elegance.</span>
+          Manage properties with{" "}
+          <span className="relative inline-block text-left align-baseline">
+            {heroWordState.previous !== null && (
+              <motion.span
+                key={`previous-${heroWordState.previous}-${heroWordState.current}`}
+                initial={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                animate={{ opacity: 0, y: -14, filter: "blur(6px)" }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                className="absolute left-0 top-0 inline-block text-primary italic"
+                aria-hidden="true"
+              >
+                {heroWords[heroWordState.previous]}
+              </motion.span>
+            )}
+            <motion.span
+              key={`current-${heroWordState.current}`}
+              initial={
+                heroWordState.previous === null
+                  ? false
+                  : { opacity: 0, y: 14, filter: "blur(6px)" }
+              }
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+              className="relative inline-block text-primary italic"
+            >
+              {heroWords[heroWordState.current]}
+            </motion.span>
+          </span>
         </motion.h1>
 
         <motion.p
