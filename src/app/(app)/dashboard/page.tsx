@@ -15,10 +15,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import RevenueChart from "@/components/dashboard/RevenueChart";
-import PageHeader from "@/components/layout/PageHeader";
 import { semanticTone } from "@/lib/color-system";
 import { getDashboardStats, type DashboardStats } from "@/lib/dashboard";
+import { createClient } from "@/lib/supabase/server";
 
 function formatRM(amount: number) {
   return `RM ${amount.toLocaleString()}`;
@@ -49,6 +50,22 @@ function formatRelativeDate(dateStr: string) {
   }
 
   return formatter.format(days, "day");
+}
+
+function getUserDisplayName(user: {
+  email?: string;
+  user_metadata?: Record<string, unknown>;
+}) {
+  const metadata = user.user_metadata ?? {};
+  const firstName = typeof metadata.first_name === "string" ? metadata.first_name.trim() : "";
+  const lastName = typeof metadata.last_name === "string" ? metadata.last_name.trim() : "";
+  const fullName = `${firstName} ${lastName}`.trim();
+
+  if (fullName) {
+    return fullName;
+  }
+
+  return user.email?.split("@")[0] || "there";
 }
 
 function getStatCards(stats: DashboardStats) {
@@ -106,8 +123,13 @@ function getStatCards(stats: DashboardStats) {
 }
 
 export default async function DashboardPage() {
+  const supabase = await createClient();
   const stats = await getDashboardStats();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   const statCards = getStatCards(stats);
+  const userName = user ? getUserDisplayName(user) : "there";
   const monthLabel = new Intl.DateTimeFormat("en-MY", {
     month: "long",
     year: "numeric",
@@ -115,21 +137,10 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-7">
-      <PageHeader
-        title="Dashboard"
-        summary={`Portfolio operations overview · ${monthLabel}`}
-        action={
-          <div className="inline-flex w-fit items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm">
-            <span className="text-muted-foreground">Collection focus</span>
-            <span
-              className={`font-semibold ${
-                stats.overdueRent > 0 ? semanticTone.danger.textSoft : semanticTone.success.textSoft
-              }`}
-            >
-              {stats.overdueRent > 0 ? formatRM(stats.overdueRent) : "Clear"}
-            </span>
-          </div>
-        }
+      <DashboardHeader
+        userName={userName}
+        monthLabel={monthLabel}
+        overdueRent={stats.overdueRent}
       />
 
       <div className="-mx-6 border-y border-border bg-card/45 px-6">

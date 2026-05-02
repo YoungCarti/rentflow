@@ -61,7 +61,7 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <div className="z-10 text-center px-4 max-w-3xl">
+      <div className="z-10 max-w-3xl -translate-y-8 px-4 text-center sm:-translate-y-40">
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
