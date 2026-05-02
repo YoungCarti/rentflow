@@ -30,7 +30,7 @@ export default function LandingPage() {
     offset: ["start end", "center center"],
   });
   const previewY = useTransform(scrollYProgress, [0, 1], [88, 0]);
-  const previewRotateX = useTransform(scrollYProgress, [0, 1], [10, 0]);
+  const previewRotateX = useTransform(scrollYProgress, [0, 1], [14, 0]);
   const previewScale = useTransform(scrollYProgress, [0, 1], [0.94, 1]);
   const previewOpacity = useTransform(scrollYProgress, [0, 1], [0.72, 1]);
 
@@ -201,18 +201,19 @@ export default function LandingPage() {
 
         <motion.div
           ref={previewRef}
-          initial={{ opacity: 0, y: 48 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.35 }}
           style={{
             y: previewY,
-            rotateX: previewRotateX,
             scale: previewScale,
             opacity: previewOpacity,
           }}
-          className="mt-20 w-full max-w-6xl origin-top px-2 [perspective:1400px] sm:mt-24"
+          className="mt-20 w-full max-w-6xl px-2 [perspective:1400px] sm:mt-24"
         >
-          <DashboardPreviewImage />
+          <motion.div
+            style={{ rotateX: previewRotateX }}
+            className="origin-top [transform-style:preserve-3d]"
+          >
+            <DashboardPreviewImage />
+          </motion.div>
         </motion.div>
       </main>
     </div>
