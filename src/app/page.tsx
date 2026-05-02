@@ -62,21 +62,10 @@ export default function LandingPage() {
       </header>
 
       <div className="z-10 text-center px-4 max-w-3xl">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="flex justify-center mb-6"
-        >
-          <div className="flex items-center justify-center w-16 h-16 drop-shadow-[0_0_28px_rgba(6,200,238,0.24)]">
-            <RentFlowLogo className="h-16 w-16" />
-          </div>
-        </motion.div>
-
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
           className="text-5xl md:text-7xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-br from-white to-white/60"
         >
           Manage properties with <span className="text-primary italic">elegance.</span>
@@ -85,7 +74,7 @@ export default function LandingPage() {
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
+          transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
           className="text-lg md:text-xl text-white/50 mb-10 max-w-2xl mx-auto font-light"
         >
           RentFlow provides the most premium, seamless experience for landlords and property managers to oversee their portfolios in real-time.
@@ -94,7 +83,7 @@ export default function LandingPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }}
+          transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-4"
         >
           <Link href="/sign-in" className="group relative inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary text-primary-foreground text-sm font-medium rounded-full overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(var(--primary),0.3)]">
