@@ -131,7 +131,7 @@ export default function LandingPage() {
                 initial={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 animate={{ opacity: 0, y: -14, filter: "blur(6px)" }}
                 transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute left-0 top-0 inline-block text-primary italic"
+                className="absolute left-0 top-0 inline-block rounded-lg bg-cyan-300/10 px-2 text-cyan-200 italic"
                 aria-hidden="true"
               >
                 {heroWords[heroWordState.previous]}
@@ -146,7 +146,7 @@ export default function LandingPage() {
               }
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className="relative inline-block text-primary italic"
+              className="relative inline-block rounded-lg bg-cyan-300/10 px-2 text-cyan-200 italic"
             >
               {heroWords[heroWordState.current]}
             </motion.span>
