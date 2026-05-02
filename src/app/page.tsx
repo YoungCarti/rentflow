@@ -229,7 +229,7 @@ function DashboardPreviewImage() {
         alt="RentFlow dashboard preview"
         width={1898}
         height={993}
-        className="block h-auto w-full translate-y-3 sm:translate-y-4"
+        className="block h-auto w-full"
         priority
       />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-b from-transparent to-[#0A0A0A]/80 sm:h-12" />
