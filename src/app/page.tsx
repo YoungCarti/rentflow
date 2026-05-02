@@ -50,7 +50,14 @@ export default function LandingPage() {
             ))}
           </nav>
 
-          <div className="hidden sm:block" aria-hidden="true" />
+          <div className="flex justify-center sm:justify-self-end">
+            <Link
+              href="/register"
+              className="inline-flex h-10 items-center justify-center rounded-full bg-white px-5 text-sm font-medium text-[#0A0A0A] transition-all hover:scale-105 hover:bg-white/90 active:scale-95"
+            >
+              Try RentFlow Free
+            </Link>
+          </div>
         </div>
       </header>
 
