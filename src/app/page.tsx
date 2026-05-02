@@ -75,7 +75,7 @@ export default function LandingPage() {
         }}
       />
 
-      <header className="absolute inset-x-0 top-0 z-20 px-4 py-5 sm:px-6 lg:px-10">
+      <header className="absolute inset-x-0 top-0 z-20 px-4 py-5 sm:px-6 lg:px-10 border-b border-dotted border-white/20 bg-[#0A0A0A]/50 backdrop-blur-md">
         <div className="grid w-full grid-cols-1 items-center gap-4 sm:grid-cols-[1fr_auto_1fr]">
           <Link
             href="/"
@@ -126,7 +126,7 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <main className="relative z-10 flex min-h-screen w-full flex-col items-center overflow-hidden px-4 pb-10 pt-36 sm:pb-12 sm:pt-44 lg:pb-14">
+      <main className="relative z-10 flex w-full flex-col items-center overflow-hidden px-4 pt-36 sm:pt-44">
         <div className="max-w-3xl text-center">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
@@ -256,7 +256,7 @@ function FeaturesSection() {
   return (
     <section
       id="features"
-      className="relative z-20 w-full px-6 py-20 text-foreground"
+      className="relative z-20 w-full px-6 py-20 text-foreground border-t border-dotted border-white/20"
     >
       <div className="mx-auto max-w-6xl">
         <div className="max-w-2xl">
