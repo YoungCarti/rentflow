@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight, LayoutDashboard, UserCircle } from "lucide-react";
 import RentFlowLogo from "@/components/brand/RentFlowLogo";
 import { createClient } from "@/lib/supabase/client";
@@ -18,11 +19,20 @@ const navLinks = [
 const heroWords = ["elegance.", "clarity.", "control.", "confidence."];
 
 export default function LandingPage() {
+  const previewRef = useRef<HTMLDivElement>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [heroWordState, setHeroWordState] = useState<{
     current: number;
     previous: number | null;
   }>({ current: 0, previous: null });
+  const { scrollYProgress } = useScroll({
+    target: previewRef,
+    offset: ["start end", "center center"],
+  });
+  const previewY = useTransform(scrollYProgress, [0, 1], [88, 0]);
+  const previewRotateX = useTransform(scrollYProgress, [0, 1], [10, 0]);
+  const previewScale = useTransform(scrollYProgress, [0, 1], [0.94, 1]);
+  const previewOpacity = useTransform(scrollYProgress, [0, 1], [0.72, 1]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -116,77 +126,109 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <div className="z-10 max-w-3xl -translate-y-8 px-4 text-center sm:-translate-y-40">
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="text-5xl md:text-7xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-br from-white to-white/60"
-        >
-          Manage properties with{" "}
-          <span className="relative inline-block text-left align-baseline">
-            {heroWordState.previous !== null && (
+      <main className="relative z-10 flex w-full flex-col items-center px-4 pb-24 pt-36 sm:pt-44">
+        <div className="max-w-3xl text-center">
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="text-5xl md:text-7xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-br from-white to-white/60"
+          >
+            Manage properties with{" "}
+            <span className="relative inline-block text-left align-baseline">
+              {heroWordState.previous !== null && (
+                <motion.span
+                  key={`previous-${heroWordState.previous}-${heroWordState.current}`}
+                  initial={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  animate={{ opacity: 0, y: -14, filter: "blur(6px)" }}
+                  transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                  className="absolute left-0 top-0 inline-block rounded-lg bg-cyan-300/10 px-2 text-cyan-200 italic"
+                  aria-hidden="true"
+                >
+                  {heroWords[heroWordState.previous]}
+                </motion.span>
+              )}
               <motion.span
-                key={`previous-${heroWordState.previous}-${heroWordState.current}`}
-                initial={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                animate={{ opacity: 0, y: -14, filter: "blur(6px)" }}
+                key={`current-${heroWordState.current}`}
+                initial={
+                  heroWordState.previous === null
+                    ? false
+                    : { opacity: 0, y: 14, filter: "blur(6px)" }
+                }
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute left-0 top-0 inline-block rounded-lg bg-cyan-300/10 px-2 text-cyan-200 italic"
-                aria-hidden="true"
+                className="relative inline-block rounded-lg bg-cyan-300/10 px-2 text-cyan-200 italic"
               >
-                {heroWords[heroWordState.previous]}
+                {heroWords[heroWordState.current]}
               </motion.span>
-            )}
-            <motion.span
-              key={`current-${heroWordState.current}`}
-              initial={
-                heroWordState.previous === null
-                  ? false
-                  : { opacity: 0, y: 14, filter: "blur(6px)" }
-              }
-              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className="relative inline-block rounded-lg bg-cyan-300/10 px-2 text-cyan-200 italic"
-            >
-              {heroWords[heroWordState.current]}
-            </motion.span>
-          </span>
-        </motion.h1>
+            </span>
+          </motion.h1>
 
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
-          className="text-lg md:text-xl text-white/50 mb-10 max-w-2xl mx-auto font-light"
-        >
-          RentFlow provides the most premium, seamless experience for landlords and property managers to oversee their portfolios in real-time.
-        </motion.p>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
+            className="text-lg md:text-xl text-white/50 mb-10 max-w-2xl mx-auto font-light"
+          >
+            RentFlow provides the most premium, seamless experience for landlords and property managers to oversee their portfolios in real-time.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+          >
+            <Link
+              href={isAuthenticated ? "/dashboard" : "/sign-in"}
+              className="group relative inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary text-primary-foreground text-sm font-medium rounded-full overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(var(--primary),0.3)]"
+            >
+              <span className="relative z-10">
+                {isAuthenticated ? "Go to Dashboard" : "Sign In to Dashboard"}
+              </span>
+              <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
+              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+            </Link>
+            <Link
+              href={isAuthenticated ? "/settings?section=account" : "/register"}
+              className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/5 border border-white/10 text-white text-sm font-medium rounded-full hover:bg-white/10 transition-all hover:scale-105 active:scale-95"
+            >
+              {isAuthenticated && <UserCircle className="h-4 w-4" />}
+              {isAuthenticated ? "Account Settings" : "Create an Account"}
+            </Link>
+          </motion.div>
+        </div>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          ref={previewRef}
+          initial={{ opacity: 0, y: 48 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4"
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.35 }}
+          style={{
+            y: previewY,
+            rotateX: previewRotateX,
+            scale: previewScale,
+            opacity: previewOpacity,
+          }}
+          className="mt-20 w-full max-w-6xl origin-top px-2 [perspective:1400px] sm:mt-24"
         >
-          <Link
-            href={isAuthenticated ? "/dashboard" : "/sign-in"}
-            className="group relative inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary text-primary-foreground text-sm font-medium rounded-full overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(var(--primary),0.3)]"
-          >
-            <span className="relative z-10">
-              {isAuthenticated ? "Go to Dashboard" : "Sign In to Dashboard"}
-            </span>
-            <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
-            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
-          </Link>
-          <Link
-            href={isAuthenticated ? "/settings?section=account" : "/register"}
-            className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/5 border border-white/10 text-white text-sm font-medium rounded-full hover:bg-white/10 transition-all hover:scale-105 active:scale-95"
-          >
-            {isAuthenticated && <UserCircle className="h-4 w-4" />}
-            {isAuthenticated ? "Account Settings" : "Create an Account"}
-          </Link>
+          <DashboardPreviewImage />
         </motion.div>
-      </div>
+      </main>
+    </div>
+  );
+}
+
+function DashboardPreviewImage() {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-white/12 bg-white/5 shadow-[0_32px_120px_rgba(0,0,0,0.48)]">
+      <Image
+        src="/dashboard-preview.png"
+        alt="RentFlow dashboard preview"
+        width={1600}
+        height={1000}
+        className="block h-auto w-full"
+      />
     </div>
   );
 }
