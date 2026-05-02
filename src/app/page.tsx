@@ -62,18 +62,19 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen w-full overflow-x-clip bg-[#0A0A0A] text-foreground flex flex-col justify-center items-center relative dark">
+    <div className="min-h-screen bg-[#0A0A0A] text-foreground flex flex-col justify-center items-center relative overflow-clip dark">
+      {/* Background abstract gradients */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/20 rounded-full blur-[120px] pointer-events-none" />
+
       <div
-        className="absolute inset-0 opacity-[0.08] pointer-events-none"
+        className="absolute inset-0 opacity-[0.08] pointer-events-none z-0"
         style={{
           backgroundImage:
             "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
           backgroundSize: "18px 18px",
         }}
       />
-      {/* Background abstract gradients */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/20 rounded-full blur-[120px] pointer-events-none" />
 
       <header className="absolute inset-x-0 top-0 z-20 px-4 py-5 sm:px-6 lg:px-10">
         <div className="grid w-full grid-cols-1 items-center gap-4 sm:grid-cols-[1fr_auto_1fr]">
@@ -126,7 +127,7 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <main className="relative z-10 flex min-h-screen w-full flex-col items-center overflow-hidden px-4 pb-0 pt-50 sm:pb-0 sm:pt-50 lg:pb-0">
+      <main className="relative z-10 flex min-h-screen w-full flex-col items-center overflow-hidden px-4 pb-10 pt-36 sm:pb-12 sm:pt-44 lg:pb-14">
         <div className="max-w-3xl text-center">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
@@ -256,7 +257,7 @@ function FeaturesSection() {
   return (
     <section
       id="features"
-      className="relative z-20 w-full bg-background px-6 py-20 text-foreground"
+      className="relative z-20 w-full px-6 py-20 text-foreground"
     >
       <div className="mx-auto max-w-6xl">
         <div className="max-w-2xl">
