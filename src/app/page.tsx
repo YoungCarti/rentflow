@@ -5,12 +5,54 @@ import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import RentFlowLogo from "@/components/brand/RentFlowLogo";
 
+const navLinks = [
+  { label: "Features", href: "#features" },
+  { label: "Benefits", href: "#benefits" },
+  { label: "Pricing", href: "#pricing" },
+  { label: "Blog", href: "#blog" },
+  { label: "Contact Us", href: "#contact" },
+];
+
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-foreground flex flex-col justify-center items-center relative overflow-hidden dark">
       {/* Background abstract gradients */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/20 rounded-full blur-[120px] pointer-events-none" />
+
+      <header className="absolute inset-x-0 top-0 z-20 px-4 py-5 sm:px-6 lg:px-10">
+        <div className="grid w-full grid-cols-1 items-center gap-4 sm:grid-cols-[1fr_auto_1fr]">
+          <Link
+            href="/"
+            className="flex items-center justify-center gap-2.5 sm:justify-self-start"
+            aria-label="RentFlow home"
+          >
+            <span className="flex h-8 w-8 items-center justify-center">
+              <RentFlowLogo className="h-8 w-8" />
+            </span>
+            <span className="text-lg font-bold tracking-tight text-white">
+              RentFlow
+            </span>
+          </Link>
+
+          <nav
+            className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-medium text-white/60 sm:gap-x-7 sm:text-sm"
+            aria-label="Landing page navigation"
+          >
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="transition-colors hover:text-white focus-visible:text-white"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="hidden sm:block" aria-hidden="true" />
+        </div>
+      </header>
 
       <div className="z-10 text-center px-4 max-w-3xl">
         <motion.div
