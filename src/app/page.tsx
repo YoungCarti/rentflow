@@ -1338,8 +1338,8 @@ function FooterSection() {
   ];
   const infoLinks = [
     { label: "Contact", href: "#contact" },
-    { label: "Privacy", href: "#" },
-    { label: "Terms of use", href: "#" },
+    { label: "Privacy", href: "/privacy" },
+    { label: "Terms of use", href: "/terms" },
     { label: "404", href: "/not-found" },
   ];
 
