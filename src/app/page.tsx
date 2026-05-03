@@ -9,6 +9,7 @@ import {
   BellRing,
   CalendarDays,
   ChartNoAxesColumn,
+  CircleCheck,
   ClipboardList,
   CreditCard,
   DoorOpen,
@@ -232,6 +233,7 @@ export default function LandingPage() {
         </div>
       </main>
       <FeaturesSection />
+      <PricingSection />
     </div>
   );
 }
@@ -383,6 +385,171 @@ function FeaturesSection() {
                   imageSlot={feature.imageSlot}
                 />
               )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function PricingSection() {
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
+    "monthly",
+  );
+  const isYearly = billingCycle === "yearly";
+  const pricingPlans = [
+    {
+      name: "Starter",
+      price: "RM0",
+      suffix: "/month",
+      description:
+        "Perfect for getting started with essential tools for a small rental portfolio.",
+      cta: "Start for Free",
+      href: "/register",
+      features: [
+        "Manage up to 3 properties",
+        "Track tenants and units",
+        "Basic rent records",
+      ],
+    },
+    {
+      name: "Pro",
+      price: isYearly ? "RM23" : "RM29",
+      suffix: "/month",
+      description:
+        "Advanced features and flexibility to manage more tenants, payments, and workflows.",
+      cta: "Upgrade to Pro",
+      href: "/register",
+      popular: true,
+      features: [
+        "Unlimited properties and units",
+        "Payment links and proof review",
+        "Calendar and rent reminders",
+        "Maintenance tracking",
+        "Reports and insights",
+      ],
+    },
+  ];
+
+  return (
+    <section
+      id="pricing"
+      className="relative z-20 w-full overflow-hidden border-t border-dotted border-white/20 bg-[#0A0A0A] px-4 py-24 text-white sm:px-6"
+    >
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.11]"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
+          backgroundSize: "5px 5px",
+        }}
+      />
+
+      <div className="relative mx-auto max-w-6xl">
+        <div className="max-w-2xl">
+          <p className="flex items-center gap-2 text-sm text-white/45">
+            <span className="h-2 w-2 rounded-full bg-white/25" />
+            Pricing
+          </p>
+          <h2 className="mt-5 text-4xl font-semibold leading-tight tracking-tight text-white sm:text-5xl">
+            Choose the plan that{" "}
+            <span className="text-white/[0.42]">matches your ambition</span>
+          </h2>
+
+          <div className="mt-10 flex flex-wrap items-center gap-4 text-lg text-white/45">
+            <button
+              type="button"
+              onClick={() => setBillingCycle("monthly")}
+              className={`transition-colors ${
+                !isYearly ? "text-white" : "hover:text-white/70"
+              }`}
+            >
+              Monthly
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                setBillingCycle(isYearly ? "monthly" : "yearly")
+              }
+              className="relative h-7 w-14 rounded-full border border-white/10 bg-white/[0.045] p-1 transition-colors hover:bg-white/[0.075]"
+              aria-label="Toggle yearly pricing"
+            >
+              <span
+                className={`block h-5 w-5 rounded-full bg-white transition-transform ${
+                  isYearly ? "translate-x-7" : "translate-x-0"
+                }`}
+              />
+            </button>
+            <button
+              type="button"
+              onClick={() => setBillingCycle("yearly")}
+              className={`transition-colors ${
+                isYearly ? "text-white" : "hover:text-white/70"
+              }`}
+            >
+              Yearly
+            </button>
+            <span className="rounded-full border border-white/10 bg-white/[0.045] px-3 py-1.5 text-sm font-medium text-white/70">
+              20% OFF
+            </span>
+          </div>
+        </div>
+
+        <div className="mx-auto mt-10 grid max-w-4xl gap-3 md:grid-cols-2">
+          {pricingPlans.map((plan) => (
+            <div
+              key={plan.name}
+              className="relative flex min-h-[450px] flex-col border border-white/[0.12] bg-[#0B0B0B]/70 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.28)]"
+            >
+              {plan.popular ? (
+                <span className="absolute right-6 top-6 rounded-full border border-white/[0.12] px-3 py-1 text-xs font-medium text-white/70">
+                  Popular
+                </span>
+              ) : null}
+
+              <h3 className="text-xl font-semibold text-white/[0.88]">
+                {plan.name}
+              </h3>
+              <div className="mt-7 flex items-end gap-1">
+                <span className="text-4xl font-semibold tracking-tight text-white">
+                  {plan.price}
+                </span>
+                {plan.suffix ? (
+                  <span className="pb-1 text-sm text-white/48">
+                    {plan.suffix}
+                  </span>
+                ) : null}
+              </div>
+              <p className="mt-5 max-w-sm text-sm leading-6 text-white/[0.42]">
+                {plan.description}
+              </p>
+
+              <Link
+                href={plan.href}
+                className={`mt-7 inline-flex h-11 w-fit items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors ${
+                  plan.popular
+                    ? "bg-white text-[#0A0A0A] hover:bg-white/90"
+                    : "text-white/[0.86] hover:text-white"
+                }`}
+              >
+                {plan.cta}
+              </Link>
+
+              <div className="my-9 grid grid-cols-[1fr_auto_1fr] items-center gap-4 text-xs text-white/38">
+                <span className="h-px bg-white/10" />
+                Features
+                <span className="h-px bg-white/10" />
+              </div>
+
+              <ul className="space-y-4 text-sm text-white/48">
+                {plan.features.map((feature) => (
+                  <li key={feature} className="flex items-start gap-3">
+                    <CircleCheck className="mt-0.5 h-4 w-4 shrink-0 text-white/[0.72]" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           ))}
         </div>
