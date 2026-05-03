@@ -109,14 +109,7 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-foreground flex flex-col justify-center items-center relative overflow-clip dark">
-      <div
-        className="absolute inset-0 opacity-[0.08] pointer-events-none z-0"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
-          backgroundSize: "18px 18px",
-        }}
-      />
+      <DottedBackground className="absolute inset-0 z-0" />
 
       <header className="absolute inset-x-0 top-0 z-20 px-4 py-5 sm:px-6 lg:px-10 border-b border-dotted border-white/20 bg-[#0A0A0A]/50 backdrop-blur-md">
         <div className="grid w-full grid-cols-1 items-center gap-4 sm:grid-cols-[1fr_auto_1fr]">
@@ -255,6 +248,19 @@ function DashboardPreviewImage() {
   );
 }
 
+function DottedBackground({ className = "" }: { className?: string }) {
+  return (
+    <div
+      className={`pointer-events-none opacity-[0.11] ${className}`}
+      style={{
+        backgroundImage:
+          "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
+        backgroundSize: "5px 5px",
+      }}
+    />
+  );
+}
+
 function FeaturesSection() {
   const featureCards = [
     {
@@ -304,9 +310,10 @@ function FeaturesSection() {
   return (
     <section
       id="features"
-      className="relative z-20 w-full border-t border-dotted border-white/20 bg-[#0A0A0A] px-4 py-24 text-white sm:px-6"
+      className="relative z-20 w-full overflow-hidden border-t border-dotted border-white/20 bg-[#0A0A0A] px-4 py-24 text-white sm:px-6"
     >
-      <div className="mx-auto max-w-6xl space-y-24">
+      <DottedBackground className="absolute inset-0" />
+      <div className="relative mx-auto max-w-6xl space-y-24">
         <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr]">
           <FeatureImageSlot
             name="property-tenant-management"
@@ -394,15 +401,10 @@ function FeaturesSection() {
 }
 
 function PricingSection() {
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
-    "monthly",
-  );
-  const isYearly = billingCycle === "yearly";
   const pricingPlans = [
     {
       name: "Starter",
       price: "RM0",
-      suffix: "/month",
       description:
         "Perfect for getting started with essential tools for a small rental portfolio.",
       cta: "Start for Free",
@@ -414,12 +416,12 @@ function PricingSection() {
       ],
     },
     {
-      name: "Pro",
-      price: isYearly ? "RM23" : "RM29",
-      suffix: "/month",
+      name: "Lifetime",
+      price: "RM299",
+      suffix: "one-time",
       description:
-        "Advanced features and flexibility to manage more tenants, payments, and workflows.",
-      cta: "Upgrade to Pro",
+        "Unlock RentFlow for good with advanced tools for tenants, payments, and portfolio workflows.",
+      cta: "Get Lifetime",
       href: "/register",
       popular: true,
       features: [
@@ -437,14 +439,7 @@ function PricingSection() {
       id="pricing"
       className="relative z-20 w-full overflow-hidden border-t border-dotted border-white/20 bg-[#0A0A0A] px-4 py-24 text-white sm:px-6"
     >
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.11]"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
-          backgroundSize: "5px 5px",
-        }}
-      />
+      <DottedBackground className="absolute inset-0" />
 
       <div className="relative mx-auto max-w-6xl">
         <div className="max-w-2xl">
@@ -456,44 +451,6 @@ function PricingSection() {
             Choose the plan that{" "}
             <span className="text-white/[0.42]">matches your ambition</span>
           </h2>
-
-          <div className="mt-10 flex flex-wrap items-center gap-4 text-lg text-white/45">
-            <button
-              type="button"
-              onClick={() => setBillingCycle("monthly")}
-              className={`transition-colors ${
-                !isYearly ? "text-white" : "hover:text-white/70"
-              }`}
-            >
-              Monthly
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                setBillingCycle(isYearly ? "monthly" : "yearly")
-              }
-              className="relative h-7 w-14 rounded-full border border-white/10 bg-white/[0.045] p-1 transition-colors hover:bg-white/[0.075]"
-              aria-label="Toggle yearly pricing"
-            >
-              <span
-                className={`block h-5 w-5 rounded-full bg-white transition-transform ${
-                  isYearly ? "translate-x-7" : "translate-x-0"
-                }`}
-              />
-            </button>
-            <button
-              type="button"
-              onClick={() => setBillingCycle("yearly")}
-              className={`transition-colors ${
-                isYearly ? "text-white" : "hover:text-white/70"
-              }`}
-            >
-              Yearly
-            </button>
-            <span className="rounded-full border border-white/10 bg-white/[0.045] px-3 py-1.5 text-sm font-medium text-white/70">
-              20% OFF
-            </span>
-          </div>
         </div>
 
         <div className="mx-auto mt-10 grid max-w-4xl gap-3 md:grid-cols-2">
