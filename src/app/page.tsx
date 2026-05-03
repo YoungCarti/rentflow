@@ -507,6 +507,7 @@ function FeaturesSection() {
             </motion.div>
           ))}
         </motion.div>
+
       </div>
     </section>
   );
@@ -641,6 +642,16 @@ function PricingSection() {
             </motion.div>
           ))}
         </motion.div>
+
+        <motion.p
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          className="mx-auto mt-7 max-w-md text-center text-sm leading-6 text-white/[0.46]"
+        >
+          Start free today. Upgrade only when your portfolio grows.
+        </motion.p>
       </div>
     </section>
   );
