@@ -16,11 +16,13 @@ import {
   FileText,
   LayoutDashboard,
   Link2,
+  Plus,
   ReceiptText,
   TrendingUp,
   UserCircle,
   UsersRound,
   Wrench,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import RentFlowLogo from "@/components/brand/RentFlowLogo";
@@ -227,6 +229,7 @@ export default function LandingPage() {
       </main>
       <FeaturesSection />
       <PricingSection />
+      <FaqSection />
     </div>
   );
 }
@@ -509,6 +512,95 @@ function PricingSection() {
               </ul>
             </div>
           ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FaqSection() {
+  const [openFaq, setOpenFaq] = useState(0);
+  const faqs = [
+    {
+      question: "What is RentFlow designed for?",
+      answer:
+        "RentFlow helps landlords manage properties, units, tenants, rent records, payments, reminders, maintenance, and reports in one focused workspace.",
+    },
+    {
+      question: "Is there a free plan available?",
+      answer:
+        "Yes. The Starter plan is free and gives you the essentials for a small rental portfolio.",
+    },
+    {
+      question: "Can I use RentFlow for multiple properties?",
+      answer:
+        "Yes. The Lifetime plan is built for managing unlimited properties and units as your portfolio grows.",
+    },
+    {
+      question: "Can tenants pay without creating an account?",
+      answer:
+        "Yes. You can send public payment links so tenants can submit payments or proof without signing into RentFlow.",
+    },
+    {
+      question: "Does RentFlow track maintenance requests?",
+      answer:
+        "Yes. You can log maintenance issues, assign priority, update status, and keep repair costs connected to the right property.",
+    },
+    {
+      question: "Will I still get reports and insights?",
+      answer:
+        "Yes. RentFlow includes reports for rent collection, overdue balances, occupancy, and portfolio performance.",
+    },
+  ];
+
+  return (
+    <section className="relative z-20 w-full overflow-hidden border-t border-dotted border-white/20 bg-[#0A0A0A] px-4 py-24 text-white sm:px-6">
+      <DottedBackground className="absolute inset-0" />
+
+      <div className="relative mx-auto max-w-6xl">
+        <div className="max-w-4xl">
+          <p className="flex items-center gap-2 text-sm text-white/45">
+            <span className="h-2 w-2 rounded-full bg-white/25" />
+            FAQ
+          </p>
+          <h2 className="mt-5 text-4xl font-semibold leading-tight tracking-tight text-white sm:text-5xl">
+            Your questions,{" "}
+            <span className="text-white/[0.42]">answered with clarity</span>
+          </h2>
+        </div>
+
+        <div className="mt-10 grid gap-4 lg:grid-cols-2 lg:items-start">
+          {faqs.map((faq, index) => {
+            const isOpen = openFaq === index;
+
+            return (
+              <div
+                key={faq.question}
+                className="border border-white/[0.12] bg-[#0B0B0B]/70"
+              >
+                <button
+                  type="button"
+                  onClick={() => setOpenFaq(isOpen ? -1 : index)}
+                  className="flex w-full items-center justify-between gap-6 px-5 py-5 text-left"
+                  aria-expanded={isOpen}
+                >
+                  <span className="text-base font-semibold text-white/[0.88]">
+                    {faq.question}
+                  </span>
+                  {isOpen ? (
+                    <X className="h-4 w-4 shrink-0 text-white/62" />
+                  ) : (
+                    <Plus className="h-4 w-4 shrink-0 text-white/62" />
+                  )}
+                </button>
+                {isOpen ? (
+                  <p className="px-5 pb-5 text-sm leading-6 text-white/[0.46]">
+                    {faq.answer}
+                  </p>
+                ) : null}
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
