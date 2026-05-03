@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, type Variants } from "framer-motion";
 import {
   ArrowRight,
   Building2,
@@ -37,6 +38,38 @@ const navLinks = [
 ];
 
 const heroWords = ["elegance.", "clarity.", "control.", "confidence."];
+
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 24, filter: "blur(6px)" },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: { duration: 0.65, ease: "easeOut" },
+  },
+};
+
+const staggerContainer: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.09,
+      delayChildren: 0.08,
+    },
+  },
+};
+
+const cardMotion: Variants = {
+  hidden: { opacity: 0, y: 20, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.55, ease: "easeOut" },
+  },
+};
+
+const viewportOnce = { once: true, amount: 0.22 };
 
 export default function LandingPage() {
   const previewFrameRef = useRef<HTMLDivElement>(null);
@@ -113,7 +146,12 @@ export default function LandingPage() {
     <div className="min-h-screen bg-[#0A0A0A] text-foreground flex flex-col justify-center items-center relative overflow-clip dark">
       <DottedBackground className="absolute inset-0 z-0" />
 
-      <header className="absolute inset-x-0 top-0 z-20 px-4 py-5 sm:px-6 lg:px-10 border-b border-dotted border-white/20 bg-[#0A0A0A]/50 backdrop-blur-md">
+      <motion.header
+        initial={{ opacity: 0, y: -14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.55, ease: "easeOut" }}
+        className="absolute inset-x-0 top-0 z-20 px-4 py-5 sm:px-6 lg:px-10 border-b border-dotted border-white/20 bg-[#0A0A0A]/50 backdrop-blur-md"
+      >
         <div className="grid w-full grid-cols-1 items-center gap-4 sm:grid-cols-[1fr_auto_1fr]">
           <Link
             href="/"
@@ -145,28 +183,38 @@ export default function LandingPage() {
 
           <div className="flex justify-center sm:justify-self-end">
             {isAuthenticated ? (
-              <Link
-                href="/dashboard"
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-medium text-[#0A0A0A] transition-all hover:scale-105 hover:bg-white/90 active:scale-95"
-              >
-                <LayoutDashboard className="h-4 w-4" />
-                Go to Dashboard
-              </Link>
+              <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}>
+                <Link
+                  href="/dashboard"
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-medium text-[#0A0A0A] transition-colors hover:bg-white/90"
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  Go to Dashboard
+                </Link>
+              </motion.div>
             ) : (
-              <Link
-                href="/register"
-                className="inline-flex h-10 items-center justify-center rounded-full bg-white px-5 text-sm font-medium text-[#0A0A0A] transition-all hover:scale-105 hover:bg-white/90 active:scale-95"
-              >
-                Try RentFlow Free
-              </Link>
+              <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}>
+                <Link
+                  href="/register"
+                  className="inline-flex h-10 items-center justify-center rounded-full bg-white px-5 text-sm font-medium text-[#0A0A0A] transition-colors hover:bg-white/90"
+                >
+                  Try RentFlow Free
+                </Link>
+              </motion.div>
             )}
           </div>
         </div>
-      </header>
+      </motion.header>
 
       <main className="relative z-10 flex w-full flex-col items-center overflow-hidden px-4 pt-36 sm:pt-44">
-        <div className="max-w-3xl text-center">
-          <h1
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+          className="max-w-3xl text-center"
+        >
+          <motion.h1
+            variants={fadeUp}
             className="text-5xl md:text-7xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-br from-white to-white/60"
           >
             Manage properties with{" "}
@@ -184,39 +232,48 @@ export default function LandingPage() {
                 </span>
               ))}
             </span>
-          </h1>
+          </motion.h1>
 
-          <p
+          <motion.p
+            variants={fadeUp}
             className="text-lg md:text-xl text-white/50 mb-10 max-w-2xl mx-auto font-light"
           >
             RentFlow provides the most premium, seamless experience for landlords and property managers to oversee their portfolios in real-time.
-          </p>
+          </motion.p>
 
-          <div
+          <motion.div
+            variants={fadeUp}
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            <Link
-              href={isAuthenticated ? "/dashboard" : "/sign-in"}
-              className="group relative inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary text-primary-foreground text-sm font-medium rounded-full overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(var(--primary),0.3)]"
-            >
-              <span className="relative z-10">
-                {isAuthenticated ? "Go to Dashboard" : "Sign In to Dashboard"}
-              </span>
-              <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
-              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
-            </Link>
-            <Link
-              href={isAuthenticated ? "/settings?section=account" : "/register"}
-              className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/5 border border-white/10 text-white text-sm font-medium rounded-full hover:bg-white/10 transition-all hover:scale-105 active:scale-95"
-            >
-              {isAuthenticated && <UserCircle className="h-4 w-4" />}
-              {isAuthenticated ? "Account Settings" : "Create an Account"}
-            </Link>
-          </div>
-        </div>
+            <motion.div whileHover={{ y: -3, scale: 1.02 }} whileTap={{ scale: 0.97 }}>
+              <Link
+                href={isAuthenticated ? "/dashboard" : "/sign-in"}
+                className="group relative inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary text-primary-foreground text-sm font-medium rounded-full overflow-hidden transition-colors shadow-[0_0_20px_rgba(var(--primary),0.3)]"
+              >
+                <span className="relative z-10">
+                  {isAuthenticated ? "Go to Dashboard" : "Sign In to Dashboard"}
+                </span>
+                <ArrowRight className="w-4 h-4 relative z-10 transition-transform group-hover:translate-x-1" />
+                <div className="absolute inset-0 bg-white/20 translate-y-full transition-transform duration-300 ease-out group-hover:translate-y-0" />
+              </Link>
+            </motion.div>
+            <motion.div whileHover={{ y: -3, scale: 1.02 }} whileTap={{ scale: 0.97 }}>
+              <Link
+                href={isAuthenticated ? "/settings?section=account" : "/register"}
+                className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/5 border border-white/10 text-white text-sm font-medium rounded-full transition-colors hover:bg-white/10"
+              >
+                {isAuthenticated && <UserCircle className="h-4 w-4" />}
+                {isAuthenticated ? "Account Settings" : "Create an Account"}
+              </Link>
+            </motion.div>
+          </motion.div>
+        </motion.div>
 
-        <div
+        <motion.div
           ref={previewFrameRef}
+          initial={{ opacity: 0, y: 38, scale: 0.96, rotateX: 10 }}
+          animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
+          transition={{ duration: 0.85, ease: "easeOut", delay: 0.25 }}
           className="mt-20 hidden w-full max-w-6xl px-2 [perspective:1400px] sm:mt-24 md:block"
         >
           <div
@@ -225,7 +282,7 @@ export default function LandingPage() {
           >
             <DashboardPreviewImage />
           </div>
-        </div>
+        </motion.div>
       </main>
       <FeaturesSection />
       <PricingSection />
@@ -320,7 +377,13 @@ function FeaturesSection() {
     >
       <DottedBackground className="absolute inset-0" />
       <div className="relative mx-auto max-w-6xl space-y-24">
-        <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr]">
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr]"
+        >
           <FeatureImageSlot
             name="property-tenant-management"
             className="aspect-[1.0/1]"
@@ -339,9 +402,15 @@ function FeaturesSection() {
               { label: "Lease details", icon: FileText },
             ]}
           />
-        </div>
+        </motion.div>
 
-        <div className="grid items-center gap-10 lg:grid-cols-[0.95fr_1.05fr]">
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          className="grid items-center gap-10 lg:grid-cols-[0.95fr_1.05fr]"
+        >
           <FeatureCopy
             label="Rent Management"
             title="Track rent, payments, and overdue balances with clarity"
@@ -360,21 +429,40 @@ function FeaturesSection() {
             name="rent-tracking-payments"
             className="aspect-[1.04/1]"
           />
-        </div>
+        </motion.div>
 
-        <div id="features-grid" className="mx-auto max-w-3xl text-center">
+        <motion.div
+          id="features-grid"
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          className="mx-auto max-w-3xl text-center"
+        >
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/45">
             Features
           </p>
           <h2 className="mt-3 text-4xl font-bold tracking-tight text-white sm:text-5xl">
             Built for landlords, powered by simplicity
           </h2>
-        </div>
+        </motion.div>
 
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-6">
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          className="grid gap-5 md:grid-cols-2 lg:grid-cols-6"
+        >
           {featureCards.map((feature, index) => (
-            <div
+            <motion.div
               key={feature.title}
+              variants={cardMotion}
+              whileHover={{
+                y: -6,
+                borderColor: "rgba(255,255,255,0.18)",
+                transition: { duration: 0.22 },
+              }}
               className={`group relative overflow-hidden rounded-[22px] border border-white/10 bg-[#151515] p-6 shadow-[0_22px_70px_rgba(0,0,0,0.26)] transition-colors hover:border-white/18 ${
                 index < 2
                   ? "min-h-[390px] md:col-span-2 lg:col-span-3"
@@ -398,9 +486,9 @@ function FeaturesSection() {
                   imageSlot={feature.imageSlot}
                 />
               )}
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );
@@ -448,7 +536,13 @@ function PricingSection() {
       <DottedBackground className="absolute inset-0" />
 
       <div className="relative mx-auto max-w-6xl">
-        <div className="mx-auto max-w-2xl text-center">
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          className="mx-auto max-w-2xl text-center"
+        >
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/45">
             Pricing
           </p>
@@ -456,12 +550,24 @@ function PricingSection() {
             Choose the plan that{" "}
             <span className="text-white/[0.42]">matches your ambition</span>
           </h2>
-        </div>
+        </motion.div>
 
-        <div className="mx-auto mt-10 grid max-w-4xl gap-3 md:grid-cols-2">
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          className="mx-auto mt-10 grid max-w-4xl gap-3 md:grid-cols-2"
+        >
           {pricingPlans.map((plan) => (
-            <div
+            <motion.div
               key={plan.name}
+              variants={cardMotion}
+              whileHover={{
+                y: -6,
+                borderColor: "rgba(255,255,255,0.2)",
+                transition: { duration: 0.22 },
+              }}
               className="relative flex min-h-[450px] flex-col border border-white/[0.12] bg-[#0B0B0B]/70 p-6 shadow-[0_22px_70px_rgba(0,0,0,0.28)]"
             >
               {plan.popular ? (
@@ -487,16 +593,18 @@ function PricingSection() {
                 {plan.description}
               </p>
 
-              <Link
-                href={plan.href}
-                className={`mt-7 inline-flex h-11 w-fit items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors ${
-                  plan.popular
-                    ? "bg-white text-[#0A0A0A] hover:bg-white/90"
-                    : "text-white/[0.86] hover:text-white"
-                }`}
-              >
-                {plan.cta}
-              </Link>
+              <motion.div whileHover={{ y: -2, scale: 1.02 }} whileTap={{ scale: 0.97 }}>
+                <Link
+                  href={plan.href}
+                  className={`mt-7 inline-flex h-11 w-fit items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors ${
+                    plan.popular
+                      ? "bg-white text-[#0A0A0A] hover:bg-white/90"
+                      : "text-white/[0.86] hover:text-white"
+                  }`}
+                >
+                  {plan.cta}
+                </Link>
+              </motion.div>
 
               <div className="my-9 grid grid-cols-[1fr_auto_1fr] items-center gap-4 text-xs text-white/38">
                 <span className="h-px bg-white/10" />
@@ -512,9 +620,9 @@ function PricingSection() {
                   </li>
                 ))}
               </ul>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );
@@ -549,7 +657,13 @@ function BlogSection() {
     >
       <DottedBackground className="absolute inset-0" />
 
-      <div className="relative mx-auto max-w-3xl text-center">
+      <motion.div
+        variants={fadeUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={viewportOnce}
+        className="relative mx-auto max-w-3xl text-center"
+      >
         <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/45">
           Blog
         </p>
@@ -558,10 +672,20 @@ function BlogSection() {
           <br />
           your rental business
         </h2>
-      </div>
+      </motion.div>
 
-      <div className="relative mx-auto mt-10 max-w-3xl">
-        <article className="grid overflow-hidden rounded-lg border border-white/10 bg-[#151515] p-1.5 shadow-[0_22px_70px_rgba(0,0,0,0.26)] md:grid-cols-[1.05fr_1fr]">
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        whileInView="visible"
+        viewport={viewportOnce}
+        className="relative mx-auto mt-10 max-w-3xl"
+      >
+        <motion.article
+          variants={cardMotion}
+          whileHover={{ y: -6, transition: { duration: 0.22 } }}
+          className="grid overflow-hidden rounded-lg border border-white/10 bg-[#151515] p-1.5 shadow-[0_22px_70px_rgba(0,0,0,0.26)] md:grid-cols-[1.05fr_1fr]"
+        >
           <BlogImage visual="featured" className="min-h-[310px]" />
           <div className="flex min-h-[310px] flex-col justify-between p-6 sm:p-8">
             <div>
@@ -592,11 +716,15 @@ function BlogSection() {
               </span>
             </div>
           </div>
-        </article>
+        </motion.article>
 
-        <div className="mt-4 grid gap-4 md:grid-cols-3">
+        <motion.div variants={staggerContainer} className="mt-4 grid gap-4 md:grid-cols-3">
           {blogPosts.map((post) => (
-            <article key={post.title}>
+            <motion.article
+              key={post.title}
+              variants={cardMotion}
+              whileHover={{ y: -5, transition: { duration: 0.22 } }}
+            >
               <BlogImage visual={post.visual} className="aspect-[1.28/1]" />
               <div className="mt-3 flex items-start justify-between gap-3">
                 <h3 className="text-sm font-bold leading-5 text-white">
@@ -608,10 +736,10 @@ function BlogSection() {
                   {post.tag}
                 </span>
               </div>
-            </article>
+            </motion.article>
           ))}
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </section>
   );
 }
@@ -624,7 +752,9 @@ function BlogImage({
   className?: string;
 }) {
   return (
-    <div
+    <motion.div
+      whileHover={{ scale: 1.015 }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
       aria-label={`${visual} blog image slot`}
       data-blog-image-slot={visual}
       className={`relative overflow-hidden rounded-lg bg-gradient-to-br from-sky-200 via-[#f7f2ea] to-amber-100 ${className}`}
@@ -637,16 +767,29 @@ function CommunitySection() {
     <section className="relative z-20 w-full overflow-hidden border-t border-dotted border-white/20 bg-[#0A0A0A] px-4 py-24 text-white sm:px-6">
       <DottedBackground className="absolute inset-0" />
 
-      <div className="relative mx-auto max-w-3xl text-center">
+      <motion.div
+        variants={fadeUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={viewportOnce}
+        className="relative mx-auto max-w-3xl text-center"
+      >
         <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/45">
           Community
         </p>
         <h2 className="mt-4 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
           Stay in the loop
         </h2>
-      </div>
+      </motion.div>
 
-      <div className="relative mx-auto mt-10 max-w-md">
+      <motion.div
+        variants={cardMotion}
+        initial="hidden"
+        whileInView="visible"
+        viewport={viewportOnce}
+        whileHover={{ y: -6, transition: { duration: 0.22 } }}
+        className="relative mx-auto mt-10 max-w-md"
+      >
         <article className="rounded-[18px] border border-white/10 bg-[#151515] p-6 shadow-[0_22px_70px_rgba(0,0,0,0.26)]">
           <div className="flex items-start justify-between gap-6">
             <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#5865F2] text-white">
@@ -663,14 +806,16 @@ function CommunitySection() {
             tips, and early feedback on upcoming features.
           </p>
 
-          <Link
-            href="#"
-            className="mt-7 inline-flex h-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.045] px-5 text-sm font-semibold text-white/82 transition-colors hover:bg-white/[0.08] hover:text-white"
-          >
-            Join Discord
-          </Link>
+          <motion.div whileHover={{ y: -2, scale: 1.02 }} whileTap={{ scale: 0.97 }}>
+            <Link
+              href="#"
+              className="mt-7 inline-flex h-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.045] px-5 text-sm font-semibold text-white/82 transition-colors hover:bg-white/[0.08] hover:text-white"
+            >
+              Join Discord
+            </Link>
+          </motion.div>
         </article>
-      </div>
+      </motion.div>
     </section>
   );
 }
@@ -728,7 +873,13 @@ function FaqSection() {
       <DottedBackground className="absolute inset-0" />
 
       <div className="relative mx-auto max-w-6xl">
-        <div className="mx-auto max-w-4xl text-center">
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          className="mx-auto max-w-4xl text-center"
+        >
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/45">
             FAQ
           </p>
@@ -736,15 +887,27 @@ function FaqSection() {
             Your questions,{" "}
             <span className="text-white/[0.42]">answered with clarity</span>
           </h2>
-        </div>
+        </motion.div>
 
-        <div className="mt-10 grid gap-4 lg:grid-cols-2 lg:items-start">
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          className="mt-10 grid gap-4 lg:grid-cols-2 lg:items-start"
+        >
           {faqs.map((faq, index) => {
             const isOpen = openFaq === index;
 
             return (
-              <div
+              <motion.div
                 key={faq.question}
+                layout
+                variants={cardMotion}
+                whileHover={{
+                  borderColor: "rgba(255,255,255,0.2)",
+                  transition: { duration: 0.22 },
+                }}
                 className="border border-white/[0.12] bg-[#0B0B0B]/70"
               >
                 <button
@@ -762,15 +925,24 @@ function FaqSection() {
                     <Plus className="h-4 w-4 shrink-0 text-white/62" />
                   )}
                 </button>
-                {isOpen ? (
-                  <p className="px-5 pb-5 text-sm leading-6 text-white/[0.46]">
-                    {faq.answer}
-                  </p>
-                ) : null}
-              </div>
+                <AnimatePresence initial={false}>
+                  {isOpen ? (
+                    <motion.p
+                      key="answer"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25, ease: "easeOut" }}
+                      className="overflow-hidden px-5 pb-5 text-sm leading-6 text-white/[0.46]"
+                    >
+                      {faq.answer}
+                    </motion.p>
+                  ) : null}
+                </AnimatePresence>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       </div>
     </section>
   );
@@ -798,7 +970,13 @@ function FooterSection() {
       <DottedBackground className="absolute inset-0" />
 
       <div className="relative mx-auto max-w-6xl">
-        <div className="text-center">
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          className="text-center"
+        >
           <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">
             Ready to get started
           </h2>
@@ -806,15 +984,24 @@ function FooterSection() {
             Start managing your properties with RentFlow. No credit card
             required.
           </p>
-          <Link
-            href="/register"
-            className="mt-7 inline-flex h-12 items-center justify-center rounded-full bg-white px-6 text-sm font-semibold text-[#0A0A0A] transition-colors hover:bg-white/90"
-          >
-            Try RentFlow free
-          </Link>
-        </div>
+          <motion.div whileHover={{ y: -3, scale: 1.02 }} whileTap={{ scale: 0.97 }}>
+            <Link
+              href="/register"
+              className="mt-7 inline-flex h-12 items-center justify-center rounded-full bg-white px-6 text-sm font-semibold text-[#0A0A0A] transition-colors hover:bg-white/90"
+            >
+              Try RentFlow free
+            </Link>
+          </motion.div>
+        </motion.div>
 
-        <footer className="mx-auto mt-20 max-w-3xl rounded-[22px] border border-white/10 bg-[#151515] p-6 shadow-[0_22px_70px_rgba(0,0,0,0.26)] sm:p-7">
+        <motion.footer
+          variants={cardMotion}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          whileHover={{ y: -5, transition: { duration: 0.22 } }}
+          className="mx-auto mt-20 max-w-3xl rounded-[22px] border border-white/10 bg-[#151515] p-6 shadow-[0_22px_70px_rgba(0,0,0,0.26)] sm:p-7"
+        >
           <div className="grid gap-10 sm:grid-cols-[1fr_auto_auto] sm:gap-16">
             <div>
               <Link
@@ -831,20 +1018,24 @@ function FooterSection() {
               </p>
 
               <div className="mt-5 flex gap-3">
-                <Link
-                  href="#"
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#0A0A0A] transition-colors hover:bg-white/90"
-                  aria-label="RentFlow LinkedIn"
-                >
-                  <LinkedInLogo className="h-4 w-4" />
-                </Link>
-                <Link
-                  href="#"
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#0A0A0A] transition-colors hover:bg-white/90"
-                  aria-label="RentFlow X"
-                >
-                  <XLogo className="h-4 w-4" />
-                </Link>
+                <motion.div whileHover={{ y: -2, scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Link
+                    href="#"
+                    className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#0A0A0A] transition-colors hover:bg-white/90"
+                    aria-label="RentFlow LinkedIn"
+                  >
+                    <LinkedInLogo className="h-4 w-4" />
+                  </Link>
+                </motion.div>
+                <motion.div whileHover={{ y: -2, scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Link
+                    href="#"
+                    className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#0A0A0A] transition-colors hover:bg-white/90"
+                    aria-label="RentFlow X"
+                  >
+                    <XLogo className="h-4 w-4" />
+                  </Link>
+                </motion.div>
               </div>
             </div>
 
@@ -860,7 +1051,7 @@ function FooterSection() {
               </p>
             </div>
           </div>
-        </footer>
+        </motion.footer>
       </div>
     </section>
   );
@@ -1008,7 +1199,10 @@ function FeatureImageSlot({
   className?: string;
 }) {
   return (
-    <div
+    <motion.div
+      variants={fadeUp}
+      whileHover={{ y: -5, scale: 1.01 }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
       aria-label={`${name} image slot`}
       data-image-slot={name}
       className={`relative overflow-hidden rounded-3xl bg-gradient-to-br from-sky-200 via-[#f7f2ea] to-amber-100 shadow-[0_22px_70px_rgba(0,0,0,0.26)] ${compact ? "aspect-[1.85/1] rounded-2xl shadow-none" : className
@@ -1039,7 +1233,7 @@ function FeatureCopy({
   );
 
   return (
-    <div>
+    <motion.div variants={fadeUp}>
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/45">
         {label}
       </p>
@@ -1049,13 +1243,15 @@ function FeatureCopy({
       <p className="mt-5 max-w-xl text-base leading-7 text-white/[0.58]">
         {description}
       </p>
-      <Link
-        href={href}
-        className="mt-7 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-[#0A0A0A] transition-colors hover:bg-white/90"
-      >
-        {cta}
-        <ArrowRight className="h-4 w-4" />
-      </Link>
+      <motion.div whileHover={{ y: -2, scale: 1.02 }} whileTap={{ scale: 0.97 }}>
+        <Link
+          href={href}
+          className="mt-7 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-[#0A0A0A] transition-colors hover:bg-white/90"
+        >
+          {cta}
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+      </motion.div>
       <div
         className={`mt-8 gap-3 ${
           pillLayout === "columns"
@@ -1064,8 +1260,9 @@ function FeatureCopy({
         }`}
       >
         {pillItems.map(({ label: pill, icon: Icon }) => (
-          <span
+          <motion.span
             key={pill}
+            whileHover={{ y: -2, backgroundColor: "rgba(255,255,255,0.075)" }}
             className={`inline-flex items-center justify-center gap-3 rounded-full border text-sm font-medium ${
               pillLayout === "columns"
                 ? "h-12 border-white/10 bg-white/[0.045] px-5 text-white/70"
@@ -1074,9 +1271,9 @@ function FeatureCopy({
           >
             {Icon ? <Icon className="h-4 w-4 text-white/55" /> : null}
             {pill}
-          </span>
+          </motion.span>
         ))}
       </div>
-    </div>
+    </motion.div>
   );
 }
