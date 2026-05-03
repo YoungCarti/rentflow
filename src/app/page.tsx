@@ -14,6 +14,7 @@ import {
   CreditCard,
   DoorOpen,
   FileText,
+  Flame,
   LayoutDashboard,
   Link2,
   Plus,
@@ -231,6 +232,7 @@ export default function LandingPage() {
       <BlogSection />
       <CommunitySection />
       <FaqSection />
+      <FooterSection />
     </div>
   );
 }
@@ -773,6 +775,149 @@ function FaqSection() {
         </div>
       </div>
     </section>
+  );
+}
+
+function FooterSection() {
+  const pageLinks = [
+    { label: "Home", href: "/" },
+    { label: "Features", href: "#features" },
+    { label: "Pricing", href: "#pricing" },
+    { label: "Blog", href: "#blog" },
+  ];
+  const infoLinks = [
+    { label: "Contact", href: "#contact" },
+    { label: "Privacy", href: "#" },
+    { label: "Terms of use", href: "#" },
+    { label: "404", href: "/not-found" },
+  ];
+
+  return (
+    <section
+      id="contact"
+      className="relative z-20 w-full overflow-hidden border-t border-dotted border-white/20 bg-[#0A0A0A] px-4 py-24 text-white sm:px-6"
+    >
+      <DottedBackground className="absolute inset-0" />
+
+      <div className="relative mx-auto max-w-6xl">
+        <div className="text-center">
+          <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">
+            Ready to get started
+          </h2>
+          <p className="mt-4 text-sm text-white/[0.58]">
+            Start managing your properties with RentFlow. No credit card
+            required.
+          </p>
+          <Link
+            href="/register"
+            className="mt-7 inline-flex h-12 items-center justify-center rounded-full bg-white px-6 text-sm font-semibold text-[#0A0A0A] transition-colors hover:bg-white/90"
+          >
+            Try RentFlow free
+          </Link>
+        </div>
+
+        <footer className="mx-auto mt-20 max-w-3xl rounded-[22px] border border-white/10 bg-[#151515] p-6 shadow-[0_22px_70px_rgba(0,0,0,0.26)] sm:p-7">
+          <div className="grid gap-10 sm:grid-cols-[1fr_auto_auto] sm:gap-16">
+            <div>
+              <Link
+                href="/"
+                className="inline-flex items-center gap-2 text-sm font-bold"
+                aria-label="RentFlow home"
+              >
+                <RentFlowLogo className="h-5 w-5" />
+                RentFlow
+              </Link>
+              <p className="mt-4 max-w-[210px] text-sm leading-6 text-white/[0.58]">
+                A focused property management workspace built for landlords and
+                growing rental portfolios.
+              </p>
+
+              <div className="mt-5 flex gap-3">
+                <Link
+                  href="#"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#0A0A0A] transition-colors hover:bg-white/90"
+                  aria-label="RentFlow LinkedIn"
+                >
+                  <LinkedInLogo className="h-4 w-4" />
+                </Link>
+                <Link
+                  href="#"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#0A0A0A] transition-colors hover:bg-white/90"
+                  aria-label="RentFlow X"
+                >
+                  <XLogo className="h-4 w-4" />
+                </Link>
+              </div>
+            </div>
+
+            <FooterLinkGroup title="Pages" links={pageLinks} />
+            <FooterLinkGroup title="Information" links={infoLinks} />
+          </div>
+
+          <div className="mt-14 border-t border-white/10 pt-6">
+            <div className="flex flex-col gap-3 text-xs text-white/50 sm:flex-row sm:items-center sm:justify-between">
+              <p>© 2026 RentFlow. Created by RentFlow.</p>
+              <p className="inline-flex items-center gap-1.5">
+                Built with <Flame className="h-3.5 w-3.5 text-white/60" /> care
+              </p>
+            </div>
+          </div>
+        </footer>
+      </div>
+    </section>
+  );
+}
+
+function FooterLinkGroup({
+  title,
+  links,
+}: {
+  title: string;
+  links: Array<{ label: string; href: string }>;
+}) {
+  return (
+    <div>
+      <h3 className="text-xs font-bold uppercase tracking-[0.08em] text-white/82">
+        {title}
+      </h3>
+      <div className="mt-4 space-y-4">
+        {links.map((link) => (
+          <Link
+            key={link.label}
+            href={link.href}
+            className="block text-sm text-white/[0.58] transition-colors hover:text-white"
+          >
+            {link.label}
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function LinkedInLogo({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="M4.98 3.5C4.98 4.88 3.87 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1s2.48 1.12 2.48 2.5ZM.27 8h4.46v15H.27V8Zm7.23 0h4.27v2.05h.06c.6-1.13 2.05-2.32 4.22-2.32 4.51 0 5.34 2.97 5.34 6.83V23h-4.45v-7.49c0-1.79-.03-4.08-2.49-4.08-2.49 0-2.87 1.94-2.87 3.95V23H7.5V8Z" />
+    </svg>
+  );
+}
+
+function XLogo({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.4l-5.8-7.58-6.63 7.58H.49l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.48 3.24H4.29l13.32 17.41Z" />
+    </svg>
   );
 }
 
