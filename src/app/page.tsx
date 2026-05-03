@@ -3,7 +3,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, LayoutDashboard, UserCircle } from "lucide-react";
+import {
+  ArrowRight,
+  LayoutDashboard,
+  UserCircle,
+} from "lucide-react";
 import RentFlowLogo from "@/components/brand/RentFlowLogo";
 import { createClient } from "@/lib/supabase/client";
 
@@ -18,6 +22,7 @@ const navLinks = [
 const heroWords = ["elegance.", "clarity.", "control.", "confidence."];
 
 export default function LandingPage() {
+  const previewFrameRef = useRef<HTMLDivElement>(null);
   const previewTiltRef = useRef<HTMLDivElement>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [heroWordIndex, setHeroWordIndex] = useState(0);
@@ -39,24 +44,28 @@ export default function LandingPage() {
   }, []);
 
   useEffect(() => {
-    const preview = previewTiltRef.current;
-    if (!preview) return;
+    const previewFrame = previewFrameRef.current;
+    const previewTilt = previewTiltRef.current;
+    if (!previewFrame || !previewTilt) return;
 
     let animationFrame = 0;
 
     const updatePreviewTilt = () => {
       animationFrame = 0;
 
-      const rect = preview.getBoundingClientRect();
+      const rect = previewFrame.getBoundingClientRect();
       const viewportHeight = window.innerHeight || 1;
-      const start = viewportHeight * 0.78;
-      const distance = viewportHeight * 0.32;
-      const progress = Math.min(Math.max((start - rect.top) / distance, 0), 1);
+      const start = viewportHeight * 0.9;
+      const end = viewportHeight * 0.35;
+      const progress = Math.min(
+        Math.max((start - rect.top) / (start - end), 0),
+        1,
+      );
       const tilt = 13 * (1 - progress);
       const lift = 8 * (1 - progress);
 
-      preview.style.setProperty("--preview-tilt", `${tilt}deg`);
-      preview.style.setProperty("--preview-lift", `${lift}px`);
+      previewTilt.style.setProperty("--preview-tilt", `${tilt}deg`);
+      previewTilt.style.setProperty("--preview-lift", `${lift}px`);
     };
 
     const schedulePreviewTilt = () => {
@@ -85,9 +94,6 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-foreground flex flex-col justify-center items-center relative overflow-clip dark">
-      {/* Background abstract gradients */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px] pointer-events-none" />
-
       <div
         className="absolute inset-0 opacity-[0.08] pointer-events-none z-0"
         style={{
@@ -200,7 +206,10 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <div className="mt-20 w-full max-w-6xl px-2 [perspective:1400px] sm:mt-24">
+        <div
+          ref={previewFrameRef}
+          className="mt-20 hidden w-full max-w-6xl px-2 [perspective:1400px] sm:mt-24 md:block"
+        >
           <div
             ref={previewTiltRef}
             className="origin-top [--preview-lift:8px] [--preview-tilt:13deg] [transform:rotateX(var(--preview-tilt))_translateY(var(--preview-lift))] [transform-style:preserve-3d]"
@@ -232,44 +241,97 @@ function DashboardPreviewImage() {
 }
 
 function FeaturesSection() {
-  const features = [
+  const featureCards = [
     {
-      title: "Portfolio overview",
-      description: "See properties, occupancy, rent, and overdue work from one focused dashboard.",
+      title: "Smart rental workflow",
+      description:
+        "Manage properties, tenants, rent, and maintenance from one dashboard.",
+      imageSlot: "smart-rental-workflow",
     },
     {
-      title: "Tenant operations",
-      description: "Keep lease details, contacts, rent status, and payment links organized.",
+      title: "Public payment links",
+      description:
+        "Send tenants a payment link without requiring them to create an account.",
+      imageSlot: "public-payment-links",
+    },
+    {
+      title: "Calendar and reminders",
+      description:
+        "Track rent due dates, lease expiries, inspections, and maintenance events.",
+      imageSlot: "calendar-and-reminders",
     },
     {
       title: "Maintenance tracking",
-      description: "Log issues, assign priority, and track repair costs through completion.",
+      description:
+        "Log issues, assign priority, update status, and track repair costs.",
+      imageSlot: "maintenance-tracking",
+    },
+    {
+      title: "Reports and insights",
+      description:
+        "View occupancy, revenue, overdue rent, and portfolio performance.",
+      imageSlot: "reports-and-insights",
     },
   ];
 
   return (
     <section
       id="features"
-      className="relative z-20 w-full px-6 py-20 text-foreground border-t border-dotted border-white/20"
+      className="relative z-20 w-full border-t border-dotted border-white/20 bg-[#0A0A0A] px-4 py-24 text-white sm:px-6"
     >
-      <div className="mx-auto max-w-6xl">
-        <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+      <div className="mx-auto max-w-6xl space-y-24">
+        <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr]">
+          <FeatureImageSlot
+            name="property-tenant-management"
+            className="aspect-[1.46/1]"
+          />
+          <FeatureCopy
+            label="Property Management"
+            title="Keep every property and tenant organized"
+            description="Create properties, add units, assign tenants, and keep lease details, rent status, and contact information in one focused workspace."
+            cta="Explore features"
+            href="#features-grid"
+            pills={["Properties", "Units", "Tenants", "Lease details"]}
+          />
+        </div>
+
+        <div className="grid items-center gap-10 lg:grid-cols-[0.95fr_1.05fr]">
+          <FeatureCopy
+            label="Rent Management"
+            title="Track rent, payments, and overdue balances with clarity"
+            description="Monitor monthly rent records, collection rates, payment links, pending proofs, and overdue tenants without relying on spreadsheets or scattered messages."
+            cta="Try RentFlow free"
+            href="/register"
+            pills={["Rent tracking", "Payment links", "Reminders", "Reports"]}
+          />
+          <FeatureImageSlot
+            name="rent-tracking-payments"
+            className="aspect-[1.04/1]"
+          />
+        </div>
+
+        <div id="features-grid" className="mx-auto max-w-3xl text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/45">
             Features
           </p>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
-            Everything your rental workflow needs.
+          <h2 className="mt-3 text-4xl font-bold tracking-tight text-white sm:text-5xl">
+            Built for landlords, powered by simplicity
           </h2>
         </div>
 
-        <div className="mt-10 grid gap-4 md:grid-cols-3">
-          {features.map((feature) => (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+          {featureCards.map((feature, index) => (
             <div
               key={feature.title}
-              className="rounded-lg border border-border bg-card p-5"
+              className={`rounded-2xl border border-white/10 bg-white/[0.055] p-5 shadow-[0_18px_50px_rgba(0,0,0,0.24)] ${
+                index < 2 ? "lg:col-span-3" : "lg:col-span-2"
+              }`}
             >
-              <h3 className="font-semibold">{feature.title}</h3>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              <FeatureImageSlot name={feature.imageSlot} compact />
+              <h3 className="mt-6 text-base font-semibold text-white">
+                {feature.title}
+              </h3>
+              <p className="mt-3 text-sm leading-6 text-white/[0.58]">
                 {feature.description}
               </p>
             </div>
@@ -277,5 +339,72 @@ function FeaturesSection() {
         </div>
       </div>
     </section>
+  );
+}
+
+function FeatureImageSlot({
+  name,
+  compact = false,
+  className = "aspect-[1.65/1]",
+}: {
+  name: string;
+  compact?: boolean;
+  className?: string;
+}) {
+  return (
+    <div
+      aria-label={`${name} image slot`}
+      data-image-slot={name}
+      className={`relative overflow-hidden rounded-3xl bg-gradient-to-br from-sky-200 via-[#f7f2ea] to-amber-100 shadow-[0_22px_70px_rgba(0,0,0,0.26)] ${
+        compact ? "aspect-[1.85/1] rounded-2xl shadow-none" : className
+      }`}
+    />
+  );
+}
+
+function FeatureCopy({
+  label,
+  title,
+  description,
+  cta,
+  href,
+  pills,
+}: {
+  label: string;
+  title: string;
+  description: string;
+  cta: string;
+  href: string;
+  pills: string[];
+}) {
+  return (
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/45">
+        {label}
+      </p>
+      <h2 className="mt-4 max-w-xl text-4xl font-bold tracking-tight text-white sm:text-5xl">
+        {title}
+      </h2>
+      <p className="mt-5 max-w-xl text-base leading-7 text-white/[0.58]">
+        {description}
+      </p>
+      <Link
+        href={href}
+        className="mt-7 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-[#0A0A0A] transition-colors hover:bg-white/90"
+      >
+        {cta}
+        <ArrowRight className="h-4 w-4" />
+      </Link>
+      <div className="mt-8 flex flex-wrap gap-3">
+        {pills.map((pill) => (
+          <span
+            key={pill}
+            className="rounded-full border border-white/10 bg-white/[0.045] px-4 py-2 text-sm text-white/70"
+          >
+            {pill}
+          </span>
+        ))}
+      </div>
+    </div>
   );
 }
