@@ -38,6 +38,7 @@ import RentFlowLogo from "@/components/brand/RentFlowLogo";
 import { createClient } from "@/lib/supabase/client";
 
 const navLinks = [
+  { label: "How It Works", href: "#how-it-works" },
   { label: "Features", href: "#features" },
   { label: "Pricing", href: "#pricing" },
   { label: "Blog", href: "#blog" },
@@ -386,7 +387,10 @@ function HowItWorksSection() {
   ];
 
   return (
-    <section className="relative z-20 w-full overflow-hidden border-t border-dotted border-white/20 bg-[#0A0A0A] px-4 py-20 text-white sm:px-6">
+    <section
+      id="how-it-works"
+      className="relative z-20 w-full overflow-hidden border-t border-dotted border-white/20 bg-[#0A0A0A] px-4 py-20 text-white sm:px-6"
+    >
       <DottedBackground className="absolute inset-0" />
 
       <div className="relative mx-auto max-w-6xl">
