@@ -448,9 +448,8 @@ function PricingSection() {
       <DottedBackground className="absolute inset-0" />
 
       <div className="relative mx-auto max-w-6xl">
-        <div className="max-w-2xl">
-          <p className="flex items-center gap-2 text-sm text-white/45">
-            <span className="h-2 w-2 rounded-full bg-white/25" />
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/45">
             Pricing
           </p>
           <h2 className="mt-5 text-4xl font-semibold leading-tight tracking-tight text-white sm:text-5xl">
@@ -729,9 +728,8 @@ function FaqSection() {
       <DottedBackground className="absolute inset-0" />
 
       <div className="relative mx-auto max-w-6xl">
-        <div className="max-w-4xl">
-          <p className="flex items-center gap-2 text-sm text-white/45">
-            <span className="h-2 w-2 rounded-full bg-white/25" />
+        <div className="mx-auto max-w-4xl text-center">
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/45">
             FAQ
           </p>
           <h2 className="mt-5 text-4xl font-semibold leading-tight tracking-tight text-white sm:text-5xl">
