@@ -5,8 +5,17 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
+  Building2,
+  BellRing,
+  DoorOpen,
+  FileText,
   LayoutDashboard,
+  Link2,
+  ReceiptText,
+  TrendingUp,
   UserCircle,
+  UsersRound,
+  type LucideIcon,
 } from "lucide-react";
 import RentFlowLogo from "@/components/brand/RentFlowLogo";
 import { createClient } from "@/lib/supabase/client";
@@ -164,11 +173,10 @@ export default function LandingPage() {
               {heroWords.map((word, index) => (
                 <span
                   key={word}
-                  className={`col-start-1 row-start-1 w-max justify-self-center whitespace-nowrap rounded-lg bg-cyan-300/10 px-2 transition-[opacity,transform,filter] duration-300 ease-out ${
-                    heroWordIndex === index
-                      ? "translate-y-0 opacity-100 blur-0"
-                      : "translate-y-3 opacity-0 blur-sm"
-                  }`}
+                  className={`col-start-1 row-start-1 w-max justify-self-center whitespace-nowrap rounded-lg bg-cyan-300/10 px-2 transition-[opacity,transform,filter] duration-300 ease-out ${heroWordIndex === index
+                    ? "translate-y-0 opacity-100 blur-0"
+                    : "translate-y-3 opacity-0 blur-sm"
+                    }`}
                   aria-hidden={heroWordIndex !== index}
                 >
                   {word}
@@ -283,7 +291,7 @@ function FeaturesSection() {
         <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr]">
           <FeatureImageSlot
             name="property-tenant-management"
-            className="aspect-[1.46/1]"
+            className="aspect-[1.0/1]"
           />
           <FeatureCopy
             label="Property Management"
@@ -291,7 +299,13 @@ function FeaturesSection() {
             description="Create properties, add units, assign tenants, and keep lease details, rent status, and contact information in one focused workspace."
             cta="Explore features"
             href="#features-grid"
-            pills={["Properties", "Units", "Tenants", "Lease details"]}
+            pillLayout="columns"
+            pills={[
+              { label: "Properties", icon: Building2 },
+              { label: "Units", icon: DoorOpen },
+              { label: "Tenants", icon: UsersRound },
+              { label: "Lease details", icon: FileText },
+            ]}
           />
         </div>
 
@@ -302,7 +316,13 @@ function FeaturesSection() {
             description="Monitor monthly rent records, collection rates, payment links, pending proofs, and overdue tenants without relying on spreadsheets or scattered messages."
             cta="Try RentFlow free"
             href="/register"
-            pills={["Rent tracking", "Payment links", "Reminders", "Reports"]}
+            pillLayout="columns"
+            pills={[
+              { label: "Rent tracking", icon: ReceiptText },
+              { label: "Payment links", icon: Link2 },
+              { label: "Reminders", icon: BellRing },
+              { label: "Reports", icon: TrendingUp },
+            ]}
           />
           <FeatureImageSlot
             name="rent-tracking-payments"
@@ -323,9 +343,8 @@ function FeaturesSection() {
           {featureCards.map((feature, index) => (
             <div
               key={feature.title}
-              className={`rounded-2xl border border-white/10 bg-white/[0.055] p-5 shadow-[0_18px_50px_rgba(0,0,0,0.24)] ${
-                index < 2 ? "lg:col-span-3" : "lg:col-span-2"
-              }`}
+              className={`rounded-2xl border border-white/10 bg-white/[0.055] p-5 shadow-[0_18px_50px_rgba(0,0,0,0.24)] ${index < 2 ? "lg:col-span-3" : "lg:col-span-2"
+                }`}
             >
               <FeatureImageSlot name={feature.imageSlot} compact />
               <h3 className="mt-6 text-base font-semibold text-white">
@@ -355,9 +374,8 @@ function FeatureImageSlot({
     <div
       aria-label={`${name} image slot`}
       data-image-slot={name}
-      className={`relative overflow-hidden rounded-3xl bg-gradient-to-br from-sky-200 via-[#f7f2ea] to-amber-100 shadow-[0_22px_70px_rgba(0,0,0,0.26)] ${
-        compact ? "aspect-[1.85/1] rounded-2xl shadow-none" : className
-      }`}
+      className={`relative overflow-hidden rounded-3xl bg-gradient-to-br from-sky-200 via-[#f7f2ea] to-amber-100 shadow-[0_22px_70px_rgba(0,0,0,0.26)] ${compact ? "aspect-[1.85/1] rounded-2xl shadow-none" : className
+        }`}
     />
   );
 }
@@ -369,14 +387,20 @@ function FeatureCopy({
   cta,
   href,
   pills,
+  pillLayout = "wrap",
 }: {
   label: string;
   title: string;
   description: string;
   cta: string;
   href: string;
-  pills: string[];
+  pills: Array<string | { label: string; icon?: LucideIcon }>;
+  pillLayout?: "wrap" | "columns";
 }) {
+  const pillItems = pills.map((pill) =>
+    typeof pill === "string" ? { label: pill } : pill,
+  );
+
   return (
     <div>
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/45">
@@ -395,12 +419,23 @@ function FeatureCopy({
         {cta}
         <ArrowRight className="h-4 w-4" />
       </Link>
-      <div className="mt-8 flex flex-wrap gap-3">
-        {pills.map((pill) => (
+      <div
+        className={`mt-8 gap-3 ${
+          pillLayout === "columns"
+            ? "grid w-full max-w-[420px] grid-flow-col grid-rows-2 gap-x-4 gap-y-4 [grid-auto-columns:minmax(0,1fr)]"
+            : "flex flex-wrap"
+        }`}
+      >
+        {pillItems.map(({ label: pill, icon: Icon }) => (
           <span
             key={pill}
-            className="rounded-full border border-white/10 bg-white/[0.045] px-4 py-2 text-sm text-white/70"
+            className={`inline-flex items-center justify-center gap-3 rounded-full border text-sm font-medium ${
+              pillLayout === "columns"
+                ? "h-12 border-white/10 bg-white/[0.045] px-5 text-white/70"
+                : "border-white/10 bg-white/[0.045] px-4 py-2 text-white/70"
+            }`}
           >
+            {Icon ? <Icon className="h-4 w-4 text-white/55" /> : null}
             {pill}
           </span>
         ))}
