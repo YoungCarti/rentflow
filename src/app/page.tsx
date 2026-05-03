@@ -11,6 +11,7 @@ import {
   CalendarDays,
   ChartNoAxesColumn,
   CircleCheck,
+  CloudCheck,
   ClipboardCheck,
   ClipboardList,
   CreditCard,
@@ -21,11 +22,15 @@ import {
   Link2,
   Plus,
   ReceiptText,
+  Search,
+  Table2,
   TrendingUp,
+  TriangleAlert,
   UserCircle,
   UserPlus,
   UsersRound,
   Wrench,
+  Workflow,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -306,6 +311,7 @@ export default function LandingPage() {
       </main>
       <HowItWorksSection />
       <FeaturesSection />
+      <ComparisonSection />
       <PricingSection />
       <BlogSection />
       <CommunitySection />
@@ -463,6 +469,211 @@ function HowItWorksSection() {
         </motion.div>
       </div>
     </section>
+  );
+}
+
+function ComparisonSection() {
+  const spreadsheetItems = [
+    "Manual updates across tabs",
+    "Scattered tenant and rent notes",
+    "Easy to miss overdue records",
+  ];
+  const rentFlowItems = [
+    "Structured property workflows",
+    "Searchable tenant and payment records",
+    "Automated tracking for rent and maintenance",
+  ];
+  const comparisonCards = [
+    {
+      label: "Manual",
+      title: "Spreadsheets need constant cleanup",
+      icon: TriangleAlert,
+      tone: "text-white/50",
+    },
+    {
+      label: "Structured",
+      title: "RentFlow keeps records connected",
+      icon: Workflow,
+      tone: "text-white",
+    },
+    {
+      label: "Searchable",
+      title: "Find tenants, units, and rent status faster",
+      icon: Search,
+      tone: "text-white",
+    },
+    {
+      label: "Automated",
+      title: "Payment proof and maintenance stay trackable",
+      icon: CloudCheck,
+      tone: "text-white",
+    },
+  ];
+
+  return (
+    <section className="relative z-20 w-full overflow-hidden border-t border-dotted border-white/20 bg-[#0A0A0A] px-4 py-24 text-white sm:px-6">
+      <DottedBackground className="absolute inset-0" />
+
+      <div className="relative mx-auto max-w-6xl">
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          className="mx-auto max-w-3xl text-center"
+        >
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/45">
+            Comparison
+          </p>
+          <h2 className="mt-4 text-4xl font-bold tracking-tight text-white sm:text-5xl">
+            RentFlow vs spreadsheets
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-white/[0.58]">
+            Spreadsheets are manual, scattered, and error-prone. RentFlow is
+            structured, searchable, and built for repeatable property workflows.
+          </p>
+        </motion.div>
+
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          className="mt-10 grid gap-4 lg:grid-cols-[1fr_auto_1fr]"
+        >
+          <ComparisonPanel
+            title="Spreadsheets"
+            description="Flexible at first, but harder to trust as your portfolio grows."
+            icon={Table2}
+            items={spreadsheetItems}
+            type="negative"
+          />
+
+          <motion.div
+            variants={cardMotion}
+            className="flex items-center justify-center"
+          >
+            <span className="flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-white/[0.055] text-sm font-bold uppercase text-white/55 shadow-[0_18px_50px_rgba(0,0,0,0.22)]">
+              vs
+            </span>
+          </motion.div>
+
+          <ComparisonPanel
+            title="RentFlow"
+            description="Purpose-built to keep rental operations organized and easier to act on."
+            icon={RentFlowLogo}
+            items={rentFlowItems}
+            type="positive"
+          />
+        </motion.div>
+
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+        >
+          {comparisonCards.map((card) => {
+            const Icon = card.icon;
+
+            return (
+              <motion.div
+                key={card.label}
+                variants={cardMotion}
+                whileHover={{
+                  y: -5,
+                  borderColor: "rgba(255,255,255,0.2)",
+                  transition: { duration: 0.22 },
+                }}
+                className="rounded-[18px] border border-white/10 bg-[#151515] p-5 shadow-[0_18px_55px_rgba(0,0,0,0.2)]"
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#0A0A0A]">
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/35">
+                    {card.label}
+                  </span>
+                </div>
+                <p className={`mt-6 text-sm font-semibold leading-6 ${card.tone}`}>
+                  {card.title}
+                </p>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+function ComparisonPanel({
+  title,
+  description,
+  icon: Icon,
+  items,
+  type,
+}: {
+  title: string;
+  description: string;
+  icon: LucideIcon | typeof RentFlowLogo;
+  items: string[];
+  type: "negative" | "positive";
+}) {
+  const isPositive = type === "positive";
+
+  return (
+    <motion.div
+      variants={cardMotion}
+      whileHover={{
+        y: -6,
+        borderColor: "rgba(255,255,255,0.2)",
+        transition: { duration: 0.22 },
+      }}
+      className="relative overflow-hidden rounded-[22px] border border-white/10 bg-[#151515] p-6 shadow-[0_22px_70px_rgba(0,0,0,0.26)]"
+    >
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-white/[0.08] to-transparent" />
+      <div className="relative">
+        <div className="flex items-start justify-between gap-5">
+          <span
+            className={`flex h-12 w-12 items-center justify-center rounded-2xl ${
+              isPositive
+                ? "bg-white text-[#0A0A0A]"
+                : "border border-white/10 bg-white/[0.055] text-white/62"
+            }`}
+          >
+            <Icon className="h-5 w-5" />
+          </span>
+          <span className="rounded-full border border-white/10 bg-white/[0.045] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.08em] text-white/45">
+            {isPositive ? "Organized" : "Risky"}
+          </span>
+        </div>
+
+        <h3 className="mt-7 text-2xl font-bold tracking-tight text-white">
+          {title}
+        </h3>
+        <p className="mt-3 text-sm leading-6 text-white/[0.58]">
+          {description}
+        </p>
+
+        <div className="mt-7 space-y-3">
+          {items.map((item) => (
+            <div
+              key={item}
+              className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.035] p-3 text-sm text-white/62"
+            >
+              {isPositive ? (
+                <CircleCheck className="mt-0.5 h-4 w-4 shrink-0 text-white/75" />
+              ) : (
+                <X className="mt-0.5 h-4 w-4 shrink-0 text-white/45" />
+              )}
+              <span>{item}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </motion.div>
   );
 }
 
