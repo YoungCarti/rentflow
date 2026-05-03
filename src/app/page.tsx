@@ -633,7 +633,6 @@ function ComparisonPanel({
       }}
       className="relative overflow-hidden rounded-[22px] border border-white/10 bg-[#151515] p-6 shadow-[0_22px_70px_rgba(0,0,0,0.26)]"
     >
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-white/[0.08] to-transparent" />
       <div className="relative">
         <div className="flex items-start justify-between gap-5">
           <span
