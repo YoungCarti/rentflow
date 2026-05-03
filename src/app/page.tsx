@@ -1230,6 +1230,10 @@ function FaqSection() {
         "Yes. RentFlow includes reports for rent collection, overdue balances, occupancy, and portfolio performance.",
     },
   ];
+  const faqColumns = [
+    faqs.slice(0, Math.ceil(faqs.length / 2)),
+    faqs.slice(Math.ceil(faqs.length / 2)),
+  ];
 
   return (
     <section className="relative z-20 w-full overflow-hidden border-t border-dotted border-white/20 bg-[#0A0A0A] px-4 py-24 text-white sm:px-6">
@@ -1259,52 +1263,58 @@ function FaqSection() {
           viewport={viewportOnce}
           className="mt-10 grid gap-4 lg:grid-cols-2 lg:items-start"
         >
-          {faqs.map((faq, index) => {
-            const isOpen = openFaq === index;
+          {faqColumns.map((column, columnIndex) => (
+            <div key={columnIndex} className="space-y-4">
+              {column.map((faq, faqIndex) => {
+                const index =
+                  columnIndex === 0 ? faqIndex : faqIndex + faqColumns[0].length;
+                const isOpen = openFaq === index;
 
-            return (
-              <motion.div
-                key={faq.question}
-                layout
-                variants={cardMotion}
-                whileHover={{
-                  borderColor: "rgba(255,255,255,0.2)",
-                  transition: { duration: 0.22 },
-                }}
-                className="border border-white/[0.12] bg-[#0B0B0B]/70"
-              >
-                <button
-                  type="button"
-                  onClick={() => setOpenFaq(isOpen ? -1 : index)}
-                  className="flex w-full items-center justify-between gap-6 px-5 py-5 text-left"
-                  aria-expanded={isOpen}
-                >
-                  <span className="text-base font-semibold text-white/[0.88]">
-                    {faq.question}
-                  </span>
-                  {isOpen ? (
-                    <X className="h-4 w-4 shrink-0 text-white/62" />
-                  ) : (
-                    <Plus className="h-4 w-4 shrink-0 text-white/62" />
-                  )}
-                </button>
-                <AnimatePresence initial={false}>
-                  {isOpen ? (
-                    <motion.p
-                      key="answer"
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.25, ease: "easeOut" }}
-                      className="overflow-hidden px-5 pb-5 text-sm leading-6 text-white/[0.46]"
+                return (
+                  <motion.div
+                    key={faq.question}
+                    layout
+                    variants={cardMotion}
+                    whileHover={{
+                      borderColor: "rgba(255,255,255,0.2)",
+                      transition: { duration: 0.22 },
+                    }}
+                    className="border border-white/[0.12] bg-[#0B0B0B]/70"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setOpenFaq(isOpen ? -1 : index)}
+                      className="flex w-full items-center justify-between gap-6 px-5 py-5 text-left"
+                      aria-expanded={isOpen}
                     >
-                      {faq.answer}
-                    </motion.p>
-                  ) : null}
-                </AnimatePresence>
-              </motion.div>
-            );
-          })}
+                      <span className="text-base font-semibold text-white/[0.88]">
+                        {faq.question}
+                      </span>
+                      {isOpen ? (
+                        <X className="h-4 w-4 shrink-0 text-white/62" />
+                      ) : (
+                        <Plus className="h-4 w-4 shrink-0 text-white/62" />
+                      )}
+                    </button>
+                    <AnimatePresence initial={false}>
+                      {isOpen ? (
+                        <motion.p
+                          key="answer"
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.25, ease: "easeOut" }}
+                          className="overflow-hidden px-5 pb-5 text-sm leading-6 text-white/[0.46]"
+                        >
+                          {faq.answer}
+                        </motion.p>
+                      ) : null}
+                    </AnimatePresence>
+                  </motion.div>
+                );
+              })}
+            </div>
+          ))}
         </motion.div>
       </div>
     </section>
