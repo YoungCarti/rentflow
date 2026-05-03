@@ -11,6 +11,7 @@ import {
   CalendarDays,
   ChartNoAxesColumn,
   CircleCheck,
+  ClipboardCheck,
   ClipboardList,
   CreditCard,
   DoorOpen,
@@ -22,6 +23,7 @@ import {
   ReceiptText,
   TrendingUp,
   UserCircle,
+  UserPlus,
   UsersRound,
   Wrench,
   X,
@@ -302,6 +304,7 @@ export default function LandingPage() {
           </div>
         </motion.div>
       </main>
+      <HowItWorksSection />
       <FeaturesSection />
       <PricingSection />
       <BlogSection />
@@ -339,6 +342,127 @@ function DottedBackground({ className = "" }: { className?: string }) {
         backgroundSize: "5px 5px",
       }}
     />
+  );
+}
+
+function HowItWorksSection() {
+  const steps = [
+    {
+      title: "Add properties",
+      description:
+        "Create each property, add units, and keep the details organized from the start.",
+      icon: Building2,
+      imageSlot: "how-it-works-add-properties",
+    },
+    {
+      title: "Assign tenants",
+      description:
+        "Connect tenants to the right units with lease details and contact information.",
+      icon: UserPlus,
+      imageSlot: "how-it-works-assign-tenants",
+    },
+    {
+      title: "Track rent & maintenance",
+      description:
+        "Monitor rent records, payment status, reminders, and maintenance work in one place.",
+      icon: ClipboardCheck,
+      imageSlot: "how-it-works-track-rent-maintenance",
+    },
+  ];
+
+  return (
+    <section className="relative z-20 w-full overflow-hidden border-t border-dotted border-white/20 bg-[#0A0A0A] px-4 py-20 text-white sm:px-6">
+      <DottedBackground className="absolute inset-0" />
+
+      <div className="relative mx-auto max-w-6xl">
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          className="mx-auto max-w-3xl text-center"
+        >
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/45">
+            How it works
+          </p>
+          <h2 className="mt-4 text-4xl font-bold tracking-tight text-white sm:text-5xl">
+            From setup to control in three steps
+          </h2>
+        </motion.div>
+
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          className="relative mx-auto mt-12 grid max-w-5xl gap-8"
+        >
+          <div className="pointer-events-none absolute left-1/2 top-0 hidden h-full w-px -translate-x-1/2 bg-white/10 lg:block" />
+          {steps.map((step, index) => {
+            const Icon = step.icon;
+            const isRight = index % 2 === 1;
+
+            return (
+              <motion.div
+                key={step.title}
+                variants={cardMotion}
+                whileHover={{
+                  y: -6,
+                  borderColor: "rgba(255,255,255,0.2)",
+                  transition: { duration: 0.22 },
+                }}
+                className={`relative grid gap-4 lg:w-[calc(50%-2rem)] ${
+                  isRight ? "lg:ml-auto" : "lg:mr-auto"
+                }`}
+              >
+                <span
+                  className={`absolute top-8 z-10 hidden h-4 w-4 rounded-full border border-white/20 bg-white lg:block ${
+                    isRight ? "-left-10" : "-right-10"
+                  }`}
+                />
+
+                <div className="rounded-[22px] border border-white/10 bg-[#151515] p-5 shadow-[0_22px_70px_rgba(0,0,0,0.24)]">
+                  <div
+                    aria-label={`${step.imageSlot} image slot`}
+                    data-how-it-works-image-slot={step.imageSlot}
+                    className="aspect-[1.72/1] overflow-hidden rounded-[18px] bg-gradient-to-br from-sky-200 via-[#f7f2ea] to-amber-100"
+                  />
+
+                  <div className="mt-5 flex items-center justify-between gap-4">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-[#0A0A0A]">
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <span className="text-sm font-bold text-white/30">
+                      0{index + 1}
+                    </span>
+                  </div>
+                  <h3 className="mt-7 text-xl font-semibold tracking-tight text-white">
+                    {step.title}
+                  </h3>
+                  <p className="mt-3 text-sm leading-6 text-white/[0.58]">
+                    {step.description}
+                  </p>
+                </div>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          className="mx-auto mt-7 flex max-w-xl flex-wrap items-center justify-center gap-3 text-sm font-medium text-white/55"
+        >
+          <span>Add properties</span>
+          <ArrowRight className="h-4 w-4 text-white/32" />
+          <span>Assign tenants</span>
+          <ArrowRight className="h-4 w-4 text-white/32" />
+          <span>Track rent & maintenance</span>
+        </motion.div>
+      </div>
+    </section>
   );
 }
 
