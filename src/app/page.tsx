@@ -657,11 +657,11 @@ function ComparisonPanel({
           {description}
         </p>
 
-        <div className="mt-7 space-y-3">
+        <div className="mt-7 space-y-4">
           {items.map((item) => (
             <div
               key={item}
-              className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.035] p-3 text-sm text-white/62"
+              className="flex items-start gap-3 text-sm text-white/62"
             >
               {isPositive ? (
                 <CircleCheck className="mt-0.5 h-4 w-4 shrink-0 text-white/75" />
