@@ -20,6 +20,7 @@ const heroWords = ["elegance.", "clarity.", "control.", "confidence."];
 export default function LandingPage() {
   const previewTiltRef = useRef<HTMLDivElement>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [heroWordIndex, setHeroWordIndex] = useState(0);
 
   useEffect(() => {
     const supabase = createClient();
@@ -72,6 +73,14 @@ export default function LandingPage() {
       window.removeEventListener("scroll", schedulePreviewTilt);
       window.removeEventListener("resize", schedulePreviewTilt);
     };
+  }, []);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setHeroWordIndex((currentIndex) => (currentIndex + 1) % heroWords.length);
+    }, 2600);
+
+    return () => window.clearInterval(intervalId);
   }, []);
 
   return (
@@ -145,12 +154,20 @@ export default function LandingPage() {
             className="text-5xl md:text-7xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-br from-white to-white/60"
           >
             Manage properties with{" "}
-            <span className="relative inline-block text-left align-baseline">
-              <span
-                className="relative inline-block rounded-lg bg-cyan-300/10 px-2 text-cyan-200 italic"
-              >
-                {heroWords[0]}
-              </span>
+            <span className="relative inline-grid text-left align-baseline text-cyan-200 italic">
+              {heroWords.map((word, index) => (
+                <span
+                  key={word}
+                  className={`col-start-1 row-start-1 w-max justify-self-center whitespace-nowrap rounded-lg bg-cyan-300/10 px-2 transition-[opacity,transform,filter] duration-300 ease-out ${
+                    heroWordIndex === index
+                      ? "translate-y-0 opacity-100 blur-0"
+                      : "translate-y-3 opacity-0 blur-sm"
+                  }`}
+                  aria-hidden={heroWordIndex !== index}
+                >
+                  {word}
+                </span>
+              ))}
             </span>
           </h1>
 
