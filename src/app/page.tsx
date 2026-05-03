@@ -76,6 +76,7 @@ export default function LandingPage() {
   const previewTiltRef = useRef<HTMLDivElement>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [heroWordIndex, setHeroWordIndex] = useState(0);
+  const [hasScrolled, setHasScrolled] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -142,6 +143,17 @@ export default function LandingPage() {
     return () => window.clearInterval(intervalId);
   }, []);
 
+  useEffect(() => {
+    const updateHeaderState = () => {
+      setHasScrolled(window.scrollY > 24);
+    };
+
+    updateHeaderState();
+    window.addEventListener("scroll", updateHeaderState, { passive: true });
+
+    return () => window.removeEventListener("scroll", updateHeaderState);
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-foreground flex flex-col justify-center items-center relative overflow-clip dark">
       <DottedBackground className="absolute inset-0 z-0" />
@@ -150,9 +162,15 @@ export default function LandingPage() {
         initial={{ opacity: 0, y: -14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.55, ease: "easeOut" }}
-        className="absolute inset-x-0 top-0 z-20 px-4 py-5 sm:px-6 lg:px-10 border-b border-dotted border-white/20 bg-[#0A0A0A]/50 backdrop-blur-md"
+        className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
+          hasScrolled
+            ? "border-b border-white/10 bg-[#0A0A0A]/82 px-4 py-3 shadow-[0_14px_44px_rgba(0,0,0,0.34)] backdrop-blur-xl sm:px-6 lg:px-10"
+            : "border-b border-dotted border-white/20 bg-[#0A0A0A]/50 px-4 py-5 backdrop-blur-md sm:px-6 lg:px-10"
+        }`}
       >
-        <div className="grid w-full grid-cols-1 items-center gap-4 sm:grid-cols-[1fr_auto_1fr]">
+        <div
+          className="grid w-full grid-cols-1 items-center gap-4 transition-all duration-300 sm:grid-cols-[1fr_auto_1fr]"
+        >
           <Link
             href="/"
             className="flex items-center justify-center gap-2.5 sm:justify-self-start"
