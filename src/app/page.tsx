@@ -30,7 +30,6 @@ import { createClient } from "@/lib/supabase/client";
 
 const navLinks = [
   { label: "Features", href: "#features" },
-  { label: "Benefits", href: "#benefits" },
   { label: "Pricing", href: "#pricing" },
   { label: "Blog", href: "#blog" },
   { label: "Contact Us", href: "#contact" },
@@ -229,6 +228,8 @@ export default function LandingPage() {
       </main>
       <FeaturesSection />
       <PricingSection />
+      <BlogSection />
+      <CommunitySection />
       <FaqSection />
     </div>
   );
@@ -515,6 +516,174 @@ function PricingSection() {
         </div>
       </div>
     </section>
+  );
+}
+
+function BlogSection() {
+  const blogPosts = [
+    {
+      title: "Top 10 tools for smarter property management",
+      tag: "Tools",
+      tagClass: "bg-[#0066CC] text-white",
+      visual: "tools",
+    },
+    {
+      title: "A complete guide to rent collection in 2026",
+      tag: "Insight",
+      tagClass: "bg-[#D99000] text-white",
+      visual: "collection",
+    },
+    {
+      title: "What landlords should track every month",
+      tag: "Management",
+      tagClass: "bg-[#00A866] text-white",
+      visual: "tracking",
+    },
+  ];
+
+  return (
+    <section
+      id="blog"
+      className="relative z-20 w-full overflow-hidden border-t border-dotted border-white/20 bg-[#0A0A0A] px-4 py-24 text-white sm:px-6"
+    >
+      <DottedBackground className="absolute inset-0" />
+
+      <div className="relative mx-auto max-w-3xl text-center">
+        <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/45">
+          Blog
+        </p>
+        <h2 className="mt-4 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
+          Ideas to level-up
+          <br />
+          your rental business
+        </h2>
+      </div>
+
+      <div className="relative mx-auto mt-10 max-w-3xl">
+        <article className="grid overflow-hidden rounded-lg border border-white/10 bg-[#151515] p-1.5 shadow-[0_22px_70px_rgba(0,0,0,0.26)] md:grid-cols-[1.05fr_1fr]">
+          <BlogImage visual="featured" className="min-h-[310px]" />
+          <div className="flex min-h-[310px] flex-col justify-between p-6 sm:p-8">
+            <div>
+              <span className="inline-flex rounded-full border border-white/10 bg-white/[0.08] px-3 py-1.5 text-[10px] font-bold uppercase text-white/80">
+                Must read
+              </span>
+              <h3 className="mt-5 max-w-sm text-3xl font-bold leading-tight tracking-tight">
+                How to organize rental income without spreadsheets
+              </h3>
+              <p className="mt-4 max-w-sm text-sm leading-6 text-white/[0.58]">
+                Learn how to keep rent records, payment links, and monthly
+                reports clean from day one.
+              </p>
+            </div>
+
+            <div className="mt-8 flex items-end justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span className="block h-8 w-8 rounded-full bg-[radial-gradient(circle_at_35%_30%,#FFE3C7_0_28%,#B96F56_29%_55%,#34201C_56%_100%)]" />
+                <div>
+                  <p className="text-xs font-bold">RentFlow Team</p>
+                  <p className="text-[11px] text-white/45">
+                    Property operations
+                  </p>
+                </div>
+              </div>
+              <span className="rounded-full bg-[#F04438] px-3 py-1.5 text-[10px] font-bold uppercase text-white">
+                Featured
+              </span>
+            </div>
+          </div>
+        </article>
+
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
+          {blogPosts.map((post) => (
+            <article key={post.title}>
+              <BlogImage visual={post.visual} className="aspect-[1.28/1]" />
+              <div className="mt-3 flex items-start justify-between gap-3">
+                <h3 className="text-sm font-bold leading-5 text-white">
+                  {post.title}
+                </h3>
+                <span
+                  className={`mt-0.5 shrink-0 rounded-full px-3 py-1.5 text-[9px] font-bold uppercase ${post.tagClass}`}
+                >
+                  {post.tag}
+                </span>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function BlogImage({
+  visual,
+  className = "",
+}: {
+  visual: string;
+  className?: string;
+}) {
+  return (
+    <div
+      aria-label={`${visual} blog image slot`}
+      data-blog-image-slot={visual}
+      className={`relative overflow-hidden rounded-lg bg-gradient-to-br from-sky-200 via-[#f7f2ea] to-amber-100 ${className}`}
+    />
+  );
+}
+
+function CommunitySection() {
+  return (
+    <section className="relative z-20 w-full overflow-hidden border-t border-dotted border-white/20 bg-[#0A0A0A] px-4 py-24 text-white sm:px-6">
+      <DottedBackground className="absolute inset-0" />
+
+      <div className="relative mx-auto max-w-3xl text-center">
+        <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/45">
+          Community
+        </p>
+        <h2 className="mt-4 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
+          Stay in the loop
+        </h2>
+      </div>
+
+      <div className="relative mx-auto mt-10 max-w-md">
+        <article className="rounded-[18px] border border-white/10 bg-[#151515] p-6 shadow-[0_22px_70px_rgba(0,0,0,0.26)]">
+          <div className="flex items-start justify-between gap-6">
+            <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#5865F2] text-white">
+              <DiscordLogo className="h-6 w-6" />
+            </span>
+            <span className="mt-2 text-xs font-bold uppercase tracking-[0.08em] text-white/45">
+              Discord
+            </span>
+          </div>
+
+          <h3 className="mt-7 text-2xl font-bold tracking-tight">Discord</h3>
+          <p className="mt-3 text-sm leading-6 text-white/[0.58]">
+            Join the RentFlow community for product updates, landlord workflow
+            tips, and early feedback on upcoming features.
+          </p>
+
+          <Link
+            href="#"
+            className="mt-7 inline-flex h-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.045] px-5 text-sm font-semibold text-white/82 transition-colors hover:bg-white/[0.08] hover:text-white"
+          >
+            Join Discord
+          </Link>
+        </article>
+      </div>
+    </section>
+  );
+}
+
+function DiscordLogo({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="M20.32 4.37A19.8 19.8 0 0 0 15.36 2.8a.08.08 0 0 0-.09.04c-.21.38-.45.88-.62 1.27a18.3 18.3 0 0 0-5.5 0 12.9 12.9 0 0 0-.63-1.27.08.08 0 0 0-.09-.04 19.7 19.7 0 0 0-4.96 1.57.07.07 0 0 0-.03.03C.29 9.1-.57 13.7-.14 18.24c0 .02.01.04.03.05a19.9 19.9 0 0 0 6.09 3.07.09.09 0 0 0 .1-.03c.47-.64.89-1.31 1.25-2.02a.08.08 0 0 0-.04-.11 13 13 0 0 1-1.9-.9.08.08 0 0 1-.01-.13l.37-.29a.08.08 0 0 1 .08-.01c3.96 1.81 8.25 1.81 12.16 0a.08.08 0 0 1 .08.01l.37.29a.08.08 0 0 1-.01.13c-.6.36-1.23.66-1.9.9a.08.08 0 0 0-.04.11c.37.71.79 1.38 1.25 2.02.02.03.06.04.1.03a19.8 19.8 0 0 0 6.09-3.07.08.08 0 0 0 .03-.05c.5-5.25-.84-9.81-3.61-13.84a.06.06 0 0 0-.04-.03ZM7.87 15.48c-1.2 0-2.18-1.1-2.18-2.45s.96-2.45 2.18-2.45c1.23 0 2.2 1.11 2.18 2.45 0 1.35-.96 2.45-2.18 2.45Zm8.25 0c-1.2 0-2.18-1.1-2.18-2.45s.96-2.45 2.18-2.45c1.23 0 2.2 1.11 2.18 2.45 0 1.35-.96 2.45-2.18 2.45Z" />
+    </svg>
   );
 }
 
