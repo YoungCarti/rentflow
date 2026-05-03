@@ -7,6 +7,10 @@ import {
   ArrowRight,
   Building2,
   BellRing,
+  CalendarDays,
+  ChartNoAxesColumn,
+  ClipboardList,
+  CreditCard,
   DoorOpen,
   FileText,
   LayoutDashboard,
@@ -15,6 +19,7 @@ import {
   TrendingUp,
   UserCircle,
   UsersRound,
+  Wrench,
   type LucideIcon,
 } from "lucide-react";
 import RentFlowLogo from "@/components/brand/RentFlowLogo";
@@ -254,30 +259,42 @@ function FeaturesSection() {
       title: "Smart rental workflow",
       description:
         "Manage properties, tenants, rent, and maintenance from one dashboard.",
+      highlight: "One workspace",
+      icon: ClipboardList,
+      visual: "workflow",
       imageSlot: "smart-rental-workflow",
     },
     {
       title: "Public payment links",
       description:
         "Send tenants a payment link without requiring them to create an account.",
+      highlight: "Faster collection",
+      icon: CreditCard,
+      visual: "payments",
       imageSlot: "public-payment-links",
     },
     {
       title: "Calendar and reminders",
       description:
         "Track rent due dates, lease expiries, inspections, and maintenance events.",
+      icon: CalendarDays,
+      visual: "calendar",
       imageSlot: "calendar-and-reminders",
     },
     {
       title: "Maintenance tracking",
       description:
         "Log issues, assign priority, update status, and track repair costs.",
+      icon: Wrench,
+      visual: "maintenance",
       imageSlot: "maintenance-tracking",
     },
     {
       title: "Reports and insights",
       description:
         "View occupancy, revenue, overdue rent, and portfolio performance.",
+      icon: ChartNoAxesColumn,
+      visual: "reports",
       imageSlot: "reports-and-insights",
     },
   ];
@@ -339,25 +356,117 @@ function FeaturesSection() {
           </h2>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-6">
           {featureCards.map((feature, index) => (
             <div
               key={feature.title}
-              className={`rounded-2xl border border-white/10 bg-white/[0.055] p-5 shadow-[0_18px_50px_rgba(0,0,0,0.24)] ${index < 2 ? "lg:col-span-3" : "lg:col-span-2"
-                }`}
+              className={`group relative overflow-hidden rounded-[22px] border border-white/10 bg-[#151515] p-6 shadow-[0_22px_70px_rgba(0,0,0,0.26)] transition-colors hover:border-white/18 ${
+                index < 2
+                  ? "min-h-[390px] md:col-span-2 lg:col-span-3"
+                  : "min-h-[285px] lg:col-span-2"
+              }`}
             >
-              <FeatureImageSlot name={feature.imageSlot} compact />
-              <h3 className="mt-6 text-base font-semibold text-white">
-                {feature.title}
-              </h3>
-              <p className="mt-3 text-sm leading-6 text-white/[0.58]">
-                {feature.description}
-              </p>
+              {index < 2 ? (
+                <FeatureShowcaseCard
+                  title={feature.title}
+                  description={feature.description}
+                  highlight={feature.highlight}
+                  visual={feature.visual}
+                  imageSlot={feature.imageSlot}
+                />
+              ) : (
+                <FeatureMiniCard
+                  title={feature.title}
+                  description={feature.description}
+                  icon={feature.icon}
+                  visual={feature.visual}
+                  imageSlot={feature.imageSlot}
+                />
+              )}
             </div>
           ))}
         </div>
       </div>
     </section>
+  );
+}
+
+function FeatureShowcaseCard({
+  title,
+  description,
+  highlight,
+  visual,
+  imageSlot,
+}: {
+  title: string;
+  description: string;
+  highlight?: string;
+  visual: string;
+  imageSlot: string;
+}) {
+  return (
+    <div className="flex h-full flex-col justify-between gap-8">
+      <h3 className="max-w-md text-2xl font-bold leading-tight tracking-tight text-white">
+        {title}
+      </h3>
+      <FeatureCardVisual imageSlot={imageSlot} visual={visual} size="large" />
+      <p className="text-sm leading-6 text-white/[0.62]">
+        {highlight ? (
+          <span className="font-semibold text-white/85">{highlight}. </span>
+        ) : null}
+        {description}
+      </p>
+    </div>
+  );
+}
+
+function FeatureMiniCard({
+  title,
+  description,
+  icon: Icon,
+  visual,
+  imageSlot,
+}: {
+  title: string;
+  description: string;
+  icon?: LucideIcon;
+  visual: string;
+  imageSlot: string;
+}) {
+  return (
+    <div className="flex h-full flex-col justify-between gap-7">
+      <div className="space-y-5">
+        <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.07] text-white shadow-[0_16px_36px_rgba(0,0,0,0.18)]">
+          {Icon ? <Icon className="h-5 w-5" /> : null}
+        </span>
+        <h3 className="text-base font-semibold text-white">{title}</h3>
+      </div>
+      <FeatureCardVisual imageSlot={imageSlot} visual={visual} size="small" />
+      <div>
+        <p className="text-sm leading-6 text-white/[0.58]">{description}</p>
+      </div>
+    </div>
+  );
+}
+
+function FeatureCardVisual({
+  imageSlot,
+  visual,
+  size,
+}: {
+  imageSlot: string;
+  visual: string;
+  size: "large" | "small";
+}) {
+  return (
+    <div
+      aria-label={`${imageSlot} image slot`}
+      data-feature-image-slot={imageSlot}
+      data-feature-visual={visual}
+      className={`relative overflow-hidden rounded-[18px] border border-white/10 bg-gradient-to-br from-sky-200 via-[#f7f2ea] to-amber-100 shadow-[0_18px_50px_rgba(0,0,0,0.18)] ${
+        size === "large" ? "aspect-[1.7/1]" : "aspect-[1.55/1]"
+      }`}
+    />
   );
 }
 
