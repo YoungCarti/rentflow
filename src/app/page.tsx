@@ -169,11 +169,10 @@ export default function LandingPage() {
         initial={{ opacity: 0, y: -14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.55, ease: "easeOut" }}
-        className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-          hasScrolled
-            ? "border-b border-white/10 bg-[#0A0A0A]/82 px-4 py-3 shadow-[0_14px_44px_rgba(0,0,0,0.34)] backdrop-blur-xl sm:px-6 lg:px-10"
-            : "border-b border-dotted border-white/20 bg-[#0A0A0A]/50 px-4 py-5 backdrop-blur-md sm:px-6 lg:px-10"
-        }`}
+        className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${hasScrolled
+          ? "border-b border-white/10 bg-[#0A0A0A]/82 px-4 py-3 shadow-[0_14px_44px_rgba(0,0,0,0.34)] backdrop-blur-xl sm:px-6 lg:px-10"
+          : "border-b border-dotted border-white/20 bg-[#0A0A0A]/50 px-4 py-5 backdrop-blur-md sm:px-6 lg:px-10"
+          }`}
       >
         <div
           className="grid w-full grid-cols-1 items-center gap-4 transition-all duration-300 sm:grid-cols-[1fr_auto_1fr]"
@@ -238,6 +237,16 @@ export default function LandingPage() {
           animate="visible"
           className="max-w-3xl text-center"
         >
+          <motion.div
+            variants={fadeUp}
+            className="mx-auto mb-6 inline-flex max-w-xl items-center gap-3 rounded-full border border-white/10 bg-white/[0.045] px-4 py-2 text-xs font-medium text-white/62"
+          >
+            <span className="rounded-full bg-cyan-300/15 px-2.5 py-1 text-cyan-100">
+              Beta Preview
+            </span>
+            <span>RentFlow is in private beta with new improvements rolling out regularly</span>
+          </motion.div>
+
           <motion.h1
             variants={fadeUp}
             className="text-5xl md:text-7xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-br from-white to-white/60"
@@ -417,14 +426,12 @@ function HowItWorksSection() {
                   borderColor: "rgba(255,255,255,0.2)",
                   transition: { duration: 0.22 },
                 }}
-                className={`relative grid gap-4 lg:w-[calc(50%-2rem)] ${
-                  isRight ? "lg:ml-auto" : "lg:mr-auto"
-                }`}
+                className={`relative grid gap-4 lg:w-[calc(50%-2rem)] ${isRight ? "lg:ml-auto" : "lg:mr-auto"
+                  }`}
               >
                 <span
-                  className={`absolute top-8 z-10 hidden h-4 w-4 rounded-full border border-white/20 bg-white lg:block ${
-                    isRight ? "-left-10" : "-right-10"
-                  }`}
+                  className={`absolute top-8 z-10 hidden h-4 w-4 rounded-full border border-white/20 bg-white lg:block ${isRight ? "-left-10" : "-right-10"
+                    }`}
                 />
 
                 <div className="rounded-[22px] border border-white/10 bg-[#151515] p-5 shadow-[0_22px_70px_rgba(0,0,0,0.24)]">
@@ -636,11 +643,10 @@ function ComparisonPanel({
       <div className="relative">
         <div className="flex items-start justify-between gap-5">
           <span
-            className={`flex h-12 w-12 items-center justify-center rounded-2xl ${
-              isPositive
-                ? "bg-white text-[#0A0A0A]"
-                : "border border-white/10 bg-white/[0.055] text-white/62"
-            }`}
+            className={`flex h-12 w-12 items-center justify-center rounded-2xl ${isPositive
+              ? "bg-white text-[#0A0A0A]"
+              : "border border-white/10 bg-white/[0.055] text-white/62"
+              }`}
           >
             <Icon className="h-5 w-5" />
           </span>
@@ -815,11 +821,10 @@ function FeaturesSection() {
                 borderColor: "rgba(255,255,255,0.18)",
                 transition: { duration: 0.22 },
               }}
-              className={`group relative overflow-hidden rounded-[22px] border border-white/10 bg-[#151515] p-6 shadow-[0_22px_70px_rgba(0,0,0,0.26)] transition-colors hover:border-white/18 ${
-                index < 2
-                  ? "min-h-[390px] md:col-span-2 lg:col-span-3"
-                  : "min-h-[285px] lg:col-span-2"
-              }`}
+              className={`group relative overflow-hidden rounded-[22px] border border-white/10 bg-[#151515] p-6 shadow-[0_22px_70px_rgba(0,0,0,0.26)] transition-colors hover:border-white/18 ${index < 2
+                ? "min-h-[390px] md:col-span-2 lg:col-span-3"
+                : "min-h-[285px] lg:col-span-2"
+                }`}
             >
               {index < 2 ? (
                 <FeatureShowcaseCard
@@ -949,11 +954,10 @@ function PricingSection() {
               <motion.div whileHover={{ y: -2, scale: 1.02 }} whileTap={{ scale: 0.97 }}>
                 <Link
                   href={plan.href}
-                  className={`mt-7 inline-flex h-11 w-fit items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors ${
-                    plan.popular
-                      ? "bg-white text-[#0A0A0A] hover:bg-white/90"
-                      : "text-white/[0.86] hover:text-white"
-                  }`}
+                  className={`mt-7 inline-flex h-11 w-fit items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors ${plan.popular
+                    ? "bg-white text-[#0A0A0A] hover:bg-white/90"
+                    : "text-white/[0.86] hover:text-white"
+                    }`}
                 >
                   {plan.cta}
                 </Link>
@@ -1555,9 +1559,8 @@ function FeatureCardVisual({
       aria-label={`${imageSlot} image slot`}
       data-feature-image-slot={imageSlot}
       data-feature-visual={visual}
-      className={`relative overflow-hidden rounded-[18px] border border-white/10 bg-gradient-to-br from-sky-200 via-[#f7f2ea] to-amber-100 shadow-[0_18px_50px_rgba(0,0,0,0.18)] ${
-        size === "large" ? "aspect-[1.7/1]" : "aspect-[1.55/1]"
-      }`}
+      className={`relative overflow-hidden rounded-[18px] border border-white/10 bg-gradient-to-br from-sky-200 via-[#f7f2ea] to-amber-100 shadow-[0_18px_50px_rgba(0,0,0,0.18)] ${size === "large" ? "aspect-[1.7/1]" : "aspect-[1.55/1]"
+        }`}
     />
   );
 }
@@ -1626,21 +1629,19 @@ function FeatureCopy({
         </Link>
       </motion.div>
       <div
-        className={`mt-8 gap-3 ${
-          pillLayout === "columns"
-            ? "grid w-full max-w-[420px] grid-flow-col grid-rows-2 gap-x-4 gap-y-4 [grid-auto-columns:minmax(0,1fr)]"
-            : "flex flex-wrap"
-        }`}
+        className={`mt-8 gap-3 ${pillLayout === "columns"
+          ? "grid w-full max-w-[420px] grid-flow-col grid-rows-2 gap-x-4 gap-y-4 [grid-auto-columns:minmax(0,1fr)]"
+          : "flex flex-wrap"
+          }`}
       >
         {pillItems.map(({ label: pill, icon: Icon }) => (
           <motion.span
             key={pill}
             whileHover={{ y: -2, backgroundColor: "rgba(255,255,255,0.075)" }}
-            className={`inline-flex items-center justify-center gap-3 rounded-full border text-sm font-medium ${
-              pillLayout === "columns"
-                ? "h-12 border-white/10 bg-white/[0.045] px-5 text-white/70"
-                : "border-white/10 bg-white/[0.045] px-4 py-2 text-white/70"
-            }`}
+            className={`inline-flex items-center justify-center gap-3 rounded-full border text-sm font-medium ${pillLayout === "columns"
+              ? "h-12 border-white/10 bg-white/[0.045] px-5 text-white/70"
+              : "border-white/10 bg-white/[0.045] px-4 py-2 text-white/70"
+              }`}
           >
             {Icon ? <Icon className="h-4 w-4 text-white/55" /> : null}
             {pill}
