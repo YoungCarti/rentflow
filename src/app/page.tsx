@@ -3,7 +3,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight, LayoutDashboard, UserCircle } from "lucide-react";
 import RentFlowLogo from "@/components/brand/RentFlowLogo";
 import { createClient } from "@/lib/supabase/client";
@@ -19,20 +18,8 @@ const navLinks = [
 const heroWords = ["elegance.", "clarity.", "control.", "confidence."];
 
 export default function LandingPage() {
-  const previewRef = useRef<HTMLDivElement>(null);
+  const previewTiltRef = useRef<HTMLDivElement>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [heroWordState, setHeroWordState] = useState<{
-    current: number;
-    previous: number | null;
-  }>({ current: 0, previous: null });
-  const { scrollYProgress } = useScroll({
-    target: previewRef,
-    offset: ["start end", "center center"],
-  });
-  const previewY = useTransform(scrollYProgress, [0, 1], [88, 0]);
-  const previewRotateX = useTransform(scrollYProgress, [0, 1], [14, 0]);
-  const previewScale = useTransform(scrollYProgress, [0, 1], [0.94, 1]);
-  const previewOpacity = useTransform(scrollYProgress, [0, 1], [0.72, 1]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -51,14 +38,40 @@ export default function LandingPage() {
   }, []);
 
   useEffect(() => {
-    const intervalId = window.setInterval(() => {
-      setHeroWordState(({ current }) => ({
-        current: (current + 1) % heroWords.length,
-        previous: current,
-      }));
-    }, 3000);
+    const preview = previewTiltRef.current;
+    if (!preview) return;
 
-    return () => window.clearInterval(intervalId);
+    let animationFrame = 0;
+
+    const updatePreviewTilt = () => {
+      animationFrame = 0;
+
+      const rect = preview.getBoundingClientRect();
+      const viewportHeight = window.innerHeight || 1;
+      const start = viewportHeight * 0.78;
+      const distance = viewportHeight * 0.32;
+      const progress = Math.min(Math.max((start - rect.top) / distance, 0), 1);
+      const tilt = 13 * (1 - progress);
+      const lift = 8 * (1 - progress);
+
+      preview.style.setProperty("--preview-tilt", `${tilt}deg`);
+      preview.style.setProperty("--preview-lift", `${lift}px`);
+    };
+
+    const schedulePreviewTilt = () => {
+      if (animationFrame) return;
+      animationFrame = window.requestAnimationFrame(updatePreviewTilt);
+    };
+
+    updatePreviewTilt();
+    window.addEventListener("scroll", schedulePreviewTilt, { passive: true });
+    window.addEventListener("resize", schedulePreviewTilt);
+
+    return () => {
+      if (animationFrame) window.cancelAnimationFrame(animationFrame);
+      window.removeEventListener("scroll", schedulePreviewTilt);
+      window.removeEventListener("resize", schedulePreviewTilt);
+    };
   }, []);
 
   return (
@@ -128,55 +141,26 @@ export default function LandingPage() {
 
       <main className="relative z-10 flex w-full flex-col items-center overflow-hidden px-4 pt-36 sm:pt-44">
         <div className="max-w-3xl text-center">
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
+          <h1
             className="text-5xl md:text-7xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-br from-white to-white/60"
           >
             Manage properties with{" "}
             <span className="relative inline-block text-left align-baseline">
-              {heroWordState.previous !== null && (
-                <motion.span
-                  key={`previous-${heroWordState.previous}-${heroWordState.current}`}
-                  initial={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                  animate={{ opacity: 0, y: -14, filter: "blur(6px)" }}
-                  transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                  className="absolute left-0 top-0 inline-block rounded-lg bg-cyan-300/10 px-2 text-cyan-200 italic"
-                  aria-hidden="true"
-                >
-                  {heroWords[heroWordState.previous]}
-                </motion.span>
-              )}
-              <motion.span
-                key={`current-${heroWordState.current}`}
-                initial={
-                  heroWordState.previous === null
-                    ? false
-                    : { opacity: 0, y: 14, filter: "blur(6px)" }
-                }
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+              <span
                 className="relative inline-block rounded-lg bg-cyan-300/10 px-2 text-cyan-200 italic"
               >
-                {heroWords[heroWordState.current]}
-              </motion.span>
+                {heroWords[0]}
+              </span>
             </span>
-          </motion.h1>
+          </h1>
 
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
+          <p
             className="text-lg md:text-xl text-white/50 mb-10 max-w-2xl mx-auto font-light"
           >
             RentFlow provides the most premium, seamless experience for landlords and property managers to oversee their portfolios in real-time.
-          </motion.p>
+          </p>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
+          <div
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
             <Link
@@ -196,25 +180,17 @@ export default function LandingPage() {
               {isAuthenticated && <UserCircle className="h-4 w-4" />}
               {isAuthenticated ? "Account Settings" : "Create an Account"}
             </Link>
-          </motion.div>
+          </div>
         </div>
 
-        <motion.div
-          ref={previewRef}
-          style={{
-            y: previewY,
-            scale: previewScale,
-            opacity: previewOpacity,
-          }}
-          className="mt-20 w-full max-w-6xl px-2 [perspective:1400px] sm:mt-24"
-        >
-          <motion.div
-            style={{ rotateX: previewRotateX }}
-            className="origin-top [transform-style:preserve-3d]"
+        <div className="mt-20 w-full max-w-6xl px-2 [perspective:1400px] sm:mt-24">
+          <div
+            ref={previewTiltRef}
+            className="origin-top [--preview-lift:8px] [--preview-tilt:13deg] [transform:rotateX(var(--preview-tilt))_translateY(var(--preview-lift))] [transform-style:preserve-3d]"
           >
             <DashboardPreviewImage />
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </main>
       <FeaturesSection />
     </div>
@@ -223,7 +199,8 @@ export default function LandingPage() {
 
 function DashboardPreviewImage() {
   return (
-    <div className="relative h-[clamp(360px,44vw,520px)] overflow-hidden rounded-t-2xl border-x border-t border-white/12 bg-white/5 shadow-[0_32px_120px_rgba(0,0,0,0.48)]">
+    <div className="relative h-[clamp(360px,44vw,520px)] overflow-hidden rounded-t-2xl border-x border-t border-white/15 bg-white/[0.055] shadow-[0_30px_80px_rgba(0,0,0,0.52),0_80px_160px_rgba(8,145,178,0.14)] ring-1 ring-white/10">
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-24 bg-gradient-to-b from-white/12 to-transparent" />
       <Image
         src="/dashboard-preview.png"
         alt="RentFlow dashboard preview"
@@ -232,7 +209,7 @@ function DashboardPreviewImage() {
         className="block h-auto w-full"
         priority
       />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-b from-transparent to-[#0A0A0A]/80 sm:h-12" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-b from-transparent to-[#0A0A0A]/90 sm:h-16" />
     </div>
   );
 }
