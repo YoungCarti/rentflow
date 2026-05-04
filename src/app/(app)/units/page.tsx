@@ -52,6 +52,48 @@ function daysUntil(dateStr: string) {
   );
 }
 
+function DueDatePill({ dateStr }: { dateStr: string | null }) {
+  if (!dateStr) {
+    return <span className="text-muted-foreground italic text-sm">—</span>;
+  }
+
+  const days = daysUntil(dateStr);
+  const isOverdue = days < 0;
+  const isSoon = days >= 0 && days <= 5;
+
+  const label = isOverdue
+    ? `${Math.abs(days)}d overdue`
+    : days === 0
+      ? "Due today"
+      : `${days}d left`;
+
+  const styles = isOverdue
+    ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-500/15 dark:text-red-300 dark:border-red-400/30"
+    : isSoon
+      ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-400/30"
+      : "bg-green-50 text-green-700 border-green-200 dark:bg-green-500/15 dark:text-green-300 dark:border-green-400/30";
+
+  const dot = isOverdue ? "bg-red-500" : isSoon ? "bg-amber-500" : "bg-green-500";
+
+  return (
+    <div className="flex flex-col gap-1">
+      <span
+        className={`inline-flex w-fit items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${styles}`}
+      >
+        <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
+        {label}
+      </span>
+      <span className="text-[11px] text-muted-foreground">
+        {new Date(dateStr).toLocaleDateString("en-MY", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })}
+      </span>
+    </div>
+  );
+}
+
 function mapPropertiesAndUnits(rows: PropertyRow[]) {
   const properties: Property[] = rows.map((property) => {
     const units = property.units ?? [];
@@ -192,10 +234,6 @@ export default async function UnitsPage({
             </TableHeader>
             <TableBody>
               {filtered.map((u) => {
-                const due = u.dueDate ? daysUntil(u.dueDate) : null;
-                const overdueDue = due !== null && due < 0;
-                const soonDue = due !== null && due >= 0 && due <= 5;
-
                 return (
                   <TableRow key={u.id}>
                     <TableCell className="font-semibold">#{u.unitNumber}</TableCell>
@@ -216,24 +254,7 @@ export default async function UnitsPage({
                       <StatusBadge status={u.status} />
                     </TableCell>
                     <TableCell>
-                      {u.dueDate ? (
-                        <span
-                          className={
-                            overdueDue
-                              ? "text-red-600 font-semibold text-sm"
-                              : soonDue
-                              ? "text-amber-600 font-semibold text-sm"
-                              : "text-sm text-muted-foreground"
-                          }
-                        >
-                          {formatDate(u.dueDate)}
-                          {soonDue && (
-                            <span className="ml-1 text-xs">({due}d)</span>
-                          )}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground italic text-sm">—</span>
-                      )}
+                      <DueDatePill dateStr={u.dueDate} />
                     </TableCell>
                   </TableRow>
                 );
