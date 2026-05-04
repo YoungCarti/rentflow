@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { MapPin, DoorOpen, TrendingUp, ArrowRight, Plus, MoreVertical, Edit, Trash2 } from "lucide-react";
+import { MapPin, DoorOpen, TrendingUp, ArrowRight, Plus, MoreVertical, Edit, Trash2, Building2 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import PageHeader from "@/components/layout/PageHeader";
@@ -29,6 +29,28 @@ type EnrichedProperty = Property & {
 
 function formatRM(amount: number) {
   return `RM ${amount.toLocaleString()}`;
+}
+
+const CARD_GRADIENTS = [
+  "from-blue-500 via-blue-400 to-cyan-400",
+  "from-violet-500 via-violet-400 to-purple-400",
+  "from-emerald-500 via-emerald-400 to-teal-400",
+  "from-amber-500 via-orange-400 to-yellow-400",
+  "from-rose-500 via-rose-400 to-pink-400",
+  "from-sky-500 via-sky-400 to-indigo-400",
+];
+
+function getBannerGradient(index: number) {
+  return CARD_GRADIENTS[index % CARD_GRADIENTS.length];
+}
+
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 }
 
 function OccupancyBar({ rate }: { rate: number }) {
@@ -160,24 +182,47 @@ export default function PropertiesPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-          {enriched.map((p) => (
-            <Card key={p.id} className="shadow-sm flex flex-col relative group">
-              <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 bg-card/80 hover:bg-card shadow-sm backdrop-blur-sm">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => router.push(`/properties/${p.id}`)}>
-                      <Edit className="w-4 h-4 mr-2" /> Edit Details
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => requestDelete(p)}>
-                      <Trash2 className="w-4 h-4 mr-2" /> Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+          {enriched.map((p, index) => (
+            <Card key={p.id} className="shadow-sm flex flex-col relative group overflow-hidden">
+              {/* ── Gradient banner ── */}
+              <div className={`relative h-24 bg-gradient-to-br ${getBannerGradient(index)}`}>
+                {/* Subtle pattern overlay */}
+                <div className="absolute inset-0 opacity-20"
+                  style={{
+                    backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
+                    backgroundSize: "18px 18px",
+                  }}
+                />
+                {/* Property initials */}
+                <div className="absolute bottom-3 left-4 flex items-center gap-2.5">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm ring-1 ring-white/30">
+                    <Building2 className="h-5 w-5 text-white" />
+                  </div>
+                  <span className="text-sm font-bold text-white drop-shadow-sm">
+                    {getInitials(p.name)}
+                  </span>
+                </div>
+                {/* Occupancy rate pill */}
+                <div className="absolute right-3 top-3 flex items-center gap-2">
+                  <span className="rounded-full bg-white/20 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm ring-1 ring-white/25">
+                    {p.rate}% occupied
+                  </span>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 bg-white/20 hover:bg-white/35 backdrop-blur-sm text-white border-0">
+                        <MoreVertical className="h-3.5 w-3.5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => router.push(`/properties/${p.id}`)}>
+                        <Edit className="w-4 h-4 mr-2" /> Edit Details
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => requestDelete(p)}>
+                        <Trash2 className="w-4 h-4 mr-2" /> Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
 
               {/* Card header */}
@@ -237,18 +282,7 @@ export default function PropertiesPage() {
                 )}
 
                 {/* View units link */}
-                <div className="mt-auto pt-1 flex items-center justify-between">
-                   <span
-                    className={`shrink-0 text-xs font-semibold px-2 py-1 rounded-full ${
-                      p.rate >= 80
-                        ? semanticTone.success.badge
-                        : p.rate >= 50
-                        ? semanticTone.pending.badge
-                        : semanticTone.danger.badge
-                    }`}
-                  >
-                    {p.rate}% Occupied
-                  </span>
+                <div className="mt-auto pt-1 flex items-center justify-end">
                   <Button asChild variant="ghost" className="gap-2 text-primary hover:text-primary hover:bg-primary/5" size="sm">
                     <Link href={`/units?property=${p.id}`}>
                       <DoorOpen className="w-4 h-4" />
