@@ -183,7 +183,7 @@ export default function PropertiesPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {enriched.map((p, index) => (
-            <Card key={p.id} className="shadow-sm flex flex-col relative group overflow-hidden">
+            <Card key={p.id} className="shadow-sm flex flex-col relative group overflow-hidden transition-all duration-200 hover:-translate-y-1.5 hover:shadow-lg">
               {/* ── Gradient banner ── */}
               <div className={`relative h-24 bg-gradient-to-br ${getBannerGradient(index)}`}>
                 {/* Subtle pattern overlay */}
