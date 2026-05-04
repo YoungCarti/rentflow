@@ -1,10 +1,16 @@
+import Link from "next/link";
 import {
   AlertCircle,
   Building2,
+  CalendarDays,
   CheckCircle2,
   DoorOpen,
+  FileBarChart2,
+  ReceiptText,
   TrendingUp,
   Users,
+  UserPlus,
+  Wrench,
   XCircle,
 } from "lucide-react";
 import {
@@ -122,6 +128,143 @@ function getStatCards(stats: DashboardStats) {
   ];
 }
 
+// ─── Quick Actions ───────────────────────────────────────────────────────────────
+
+const quickActions = [
+  {
+    label: "Add Property",
+    href: "/properties",
+    icon: Building2,
+    iconBg: "bg-blue-500/10 dark:bg-blue-500/15",
+    iconColor: "text-blue-600 dark:text-blue-400",
+  },
+  {
+    label: "Add Tenant",
+    href: "/tenants",
+    icon: UserPlus,
+    iconBg: "bg-violet-500/10 dark:bg-violet-500/15",
+    iconColor: "text-violet-600 dark:text-violet-400",
+  },
+  {
+    label: "Record Rent",
+    href: "/rent",
+    icon: ReceiptText,
+    iconBg: "bg-green-500/10 dark:bg-green-500/15",
+    iconColor: "text-green-600 dark:text-green-400",
+  },
+  {
+    label: "Log Maintenance",
+    href: "/maintenance",
+    icon: Wrench,
+    iconBg: "bg-amber-500/10 dark:bg-amber-500/15",
+    iconColor: "text-amber-600 dark:text-amber-400",
+  },
+  {
+    label: "View Calendar",
+    href: "/calendar",
+    icon: CalendarDays,
+    iconBg: "bg-sky-500/10 dark:bg-sky-500/15",
+    iconColor: "text-sky-600 dark:text-sky-400",
+  },
+  {
+    label: "View Reports",
+    href: "/reports",
+    icon: FileBarChart2,
+    iconBg: "bg-rose-500/10 dark:bg-rose-500/15",
+    iconColor: "text-rose-600 dark:text-rose-400",
+  },
+];
+
+function QuickActions() {
+  return (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      {quickActions.map(({ label, href, icon: Icon, iconBg, iconColor }) => (
+        <Link
+          key={label}
+          href={href}
+          className="group flex flex-col items-center gap-3 rounded-xl border-2 border-border bg-card px-3 py-5 text-center transition-all hover:border-foreground/20 hover:bg-muted hover:shadow-md active:scale-[0.97]"
+        >
+          <span
+            className={`flex h-11 w-11 items-center justify-center rounded-xl ${iconBg} transition-transform group-hover:scale-110`}
+          >
+            <Icon className={`h-5 w-5 ${iconColor}`} />
+          </span>
+          <span className="text-xs font-semibold leading-tight text-foreground">
+            {label}
+          </span>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+// ─── Lease Expiry Card ───────────────────────────────────────────────────────
+
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
+
+function LeaseExpiryCard({
+  tenant,
+}: {
+  tenant: {
+    id: string;
+    name: string;
+    propertyName: string;
+    unitNumber: string;
+    leaseEnd: string;
+  };
+}) {
+  const days = daysUntil(tenant.leaseEnd);
+  const isUrgent = days <= 30;
+  const isWarning = days > 30 && days <= 60;
+
+  const urgencyClass = isUrgent
+    ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-500/15 dark:text-red-300 dark:border-red-400/30"
+    : isWarning
+      ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-400/30"
+      : "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-400/30";
+
+  const dotClass = isUrgent ? "bg-red-500" : isWarning ? "bg-amber-500" : "bg-blue-500";
+
+  return (
+    <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-colors hover:bg-muted/40">
+      {/* Initials avatar */}
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
+        {getInitials(tenant.name)}
+      </div>
+
+      {/* Info */}
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold text-foreground">{tenant.name}</p>
+        <p className="truncate text-xs text-muted-foreground">
+          {tenant.propertyName} &middot; Unit {tenant.unitNumber}
+        </p>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          {new Date(tenant.leaseEnd).toLocaleDateString("en-MY", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          })}
+        </p>
+      </div>
+
+      {/* Urgency badge */}
+      <span
+        className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${urgencyClass}`}
+      >
+        <span className={`h-1.5 w-1.5 rounded-full ${dotClass}`} />
+        {days}d left
+      </span>
+    </div>
+  );
+}
+
 export default async function DashboardPage() {
   const supabase = await createClient();
   const stats = await getDashboardStats();
@@ -166,6 +309,14 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+      {/* ── Quick Actions ── */}
+      <div>
+        <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          Quick Actions
+        </p>
+        <QuickActions />
+      </div>
+
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         <section className="lg:col-span-3">
           <div className="mb-3 flex items-end justify-between gap-3">
@@ -185,49 +336,34 @@ export default async function DashboardPage() {
         </section>
 
         <section className="lg:col-span-2">
-          <div className="mb-3">
-            <h2 className="text-base font-semibold text-foreground">
-              Upcoming Lease Expiries
-            </h2>
-            <p className="text-xs text-muted-foreground">Next 120 days</p>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-base font-semibold text-foreground">
+                Upcoming Lease Expiries
+              </h2>
+              <p className="text-xs text-muted-foreground">Next 120 days</p>
+            </div>
+            {stats.upcomingLeaseExpiries.length > 0 && (
+              <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
+                {stats.upcomingLeaseExpiries.length}
+              </span>
+            )}
           </div>
-          <div className="border-t border-border">
+          <div className="border-t border-border pt-3">
             {stats.upcomingLeaseExpiries.length === 0 ? (
-              <p className="py-8 text-sm text-muted-foreground">
-                No leases expiring in the next 120 days.
-              </p>
+              <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-10 text-center">
+                <CheckCircle2 className="mb-2 h-7 w-7 text-muted-foreground/40" />
+                <p className="text-sm font-medium text-muted-foreground">All clear</p>
+                <p className="mt-0.5 text-xs text-muted-foreground/70">
+                  No leases expiring in the next 120 days
+                </p>
+              </div>
             ) : (
-              <ul className="divide-y divide-border">
-                {stats.upcomingLeaseExpiries.map((t) => {
-                  const days = daysUntil(t.leaseEnd);
-                  const urgent = days <= 30;
-
-                  return (
-                    <li key={t.id} className="flex items-center justify-between gap-4 py-3">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium leading-tight text-foreground">
-                          {t.name}
-                        </p>
-                        <p className="truncate text-xs text-muted-foreground">
-                          {t.propertyName} · Unit {t.unitNumber}
-                        </p>
-                      </div>
-                      <div className="shrink-0 text-right">
-                        <p className="text-xs text-muted-foreground">
-                          {formatDate(t.leaseEnd)}
-                        </p>
-                        <p
-                          className={`text-xs font-semibold ${
-                            urgent ? semanticTone.danger.textSoft : semanticTone.pending.textSoft
-                          }`}
-                        >
-                          {days}d left
-                        </p>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
+              <div className="space-y-2">
+                {stats.upcomingLeaseExpiries.map((t) => (
+                  <LeaseExpiryCard key={t.id} tenant={t} />
+                ))}
+              </div>
             )}
           </div>
         </section>
@@ -262,13 +398,12 @@ export default async function DashboardPage() {
                     <TableCell className="pl-0 font-medium">
                       <span className="inline-flex items-center gap-2">
                         <span
-                          className={`h-2 w-2 rounded-full ${
-                            activity.tone === "green"
+                          className={`h-2 w-2 rounded-full ${activity.tone === "green"
                               ? semanticTone.success.bgStrong
                               : activity.tone === "amber"
                                 ? semanticTone.pending.bgStrong
                                 : semanticTone.scheduled.bgStrong
-                          }`}
+                            }`}
                         />
                         {activity.label}
                       </span>
