@@ -41,9 +41,8 @@ export default function DashboardHeader({
         <div className="inline-flex w-fit items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm">
           <span className="text-muted-foreground">Collection focus</span>
           <span
-            className={`font-semibold ${
-              overdueRent > 0 ? semanticTone.danger.textSoft : semanticTone.success.textSoft
-            }`}
+            className={`font-semibold ${overdueRent > 0 ? semanticTone.danger.textSoft : semanticTone.success.textSoft
+              }`}
           >
             {overdueRent > 0 ? formatRM(overdueRent) : "Clear"}
           </span>
