@@ -68,6 +68,14 @@ jobs:
               return result.data.items[0];
             }
 
+            function issueBody(issue) {
+              if (Array.isArray(issue.body)) {
+                return issue.body.join("\n");
+              }
+
+              return issue.body;
+            }
+
             for (const issue of issues) {
               if (!issue.id || !issue.title || !issue.body) {
                 throw new Error("Every issue must include id, title, and body.");
@@ -77,7 +85,7 @@ jobs:
               await ensureLabels(labels);
 
               const marker = `<!-- issue-id: ${issue.id} -->`;
-              const body = `${issue.body.trim()}\n\n${marker}`;
+              const body = `${issueBody(issue).trim()}\n\n${marker}`;
               const existingIssue = await findIssueByMarker(marker);
 
               if (existingIssue) {
