@@ -24,6 +24,12 @@
 .DS_Store
 *.pem
 
+# local Codex workspace state
+/.codex
+
+# local Supabase files
+/supabase/
+
 # local brand assets
 src/components/brand/RentFlowLogo.tsx
 
@@ -39,9 +45,6 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env
 .env.*
-
-# supabase local project metadata
-supabase/.temp/
 
 # vercel
 .vercel
