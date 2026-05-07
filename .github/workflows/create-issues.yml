@@ -19,7 +19,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Create or update GitHub issues
+      - name: Create GitHub issues
         uses: actions/github-script@v7
         with:
           script: |
@@ -82,30 +82,23 @@ jobs:
               }
 
               const labels = Array.isArray(issue.labels) ? issue.labels : [];
-              await ensureLabels(labels);
-
               const marker = `<!-- issue-id: ${issue.id} -->`;
               const body = `${issueBody(issue).trim()}\n\n${marker}`;
               const existingIssue = await findIssueByMarker(marker);
 
               if (existingIssue) {
-                await github.rest.issues.update({
-                  owner,
-                  repo,
-                  issue_number: existingIssue.number,
-                  title: issue.title,
-                  body,
-                  labels,
-                });
-                core.info(`Updated #${existingIssue.number}: ${issue.title}`);
-              } else {
-                const created = await github.rest.issues.create({
-                  owner,
-                  repo,
-                  title: issue.title,
-                  body,
-                  labels,
-                });
-                core.info(`Created #${created.data.number}: ${issue.title}`);
+                core.info(`Skipped existing issue #${existingIssue.number}: ${issue.title}`);
+                continue;
               }
+
+              await ensureLabels(labels);
+
+              const created = await github.rest.issues.create({
+                owner,
+                repo,
+                title: issue.title,
+                body,
+                labels,
+              });
+              core.info(`Created #${created.data.number}: ${issue.title}`);
             }
