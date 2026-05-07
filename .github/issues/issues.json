@@ -1,0 +1,10 @@
+{
+  "issues": [
+    {
+      "id": "tenant-form-lease-date-validation",
+      "title": "Validate tenant lease end date before saving",
+      "body": "The Add Tenant form should show a clear validation message when Lease End is earlier than Lease Start instead of submitting to Supabase and showing a generic save error.\n\nAcceptance criteria:\n- Prevent submit when lease_end is before lease_start.\n- Show a helpful message near the form or as a toast.\n- Keep the database constraint as a backup.",
+      "labels": ["bug", "tenants", "good first issue"]
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+name: Create issues from JSON
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/issues/issues.json"
+      - ".github/workflows/create-issues.yml"
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  create-issues:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create or update GitHub issues
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+
+            const filePath = ".github/issues/issues.json";
+            const raw = fs.readFileSync(filePath, "utf8");
+            const parsed = JSON.parse(raw);
+            const issues = Array.isArray(parsed) ? parsed : parsed.issues;
+
+            if (!Array.isArray(issues)) {
+              throw new Error(`${filePath} must contain an array or an object with an "issues" array.`);
+            }
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const existingLabels = new Map();
+            for await (const response of github.paginate.iterator(github.rest.issues.listLabelsForRepo, {
+              owner,
+              repo,
+              per_page: 100,
+            })) {
+              for (const label of response.data) {
+                existingLabels.set(label.name.toLowerCase(), label.name);
+              }
+            }
+
+            async function ensureLabels(labels) {
+              for (const label of labels) {
+                if (existingLabels.has(label.toLowerCase())) continue;
+
+                await github.rest.issues.createLabel({
+                  owner,
+                  repo,
+                  name: label,
+                  color: "ededed",
+                });
+                existingLabels.set(label.toLowerCase(), label);
+              }
+            }
+
+            async function findIssueByMarker(marker) {
+              const query = `repo:${owner}/${repo} is:issue in:body ${JSON.stringify(marker)}`;
+              const result = await github.rest.search.issuesAndPullRequests({ q: query, per_page: 1 });
+              return result.data.items[0];
+            }
+
+            for (const issue of issues) {
+              if (!issue.id || !issue.title || !issue.body) {
+                throw new Error("Every issue must include id, title, and body.");
+              }
+
+              const labels = Array.isArray(issue.labels) ? issue.labels : [];
+              await ensureLabels(labels);
+
+              const marker = `<!-- issue-id: ${issue.id} -->`;
+              const body = `${issue.body.trim()}\n\n${marker}`;
+              const existingIssue = await findIssueByMarker(marker);
+
+              if (existingIssue) {
+                await github.rest.issues.update({
+                  owner,
+                  repo,
+                  issue_number: existingIssue.number,
+                  title: issue.title,
+                  body,
+                  labels,
+                });
+                core.info(`Updated #${existingIssue.number}: ${issue.title}`);
+              } else {
+                const created = await github.rest.issues.create({
+                  owner,
+                  repo,
+                  title: issue.title,
+                  body,
+                  labels,
+                });
+                core.info(`Created #${created.data.number}: ${issue.title}`);
+              }
+            }
