@@ -1,5 +1,4 @@
-import RentTable from "@/components/rent/RentTable";
-import RentReminderCenter from "@/components/rent/RentReminderCenter";
+import RentTrackingWorkspace from "@/components/rent/RentTrackingWorkspace";
 import PageHeader from "@/components/layout/PageHeader";
 import { semanticTone } from "@/lib/color-system";
 import { getRentRecords } from "@/lib/rent-payments";
@@ -76,19 +75,7 @@ export default async function RentPage() {
         </div>
       </section>
 
-      <RentReminderCenter records={activeRentRecords} />
-
-      <section>
-        <div className="mb-3">
-          <h2 className="text-base font-semibold text-foreground">Rent Records</h2>
-          <p className="text-xs text-muted-foreground">
-            Current and historical rent records by tenant
-          </p>
-        </div>
-        <div className="border-t border-border pt-3">
-          <RentTable records={rentRecords} />
-        </div>
-      </section>
+      <RentTrackingWorkspace records={rentRecords} />
     </div>
   );
 }
