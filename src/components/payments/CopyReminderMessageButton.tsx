@@ -22,6 +22,7 @@ type CopyReminderMessageButtonProps = {
   paymentLinkId?: string;
   status: RentStatus;
   timing?: RentReminderTiming;
+  mode?: "full" | "primary";
 };
 
 export default function CopyReminderMessageButton({
@@ -34,6 +35,7 @@ export default function CopyReminderMessageButton({
   paymentLinkId,
   status,
   timing,
+  mode = "full",
 }: CopyReminderMessageButtonProps) {
   if (!paymentLinkId || status === "Paid") {
     return <span className="text-sm text-muted-foreground">—</span>;
@@ -95,6 +97,29 @@ export default function CopyReminderMessageButton({
     )}&body=${encodeURIComponent(getMessage())}`;
 
     window.location.href = href;
+  }
+
+  function sendReminder() {
+    if (tenantPhone) {
+      openWhatsApp();
+      return;
+    }
+
+    if (tenantEmail) {
+      openEmail();
+      return;
+    }
+
+    void copyReminder();
+  }
+
+  if (mode === "primary") {
+    return (
+      <Button type="button" size="sm" onClick={sendReminder}>
+        <MessageCircle className="h-3.5 w-3.5" />
+        Send reminder
+      </Button>
+    );
   }
 
   return (

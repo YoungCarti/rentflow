@@ -31,57 +31,50 @@ export default async function RentPage() {
         summary={`${activeRentRecords.length} records · ${collectionRate}% collection rate`}
       />
 
-      <div className="-mx-6 border-y border-border bg-card/35 px-6">
-        <div className="grid grid-cols-2 divide-y divide-border lg:grid-cols-4 lg:divide-x lg:divide-y-0">
-          <div className="min-h-24 px-3 py-4 first:pl-0 lg:first:pl-3">
-            <p className="text-xs text-muted-foreground mb-1">Total Expected</p>
-            <p className="text-xl font-bold text-foreground">{formatRM(totalExpected)}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{activeRentRecords.length} records</p>
+      <section className="rounded-lg border border-border bg-card/35">
+        <div className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-base font-semibold text-foreground">This Month Summary</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {activeRentRecords.length} active rent records
+            </p>
           </div>
-          <div className="min-h-24 px-3 py-4">
+          <div className="text-left sm:text-right">
+            <p className="text-sm text-muted-foreground">Collection rate</p>
+            <p className="text-2xl font-bold text-foreground">{collectionRate}%</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 divide-y divide-border lg:grid-cols-4 lg:divide-x lg:divide-y-0">
+          <div className="min-h-24 px-4 py-4">
+            <p className="mb-1 text-xs text-muted-foreground">Expected</p>
+            <p className="text-xl font-bold text-foreground">{formatRM(totalExpected)}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{activeRentRecords.length} records</p>
+          </div>
+          <div className="min-h-24 px-4 py-4">
             <p className={`mb-1 text-xs ${semanticTone.success.textSoft}`}>Collected</p>
             <p className={`text-xl font-bold ${semanticTone.success.text}`}>{formatRM(totalCollected)}</p>
             <p className={`mt-0.5 text-xs ${semanticTone.success.textSoft}`}>{paid.length} payments</p>
           </div>
-          <div className="min-h-24 px-3 py-4">
+          <div className="min-h-24 px-4 py-4">
             <p className={`mb-1 text-xs ${semanticTone.pending.textSoft}`}>Pending</p>
             <p className={`text-xl font-bold ${semanticTone.pending.text}`}>{formatRM(totalPending)}</p>
             <p className={`mt-0.5 text-xs ${semanticTone.pending.textSoft}`}>{pending.length} records</p>
           </div>
-          <div className="min-h-24 px-3 py-4">
+          <div className="min-h-24 px-4 py-4">
             <p className={`mb-1 text-xs ${semanticTone.danger.textSoft}`}>Overdue</p>
             <p className={`text-xl font-bold ${semanticTone.danger.text}`}>{formatRM(totalOverdue)}</p>
             <p className={`mt-0.5 text-xs ${semanticTone.danger.textSoft}`}>{overdue.length} records</p>
           </div>
         </div>
-      </div>
-
-      {/* Collection rate bar */}
-      <div className="space-y-2">
-        <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Collection rate</span>
-          <span className="font-semibold text-foreground">{collectionRate}%</span>
+        <div className="border-t border-border p-4">
+          <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className={`h-full transition-all ${semanticTone.success.bgStrong}`}
+              style={{ width: `${collectionRate}%` }}
+            />
+          </div>
         </div>
-        <div className="h-2.5 w-full rounded-full bg-muted overflow-hidden flex">
-          <div
-            className={`h-full transition-all ${semanticTone.success.bgStrong}`}
-            style={{ width: `${totalExpected === 0 ? 0 : (totalCollected / totalExpected) * 100}%` }}
-          />
-          <div
-            className="h-full bg-amber-500 transition-all"
-            style={{ width: `${totalExpected === 0 ? 0 : (totalPending / totalExpected) * 100}%` }}
-          />
-          <div
-            className={`h-full transition-all ${semanticTone.danger.bgStrong}`}
-            style={{ width: `${totalExpected === 0 ? 0 : (totalOverdue / totalExpected) * 100}%` }}
-          />
-        </div>
-        <div className="flex gap-4 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1"><span className={`inline-block h-2 w-2 rounded-full ${semanticTone.success.bgStrong}`} /> Paid</span>
-          <span className="flex items-center gap-1"><span className={`inline-block h-2 w-2 rounded-full ${semanticTone.pending.bgStrong}`} /> Pending</span>
-          <span className="flex items-center gap-1"><span className={`inline-block h-2 w-2 rounded-full ${semanticTone.danger.bgStrong}`} /> Overdue</span>
-        </div>
-      </div>
+      </section>
 
       <RentReminderCenter records={activeRentRecords} />
 

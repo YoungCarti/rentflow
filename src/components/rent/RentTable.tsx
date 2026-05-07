@@ -10,6 +10,7 @@ import {
   Mail,
   MessageCircle,
   MoreVertical,
+  Search,
   Upload,
 } from "lucide-react";
 import {
@@ -21,6 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -75,14 +77,6 @@ function statusHint(record: RentRecord, historical: boolean) {
   return "Awaiting payment";
 }
 
-function countBadgeClass(tab: FilterTab) {
-  if (tab === "Overdue") return semanticTone.danger.badge;
-  if (tab === "Pending") return semanticTone.pending.badge;
-  if (tab === "Paid") return semanticTone.success.badge;
-
-  return semanticTone.neutral.badge;
-}
-
 function buildPaymentUrl(paymentLinkId: string) {
   return `${window.location.origin}/pay/${paymentLinkId}`;
 }
@@ -90,6 +84,7 @@ function buildPaymentUrl(paymentLinkId: string) {
 export default function RentTable({ records }: { records: RentRecord[] }) {
   const [rentRecords, setRentRecords] = useState(records);
   const [activeTab, setActiveTab] = useState<FilterTab>("All");
+  const [searchQuery, setSearchQuery] = useState("");
   const [submittingId, setSubmittingId] = useState<string | null>(null);
 
   const activeRecords = getActiveRentRecords(rentRecords);
@@ -107,12 +102,30 @@ export default function RentTable({ records }: { records: RentRecord[] }) {
     return acc;
   }, {} as Record<FilterTab, number>);
 
-  const filtered = (() => {
+  const tabFiltered = (() => {
     if (activeTab === "All") return rentRecords;
     if (activeTab === "History") return historyRecords;
 
     return activeRecords.filter((record) => record.status === activeTab);
   })();
+
+  const normalizedSearch = searchQuery.trim().toLowerCase();
+  const filtered = normalizedSearch
+    ? tabFiltered.filter((record) =>
+        [
+          record.tenantName,
+          record.propertyName,
+          record.unitNumber,
+          record.month,
+          record.status,
+          record.paymentMethod ?? "",
+          String(record.amount),
+        ]
+          .join(" ")
+          .toLowerCase()
+          .includes(normalizedSearch)
+      )
+    : tabFiltered;
 
   const totalAmount = filtered.reduce((sum, record) => sum + record.amount, 0);
 
@@ -198,6 +211,22 @@ export default function RentTable({ records }: { records: RentRecord[] }) {
     toast.success("Reminder message copied.");
   }
 
+  function sendReminder(record: RentRecord) {
+    if (!record.paymentLinkId) return;
+
+    if (record.tenantPhone) {
+      openWhatsApp(record);
+      return;
+    }
+
+    if (record.tenantEmail) {
+      openEmail(record);
+      return;
+    }
+
+    void copyReminder(record);
+  }
+
   function openWhatsApp(record: RentRecord) {
     if (!record.paymentLinkId) return;
 
@@ -220,16 +249,16 @@ export default function RentTable({ records }: { records: RentRecord[] }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex w-fit gap-1 rounded-md bg-muted/45 p-1">
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+        <div className="flex w-fit max-w-full flex-wrap gap-1 rounded-lg border border-border bg-card p-1">
           {TABS.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={cn(
-                "flex items-center gap-1.5 rounded-sm px-3 py-1.5 text-sm font-medium transition-colors",
+                "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
                 activeTab === tab
-                  ? "bg-background text-foreground shadow-sm"
+                  ? "bg-primary text-primary-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
@@ -238,7 +267,7 @@ export default function RentTable({ records }: { records: RentRecord[] }) {
                 className={cn(
                   "rounded-full px-1.5 py-0.5 text-xs font-semibold",
                   activeTab === tab
-                    ? countBadgeClass(tab)
+                    ? "border-transparent bg-primary-foreground/15 text-primary-foreground"
                     : "bg-muted text-muted-foreground"
                 )}
               >
@@ -248,12 +277,23 @@ export default function RentTable({ records }: { records: RentRecord[] }) {
           ))}
         </div>
 
-        <div className="text-left text-sm sm:text-right">
-          <p className="font-semibold text-foreground">{formatRM(totalAmount)}</p>
-          <p className="text-xs text-muted-foreground">
-            {filtered.length} record{filtered.length !== 1 ? "s" : ""}
-            {activeTab !== "All" && ` · ${activeTab}`}
-          </p>
+        <div className="grid gap-3 sm:grid-cols-[minmax(260px,420px)_auto] sm:items-center">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Search tenant, property, unit..."
+              className="pl-9"
+            />
+          </div>
+          <div className="text-left text-sm sm:text-right">
+            <p className="font-semibold text-foreground">{formatRM(totalAmount)}</p>
+            <p className="text-xs text-muted-foreground">
+              {filtered.length} record{filtered.length !== 1 ? "s" : ""}
+              {activeTab !== "All" && ` · ${activeTab}`}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -289,7 +329,7 @@ export default function RentTable({ records }: { records: RentRecord[] }) {
                     className={cn(
                       "align-top",
                       overdue &&
-                        "bg-red-50/40 hover:bg-red-50/70 dark:bg-red-500/10 dark:hover:bg-red-500/15",
+                        "border-l-2 border-l-red-500 bg-red-500/[0.04] hover:bg-red-500/[0.07]",
                       historical && "bg-muted/25 text-muted-foreground hover:bg-muted/35"
                     )}
                   >
@@ -365,79 +405,91 @@ export default function RentTable({ records }: { records: RentRecord[] }) {
                               }
                             }}
                           />
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
+                          <div className="flex justify-end gap-1.5">
+                            {record.status !== "Paid" && record.paymentLinkId && (
                               <Button
                                 type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                aria-label={`Open actions for ${record.tenantName}`}
+                                size="sm"
+                                onClick={() => sendReminder(record)}
                               >
-                                <MoreVertical className="h-4 w-4" />
+                                <MessageCircle className="h-3.5 w-3.5" />
+                                Send reminder
                               </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-48">
-                              {record.paymentLinkId ? (
-                                <>
-                                  <DropdownMenuItem onClick={() => void copyPaymentLink(record)}>
-                                    <Copy className="h-4 w-4" />
-                                    Copy payment link
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => openPaymentLink(record)}>
-                                    <ExternalLink className="h-4 w-4" />
-                                    Open payment link
-                                  </DropdownMenuItem>
-                                </>
-                              ) : (
-                                <DropdownMenuItem disabled>No payment link</DropdownMenuItem>
-                              )}
-
-                              {record.status !== "Paid" && (
-                                <>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem
-                                    disabled={!record.paymentLinkId}
-                                    onClick={() => void copyReminder(record)}
-                                  >
-                                    <MessageCircle className="h-4 w-4" />
-                                    Copy reminder
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    disabled={!record.paymentLinkId}
-                                    onClick={() => openWhatsApp(record)}
-                                  >
-                                    <MessageCircle className="h-4 w-4" />
-                                    WhatsApp
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    disabled={!record.paymentLinkId}
-                                    onClick={() => openEmail(record)}
-                                  >
-                                    <Mail className="h-4 w-4" />
-                                    Email
-                                  </DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                  {record.status === "Pending" && record.paymentMethod ? (
-                                    <DropdownMenuItem disabled>Reviewing payment</DropdownMenuItem>
-                                  ) : (
-                                    <DropdownMenuItem
-                                      disabled={submittingId === record.id}
-                                      onSelect={(event) => {
-                                        event.preventDefault();
-                                        document
-                                          .getElementById(`payment-proof-${record.id}`)
-                                          ?.click();
-                                      }}
-                                    >
-                                      <Upload className="h-4 w-4" />
-                                      {submittingId === record.id ? "Uploading..." : "Upload proof"}
+                            )}
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  aria-label={`Open actions for ${record.tenantName}`}
+                                >
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-48">
+                                {record.paymentLinkId ? (
+                                  <>
+                                    <DropdownMenuItem onClick={() => void copyPaymentLink(record)}>
+                                      <Copy className="h-4 w-4" />
+                                      Copy payment link
                                     </DropdownMenuItem>
-                                  )}
-                                </>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                                    <DropdownMenuItem onClick={() => openPaymentLink(record)}>
+                                      <ExternalLink className="h-4 w-4" />
+                                      Open payment link
+                                    </DropdownMenuItem>
+                                  </>
+                                ) : (
+                                  <DropdownMenuItem disabled>No payment link</DropdownMenuItem>
+                                )}
+
+                                {record.status !== "Paid" && (
+                                  <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                      disabled={!record.paymentLinkId}
+                                      onClick={() => void copyReminder(record)}
+                                    >
+                                      <MessageCircle className="h-4 w-4" />
+                                      Copy reminder text
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      disabled={!record.paymentLinkId}
+                                      onClick={() => openWhatsApp(record)}
+                                    >
+                                      <MessageCircle className="h-4 w-4" />
+                                      WhatsApp
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      disabled={!record.paymentLinkId}
+                                      onClick={() => openEmail(record)}
+                                    >
+                                      <Mail className="h-4 w-4" />
+                                      Email
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    {record.status === "Pending" && record.paymentMethod ? (
+                                      <DropdownMenuItem disabled>Reviewing payment</DropdownMenuItem>
+                                    ) : (
+                                      <DropdownMenuItem
+                                        disabled={submittingId === record.id}
+                                        onSelect={(event) => {
+                                          event.preventDefault();
+                                          document
+                                            .getElementById(`payment-proof-${record.id}`)
+                                            ?.click();
+                                        }}
+                                      >
+                                        <Upload className="h-4 w-4" />
+                                        {submittingId === record.id ? "Uploading..." : "Upload proof"}
+                                      </DropdownMenuItem>
+                                    )}
+                                  </>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </>
                       )}
                     </TableCell>

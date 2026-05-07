@@ -1,8 +1,17 @@
 "use client";
 
-import { AlertCircle, CalendarClock, CheckCircle2, Clock } from "lucide-react";
+import { useState } from "react";
+import {
+  AlertCircle,
+  CalendarClock,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+} from "lucide-react";
 import StatusBadge from "@/components/ui/StatusBadge";
 import CopyReminderMessageButton from "@/components/payments/CopyReminderMessageButton";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   formatReminderDate,
@@ -47,6 +56,7 @@ function duePhrase(timing: RentReminderTiming, daysFromDue: number) {
 }
 
 export default function RentReminderCenter({ records }: { records: RentRecord[] }) {
+  const [showAll, setShowAll] = useState(false);
   const reminders = getRentReminders(records);
   const counts = reminders.reduce<Record<RentReminderTiming, number>>(
     (acc, reminder) => {
@@ -55,58 +65,62 @@ export default function RentReminderCenter({ records }: { records: RentRecord[] 
     },
     { "Before Due": 0, "Due Today": 0, Overdue: 0 }
   );
+  const visibleReminders = showAll ? reminders : reminders.slice(0, 5);
+  const hiddenCount = Math.max(reminders.length - visibleReminders.length, 0);
+  const nextStep =
+    counts.Overdue > 0
+      ? `${counts.Overdue} tenants are overdue. Start by sending reminders to the oldest unpaid records.`
+      : counts["Due Today"] > 0
+        ? `${counts["Due Today"]} tenants have rent due today. Send quick reminders before the day ends.`
+        : counts["Before Due"] > 0
+          ? `${counts["Before Due"]} upcoming rent payments may need a friendly reminder.`
+          : "No tenant needs a reminder right now.";
 
   return (
-    <section>
-      <div className="mb-3">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-base font-semibold text-foreground">
-              Automated Rent Reminders
-            </h2>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              WhatsApp and email messages generated from due dates and payment links
-            </p>
+    <section className="rounded-lg border border-border bg-card/40">
+      <div className="border-b border-border p-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="max-w-2xl">
+            <h2 className="text-base font-semibold text-foreground">Needs Attention</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{nextStep}</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            {(["Before Due", "Due Today", "Overdue"] as RentReminderTiming[]).map(
-              (timing) => {
-                const style = timingStyles(timing);
-                const Icon = style.icon;
+            {(["Overdue", "Due Today", "Before Due"] as RentReminderTiming[]).map((timing) => {
+              const style = timingStyles(timing);
+              const Icon = style.icon;
 
-                return (
-                  <span
-                    key={timing}
-                    className={cn(
-                      "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold",
-                      style.className
-                    )}
-                  >
-                    <Icon className="h-3.5 w-3.5" />
-                    {style.label}: {counts[timing]}
-                  </span>
-                );
-              }
-            )}
+              return (
+                <span
+                  key={timing}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold",
+                    style.className
+                  )}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {style.label}: {counts[timing]}
+                </span>
+              );
+            })}
           </div>
         </div>
       </div>
-      <div className="space-y-0 border-t border-border">
+      <div>
         {reminders.length === 0 ? (
-          <div className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 p-4 text-sm text-muted-foreground">
             <CheckCircle2 className={`h-4 w-4 ${semanticTone.success.textSoft}`} />
             No rent reminders needed right now.
           </div>
         ) : (
-          reminders.map(({ record, timing, daysFromDue }) => {
+          visibleReminders.map(({ record, timing, daysFromDue }) => {
             const style = timingStyles(timing);
 
             return (
               <div
                 key={record.id}
                 className={cn(
-                  "flex flex-col gap-3 border-b border-border py-4 last:border-b-0 lg:flex-row lg:items-center lg:justify-between",
-                  timing === "Overdue" && "bg-red-50/35 px-3 dark:bg-red-500/10"
+                  "grid gap-3 border-b border-border p-4 last:border-b-0 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center",
+                  timing === "Overdue" && "border-l-2 border-l-red-500 bg-red-500/[0.04]"
                 )}
               >
                 <div className="min-w-0">
@@ -146,6 +160,7 @@ export default function RentReminderCenter({ records }: { records: RentRecord[] 
                     paymentLinkId={record.paymentLinkId}
                     status={record.status}
                     timing={timing}
+                    mode="primary"
                   />
                 </div>
               </div>
@@ -153,6 +168,29 @@ export default function RentReminderCenter({ records }: { records: RentRecord[] 
           })
         )}
       </div>
+      {reminders.length > 5 && (
+        <div className="border-t border-border p-3">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="w-full"
+            onClick={() => setShowAll((current) => !current)}
+          >
+            {showAll ? (
+              <>
+                <ChevronUp className="h-4 w-4" />
+                Show fewer
+              </>
+            ) : (
+              <>
+                <ChevronDown className="h-4 w-4" />
+                View all {hiddenCount} more
+              </>
+            )}
+          </Button>
+        </div>
+      )}
     </section>
   );
 }
