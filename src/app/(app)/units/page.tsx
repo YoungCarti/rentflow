@@ -15,6 +15,7 @@ import PageHeader from "@/components/layout/PageHeader";
 import StatusBadge from "@/components/ui/StatusBadge";
 import { createClient } from "@/lib/supabase/server";
 import { semanticTone } from "@/lib/color-system";
+import { cn } from "@/lib/utils";
 import type { OccupancyStatus, Property, Unit } from "@/types";
 
 type UnitsSort = "unit" | "rent" | "property" | "status";
@@ -164,16 +165,18 @@ export default async function UnitsPage({
     : "unit";
   const normalizedSearch = searchQuery.trim().toLowerCase();
 
-  const filtered = units
+  const contextFiltered = units
     .filter((unit) => !propertyFilter || unit.propertyId === propertyFilter)
-    .filter((unit) => !statusFilter || unit.status === statusFilter)
     .filter((unit) => {
       if (!normalizedSearch) return true;
 
       return [unit.unitNumber, unit.tenantName ?? "", unit.propertyName].some((value) =>
         value.toLowerCase().includes(normalizedSearch)
       );
-    })
+    });
+
+  const filtered = contextFiltered
+    .filter((unit) => !statusFilter || unit.status === statusFilter)
     .sort((a, b) => {
       switch (sortBy) {
         case "rent":
@@ -200,10 +203,30 @@ export default async function UnitsPage({
   const hasActiveFilters = Boolean(propertyFilter || normalizedSearch || statusFilter || sortBy !== "unit");
 
   // Summary counts
-  const totalUnits  = filtered.length;
-  const occupied    = filtered.filter((u) => u.status === "Occupied").length;
-  const vacant      = filtered.filter((u) => u.status === "Vacant").length;
-  const maintenance = filtered.filter((u) => u.status === "Maintenance").length;
+  const totalUnits = contextFiltered.length;
+  const occupied = contextFiltered.filter((u) => u.status === "Occupied").length;
+  const vacant = contextFiltered.filter((u) => u.status === "Vacant").length;
+  const maintenance = contextFiltered.filter((u) => u.status === "Maintenance").length;
+  const activeSummaryLabel = statusFilter ? `${statusFilter} units` : "All units";
+  const emptyStateMessage = statusFilter
+    ? `No ${statusFilter.toLowerCase()} units found.`
+    : "No units match these filters.";
+
+  function unitsHref(nextStatus: OccupancyStatus | "") {
+    const params = new URLSearchParams();
+
+    if (propertyFilter) params.set("property", propertyFilter);
+    if (normalizedSearch) params.set("q", searchQuery.trim());
+    if (nextStatus) params.set("status", nextStatus);
+    if (sortBy !== "unit") params.set("sort", sortBy);
+
+    const queryString = params.toString();
+    return queryString ? `/units?${queryString}` : "/units";
+  }
+
+  const summaryCardBase =
+    "flex items-center gap-2 rounded-lg border px-4 py-2 text-sm shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
+  const activeSummaryCard = "border-foreground bg-foreground text-background shadow-md";
 
   return (
     <div className="space-y-6">
@@ -231,25 +254,113 @@ export default async function UnitsPage({
       />
 
       {/* Summary chips */}
-      <div className="flex flex-wrap gap-3">
-        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-card border border-border shadow-sm text-sm">
-          <span className="font-bold text-foreground">{totalUnits}</span>
-          <span className="text-muted-foreground">Total Units</span>
-        </div>
-        <div className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm ${semanticTone.success.surface}`}>
-          <span className={`font-bold ${semanticTone.success.text}`}>{occupied}</span>
-          <span className={semanticTone.success.textSoft}>Occupied</span>
-        </div>
-        <div className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm ${semanticTone.neutral.surface}`}>
-          <span className={`font-bold ${semanticTone.neutral.text}`}>{vacant}</span>
-          <span className={semanticTone.neutral.textSoft}>Vacant</span>
-        </div>
+      <div className="space-y-2">
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href={unitsHref("")}
+            aria-current={!statusFilter ? "page" : undefined}
+            className={cn(
+              summaryCardBase,
+              !statusFilter
+                ? activeSummaryCard
+                : "border-border bg-card text-foreground"
+            )}
+          >
+            <span className="font-bold">{totalUnits}</span>
+            <span className={cn(!statusFilter ? "text-background" : "text-muted-foreground")}>
+              Total Units
+            </span>
+          </Link>
+          <Link
+            href={unitsHref("Occupied")}
+            aria-current={statusFilter === "Occupied" ? "page" : undefined}
+            className={cn(
+              summaryCardBase,
+              statusFilter === "Occupied"
+                ? activeSummaryCard
+                : semanticTone.success.surface
+            )}
+          >
+            <span
+              className={cn(
+                "font-bold",
+                statusFilter === "Occupied" ? "text-background" : semanticTone.success.text
+              )}
+            >
+              {occupied}
+            </span>
+            <span
+              className={cn(
+                statusFilter === "Occupied"
+                  ? "text-background"
+                  : semanticTone.success.textSoft
+              )}
+            >
+              Occupied
+            </span>
+          </Link>
+          <Link
+            href={unitsHref("Vacant")}
+            aria-current={statusFilter === "Vacant" ? "page" : undefined}
+            className={cn(
+              summaryCardBase,
+              statusFilter === "Vacant"
+                ? activeSummaryCard
+                : semanticTone.neutral.surface
+            )}
+          >
+            <span
+              className={cn(
+                "font-bold",
+                statusFilter === "Vacant" ? "text-background" : semanticTone.neutral.text
+              )}
+            >
+              {vacant}
+            </span>
+            <span
+              className={cn(
+                statusFilter === "Vacant" ? "text-background" : semanticTone.neutral.textSoft
+              )}
+            >
+              Vacant
+            </span>
+          </Link>
         {maintenance > 0 && (
-          <div className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm ${semanticTone.maintenance.surface}`}>
-            <span className={`font-bold ${semanticTone.maintenance.text}`}>{maintenance}</span>
-            <span className={semanticTone.maintenance.textSoft}>Maintenance</span>
-          </div>
+          <Link
+            href={unitsHref("Maintenance")}
+            aria-current={statusFilter === "Maintenance" ? "page" : undefined}
+            className={cn(
+              summaryCardBase,
+              statusFilter === "Maintenance"
+                ? activeSummaryCard
+                : semanticTone.maintenance.surface
+            )}
+          >
+            <span
+              className={cn(
+                "font-bold",
+                statusFilter === "Maintenance"
+                  ? "text-background"
+                  : semanticTone.maintenance.text
+              )}
+            >
+              {maintenance}
+            </span>
+            <span
+              className={cn(
+                statusFilter === "Maintenance"
+                  ? "text-background"
+                  : semanticTone.maintenance.textSoft
+              )}
+            >
+              Maintenance
+            </span>
+          </Link>
         )}
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Showing: <span className="font-medium text-foreground">{activeSummaryLabel}</span>
+        </p>
       </div>
 
       <Card className="shadow-sm">
@@ -374,7 +485,7 @@ export default async function UnitsPage({
               }) : (
                 <TableRow>
                   <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
-                    No units match these filters.
+                    {emptyStateMessage}
                   </TableCell>
                 </TableRow>
               )}
