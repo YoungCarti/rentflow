@@ -35,19 +35,19 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex h-full bg-background">
+    <div className="flex h-dvh overflow-hidden bg-background">
       <Suspense fallback={null}>
         <Sidebar
           visible={sidebarVisible}
           onHide={() => setSidebarVisible(false)}
         />
       </Suspense>
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <Topbar
           sidebarVisible={sidebarVisible}
           onShowSidebar={() => setSidebarVisible(true)}
         />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <main className="min-h-0 flex-1 overflow-y-auto p-6">{children}</main>
       </div>
     </div>
   );
