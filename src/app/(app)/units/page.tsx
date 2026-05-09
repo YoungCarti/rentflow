@@ -37,14 +37,6 @@ function formatRM(amount: number) {
   return `RM ${amount.toLocaleString()}`;
 }
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("en-MY", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-}
-
 function daysUntil(dateStr: string) {
   const today = new Date();
   return Math.ceil(
