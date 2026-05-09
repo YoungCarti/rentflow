@@ -9,9 +9,12 @@ import PageHeader from "@/components/layout/PageHeader";
 import ConfirmationDialog from "@/components/ui/confirmation-dialog";
 import TenantTable from "@/components/tenants/TenantTable";
 import { toast } from "sonner";
-import type { Tenant } from "@/types";
+import type { RentStatus, Tenant } from "@/types";
 import { deleteTenantRecord, getTenants } from "@/lib/tenants";
 import { semanticTone } from "@/lib/color-system";
+import { cn } from "@/lib/utils";
+
+type TenantStatusFilter = RentStatus | "";
 
 export default function TenantsPage() {
   const router = useRouter();
@@ -19,6 +22,7 @@ export default function TenantsPage() {
   const [loading, setLoading] = useState(true);
   const [tenantToDelete, setTenantToDelete] = useState<Tenant | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<TenantStatusFilter>("");
 
   useEffect(() => {
     let mounted = true;
@@ -51,6 +55,10 @@ export default function TenantsPage() {
   const paid    = tenants.filter((t) => t.rentStatus === "Paid").length;
   const pending = tenants.filter((t) => t.rentStatus === "Pending").length;
   const overdue = tenants.filter((t) => t.rentStatus === "Overdue").length;
+  const activeSummaryLabel = statusFilter ? `${statusFilter} tenants` : "All tenants";
+  const summaryCardBase =
+    "flex items-center gap-2 rounded-lg border px-4 py-2 text-sm shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
+  const activeSummaryCard = "border-foreground bg-foreground text-background shadow-md";
 
   const handleDelete = async () => {
     if (!tenantToDelete) {
@@ -85,23 +93,101 @@ export default function TenantsPage() {
       />
 
       {/* Summary chips */}
-      <div className="flex flex-wrap gap-3">
-        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-card border border-border shadow-sm text-sm">
-          <span className="font-bold text-foreground">{tenants.length}</span>
-          <span className="text-muted-foreground">Total</span>
+      <div className="space-y-2">
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            aria-pressed={!statusFilter}
+            onClick={() => setStatusFilter("")}
+            className={cn(
+              summaryCardBase,
+              !statusFilter ? activeSummaryCard : "border-border bg-card text-foreground"
+            )}
+          >
+            <span className="font-bold">{tenants.length}</span>
+            <span className={cn(!statusFilter ? "text-background" : "text-muted-foreground")}>
+              Total
+            </span>
+          </button>
+          <button
+            type="button"
+            aria-pressed={statusFilter === "Paid"}
+            onClick={() => setStatusFilter("Paid")}
+            className={cn(
+              summaryCardBase,
+              statusFilter === "Paid" ? activeSummaryCard : semanticTone.success.surface
+            )}
+          >
+            <span
+              className={cn(
+                "font-bold",
+                statusFilter === "Paid" ? "text-background" : semanticTone.success.text
+              )}
+            >
+              {paid}
+            </span>
+            <span
+              className={cn(
+                statusFilter === "Paid" ? "text-background" : semanticTone.success.textSoft
+              )}
+            >
+              Paid
+            </span>
+          </button>
+          <button
+            type="button"
+            aria-pressed={statusFilter === "Pending"}
+            onClick={() => setStatusFilter("Pending")}
+            className={cn(
+              summaryCardBase,
+              statusFilter === "Pending" ? activeSummaryCard : semanticTone.pending.surface
+            )}
+          >
+            <span
+              className={cn(
+                "font-bold",
+                statusFilter === "Pending" ? "text-background" : semanticTone.pending.text
+              )}
+            >
+              {pending}
+            </span>
+            <span
+              className={cn(
+                statusFilter === "Pending" ? "text-background" : semanticTone.pending.textSoft
+              )}
+            >
+              Pending
+            </span>
+          </button>
+          <button
+            type="button"
+            aria-pressed={statusFilter === "Overdue"}
+            onClick={() => setStatusFilter("Overdue")}
+            className={cn(
+              summaryCardBase,
+              statusFilter === "Overdue" ? activeSummaryCard : semanticTone.danger.surface
+            )}
+          >
+            <span
+              className={cn(
+                "font-bold",
+                statusFilter === "Overdue" ? "text-background" : semanticTone.danger.text
+              )}
+            >
+              {overdue}
+            </span>
+            <span
+              className={cn(
+                statusFilter === "Overdue" ? "text-background" : semanticTone.danger.textSoft
+              )}
+            >
+              Overdue
+            </span>
+          </button>
         </div>
-        <div className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm ${semanticTone.success.surface}`}>
-          <span className={`font-bold ${semanticTone.success.text}`}>{paid}</span>
-          <span className={semanticTone.success.textSoft}>Paid</span>
-        </div>
-        <div className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm ${semanticTone.pending.surface}`}>
-          <span className={`font-bold ${semanticTone.pending.text}`}>{pending}</span>
-          <span className={semanticTone.pending.textSoft}>Pending</span>
-        </div>
-        <div className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm ${semanticTone.danger.surface}`}>
-          <span className={`font-bold ${semanticTone.danger.text}`}>{overdue}</span>
-          <span className={semanticTone.danger.textSoft}>Overdue</span>
-        </div>
+        <p className="text-sm text-muted-foreground">
+          Showing: <span className="font-medium text-foreground">{activeSummaryLabel}</span>
+        </p>
       </div>
 
       {/* Table card */}
@@ -112,6 +198,7 @@ export default function TenantsPage() {
         <CardContent className="space-y-4 pt-0">
           <TenantTable 
             tenants={tenants} 
+            statusFilter={statusFilter}
             onEdit={(t) => router.push(`/tenants/${t.id}`)} 
             onDelete={setTenantToDelete}
           />
