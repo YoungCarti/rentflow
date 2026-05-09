@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import StatusBadge from "@/components/ui/StatusBadge";
-import type { Tenant } from "@/types";
+import type { RentStatus, Tenant } from "@/types";
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("en-MY", {
@@ -165,26 +165,43 @@ function TenantModal({
 
 export default function TenantTable({ 
   tenants, 
+  statusFilter,
   onEdit, 
   onDelete,
 }: { 
   tenants: Tenant[],
+  statusFilter?: RentStatus | "",
   onEdit: (t: Tenant) => void,
   onDelete: (t: Tenant) => void,
 }) {
   const [query, setQuery]             = useState("");
   const [selected, setSelected]       = useState<Tenant | null>(null);
   const [modalOpen, setModalOpen]     = useState(false);
+  const normalizedQuery = query.trim().toLowerCase();
 
   const filtered = tenants.filter((t) => {
-    const q = query.toLowerCase();
+    if (statusFilter && t.rentStatus !== statusFilter) {
+      return false;
+    }
+
+    if (!normalizedQuery) {
+      return true;
+    }
+
     return (
-      t.name.toLowerCase().includes(q) ||
-      t.propertyName.toLowerCase().includes(q) ||
-      t.email.toLowerCase().includes(q) ||
-      t.unitNumber.includes(q)
+      t.name.toLowerCase().includes(normalizedQuery) ||
+      t.propertyName.toLowerCase().includes(normalizedQuery) ||
+      t.email.toLowerCase().includes(normalizedQuery) ||
+      t.unitNumber.toLowerCase().includes(normalizedQuery)
     );
   });
+  const emptyMessage = statusFilter
+    ? normalizedQuery
+      ? `No ${statusFilter.toLowerCase()} tenants match your search.`
+      : `No ${statusFilter.toLowerCase()} tenants found.`
+    : normalizedQuery
+      ? "No tenants match your search."
+      : "No tenants found.";
 
   function openModal(tenant: Tenant) {
     setSelected(tenant);
@@ -220,7 +237,7 @@ export default function TenantTable({
           {filtered.length === 0 ? (
             <TableRow>
               <TableCell colSpan={6} className="text-center text-muted-foreground py-10">
-                No tenants match your search.
+                {emptyMessage}
               </TableCell>
             </TableRow>
           ) : (
