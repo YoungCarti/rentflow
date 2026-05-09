@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { X } from "lucide-react";
+import { Search, X } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -10,11 +10,22 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import PageHeader from "@/components/layout/PageHeader";
 import StatusBadge from "@/components/ui/StatusBadge";
 import { createClient } from "@/lib/supabase/server";
 import { semanticTone } from "@/lib/color-system";
 import type { OccupancyStatus, Property, Unit } from "@/types";
+
+type UnitsSort = "unit" | "rent" | "property" | "status";
+
+const occupancyStatuses: OccupancyStatus[] = ["Occupied", "Vacant", "Maintenance"];
+const sortOptions: { value: UnitsSort; label: string }[] = [
+  { value: "unit", label: "Unit number" },
+  { value: "rent", label: "Rent" },
+  { value: "property", label: "Property" },
+  { value: "status", label: "Status" },
+];
 
 type UnitRow = {
   id: string;
@@ -118,9 +129,19 @@ function mapPropertiesAndUnits(rows: PropertyRow[]) {
 export default async function UnitsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ property?: string }>;
+  searchParams: Promise<{
+    property?: string;
+    q?: string;
+    status?: string;
+    sort?: string;
+  }>;
 }) {
-  const { property: propertyFilter } = await searchParams;
+  const {
+    property: propertyFilter = "",
+    q: searchQuery = "",
+    status = "",
+    sort = "unit",
+  } = await searchParams;
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("properties")
@@ -135,13 +156,48 @@ export default async function UnitsPage({
 
   const { properties, units } = mapPropertiesAndUnits((data ?? []) as PropertyRow[]);
 
-  const filtered = propertyFilter
-    ? units.filter((u) => u.propertyId === propertyFilter)
-    : units;
+  const statusFilter = occupancyStatuses.includes(status as OccupancyStatus)
+    ? (status as OccupancyStatus)
+    : "";
+  const sortBy = sortOptions.some((option) => option.value === sort)
+    ? (sort as UnitsSort)
+    : "unit";
+  const normalizedSearch = searchQuery.trim().toLowerCase();
+
+  const filtered = units
+    .filter((unit) => !propertyFilter || unit.propertyId === propertyFilter)
+    .filter((unit) => !statusFilter || unit.status === statusFilter)
+    .filter((unit) => {
+      if (!normalizedSearch) return true;
+
+      return [unit.unitNumber, unit.tenantName ?? "", unit.propertyName].some((value) =>
+        value.toLowerCase().includes(normalizedSearch)
+      );
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "rent":
+          return a.rent - b.rent;
+        case "property":
+          return (
+            a.propertyName.localeCompare(b.propertyName, undefined, { numeric: true }) ||
+            a.unitNumber.localeCompare(b.unitNumber, undefined, { numeric: true })
+          );
+        case "status":
+          return (
+            a.status.localeCompare(b.status) ||
+            a.unitNumber.localeCompare(b.unitNumber, undefined, { numeric: true })
+          );
+        case "unit":
+        default:
+          return a.unitNumber.localeCompare(b.unitNumber, undefined, { numeric: true });
+      }
+    });
 
   const activeProperty = propertyFilter
     ? properties.find((p) => p.id === propertyFilter)
     : null;
+  const hasActiveFilters = Boolean(propertyFilter || normalizedSearch || statusFilter || sortBy !== "unit");
 
   // Summary counts
   const totalUnits  = filtered.length;
@@ -154,18 +210,20 @@ export default async function UnitsPage({
       <PageHeader
         title="Units"
         summary={
-          activeProperty ? (
+          hasActiveFilters ? (
+            <>Showing <span className="font-medium text-foreground">{filtered.length}</span> of {units.length} units</>
+          ) : activeProperty ? (
             <>Showing units for <span className="font-medium text-foreground">{activeProperty.name}</span></>
           ) : (
             `All ${units.length} units across ${properties.length} properties`
           )
         }
         action={
-          activeProperty ? (
+          hasActiveFilters ? (
           <Button asChild variant="outline" size="sm" className="gap-1.5 shrink-0">
             <Link href="/units">
               <X className="w-3.5 h-3.5" />
-              Clear filter
+              Clear filters
             </Link>
           </Button>
           ) : null
@@ -194,16 +252,81 @@ export default async function UnitsPage({
         )}
       </div>
 
-      {/* Property filter pills (shown when no filter is active) */}
-      {!activeProperty && (
-        <div className="flex flex-wrap gap-2">
-          {properties.map((p) => (
-            <Button key={p.id} asChild variant="outline" size="sm">
-              <Link href={`/units?property=${p.id}`}>{p.name}</Link>
+      <Card className="shadow-sm">
+        <CardContent className="p-4">
+          <form action="/units" className="grid gap-3 lg:grid-cols-[minmax(16rem,1fr)_minmax(12rem,16rem)_minmax(10rem,12rem)_minmax(10rem,12rem)_auto]">
+            <div className="relative">
+              <label htmlFor="unit-search" className="sr-only">
+                Search units
+              </label>
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="unit-search"
+                name="q"
+                defaultValue={searchQuery}
+                placeholder="Search unit, tenant, or property"
+                className="pl-9"
+              />
+            </div>
+            <div>
+              <label htmlFor="property-filter" className="sr-only">
+                Property
+              </label>
+              <select
+                id="property-filter"
+                name="property"
+                defaultValue={propertyFilter}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:bg-card"
+              >
+                <option value="">All properties</option>
+                {properties.map((property) => (
+                  <option key={property.id} value={property.id}>
+                    {property.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="status-filter" className="sr-only">
+                Status
+              </label>
+              <select
+                id="status-filter"
+                name="status"
+                defaultValue={statusFilter}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:bg-card"
+              >
+                <option value="">All statuses</option>
+                {occupancyStatuses.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="sort-filter" className="sr-only">
+                Sort units
+              </label>
+              <select
+                id="sort-filter"
+                name="sort"
+                defaultValue={sortBy}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:bg-card"
+              >
+                {sortOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    Sort: {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <Button type="submit" className="w-full lg:w-auto">
+              Apply
             </Button>
-          ))}
-        </div>
-      )}
+          </form>
+        </CardContent>
+      </Card>
 
       {/* Units table */}
       <Card className="shadow-sm">
@@ -217,7 +340,7 @@ export default async function UnitsPage({
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead>Unit</TableHead>
-                {!activeProperty && <TableHead>Property</TableHead>}
+                <TableHead>Property</TableHead>
                 <TableHead>Tenant</TableHead>
                 <TableHead>Rent / mo</TableHead>
                 <TableHead>Status</TableHead>
@@ -225,15 +348,13 @@ export default async function UnitsPage({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((u) => {
+              {filtered.length > 0 ? filtered.map((u) => {
                 return (
                   <TableRow key={u.id}>
                     <TableCell className="font-semibold">#{u.unitNumber}</TableCell>
-                    {!activeProperty && (
-                      <TableCell className="text-muted-foreground text-sm">
-                        {u.propertyName}
-                      </TableCell>
-                    )}
+                    <TableCell className="text-muted-foreground text-sm">
+                      {u.propertyName}
+                    </TableCell>
                     <TableCell>
                       {u.tenantName ? (
                         <span className="font-medium">{u.tenantName}</span>
@@ -250,7 +371,13 @@ export default async function UnitsPage({
                     </TableCell>
                   </TableRow>
                 );
-              })}
+              }) : (
+                <TableRow>
+                  <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
+                    No units match these filters.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
