@@ -87,6 +87,11 @@ export default function TenantForm({ initialTenant }: TenantFormProps) {
       return;
     }
 
+    if (leaseEnd < leaseStart) {
+      toast.error("Lease end date cannot be earlier than lease start date.");
+      return;
+    }
+
     const selectedProperty = properties.find((p) => p.id === propertyId);
     const selectedUnit = units.find((u) => u.id === unitId);
 
