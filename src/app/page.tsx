@@ -7,7 +7,6 @@ import { AnimatePresence, motion, type Variants } from "framer-motion";
 import {
     ArrowRight,
     Building2,
-    BellRing,
     CalendarDays,
     ChartNoAxesColumn,
     CircleCheck,
@@ -15,20 +14,14 @@ import {
     ClipboardCheck,
     ClipboardList,
     CreditCard,
-    DoorOpen,
-    FileText,
     Flame,
     LayoutDashboard,
-    Link2,
     Plus,
-    ReceiptText,
     Search,
     Table2,
-    TrendingUp,
     TriangleAlert,
     UserCircle,
     UserPlus,
-    UsersRound,
     Wrench,
     Workflow,
     X,
@@ -694,8 +687,6 @@ function FeaturesSection() {
                 "Manage properties, tenants, rent, and maintenance from one dashboard.",
             highlight: "One workspace",
             icon: ClipboardList,
-            visual: "workflow",
-            imageSlot: "smart-rental-workflow",
         },
         {
             title: "Public payment links",
@@ -703,32 +694,24 @@ function FeaturesSection() {
                 "Send tenants a payment link without requiring them to create an account.",
             highlight: "Faster collection",
             icon: CreditCard,
-            visual: "payments",
-            imageSlot: "public-payment-links",
         },
         {
             title: "Calendar and reminders",
             description:
                 "Track rent due dates, lease expiries, inspections, and maintenance events.",
             icon: CalendarDays,
-            visual: "calendar",
-            imageSlot: "calendar-and-reminders",
         },
         {
             title: "Maintenance tracking",
             description:
                 "Log issues, assign priority, update status, and track repair costs.",
             icon: Wrench,
-            visual: "maintenance",
-            imageSlot: "maintenance-tracking",
         },
         {
             title: "Reports and insights",
             description:
                 "View occupancy, revenue, overdue rent, and portfolio performance.",
             icon: ChartNoAxesColumn,
-            visual: "reports",
-            imageSlot: "reports-and-insights",
         },
     ];
 
@@ -756,13 +739,6 @@ function FeaturesSection() {
                         description="Create properties, add units, assign tenants, and keep lease details, rent status, and contact information in one focused workspace."
                         cta="Explore features"
                         href="#features-grid"
-                        pillLayout="columns"
-                        pills={[
-                            { label: "Properties", icon: Building2 },
-                            { label: "Units", icon: DoorOpen },
-                            { label: "Tenants", icon: UsersRound },
-                            { label: "Lease details", icon: FileText },
-                        ]}
                     />
                 </motion.div>
 
@@ -779,13 +755,6 @@ function FeaturesSection() {
                         description="Monitor monthly rent records, collection rates, payment links, pending proofs, and overdue tenants without relying on spreadsheets or scattered messages."
                         cta="Try RentFlow free"
                         href="/register"
-                        pillLayout="columns"
-                        pills={[
-                            { label: "Rent tracking", icon: ReceiptText },
-                            { label: "Payment links", icon: Link2 },
-                            { label: "Reminders", icon: BellRing },
-                            { label: "Reports", icon: TrendingUp },
-                        ]}
                     />
                     <FeatureImageSlot
                         name="rent-tracking-payments"
@@ -814,41 +783,37 @@ function FeaturesSection() {
                     initial="hidden"
                     whileInView="visible"
                     viewport={viewportOnce}
-                    className="grid gap-5 md:grid-cols-2 lg:grid-cols-6"
+                    className="mx-auto max-w-4xl divide-y divide-white/10"
                 >
-                    {featureCards.map((feature, index) => (
-                        <motion.div
-                            key={feature.title}
-                            variants={cardMotion}
-                            whileHover={{
-                                y: -6,
-                                borderColor: "rgba(255,255,255,0.18)",
-                                transition: { duration: 0.22 },
-                            }}
-                            className={`group relative overflow-hidden rounded-[22px] border border-white/10 bg-[#151515] p-6 shadow-[0_22px_70px_rgba(0,0,0,0.26)] transition-colors hover:border-white/18 ${index < 2
-                                ? "min-h-[390px] md:col-span-2 lg:col-span-3"
-                                : "min-h-[285px] lg:col-span-2"
-                                }`}
-                        >
-                            {index < 2 ? (
-                                <FeatureShowcaseCard
-                                    title={feature.title}
-                                    description={feature.description}
-                                    highlight={feature.highlight}
-                                    visual={feature.visual}
-                                    imageSlot={feature.imageSlot}
-                                />
-                            ) : (
-                                <FeatureMiniCard
-                                    title={feature.title}
-                                    description={feature.description}
-                                    icon={feature.icon}
-                                    visual={feature.visual}
-                                    imageSlot={feature.imageSlot}
-                                />
-                            )}
-                        </motion.div>
-                    ))}
+                    {featureCards.map((feature) => {
+                        const Icon = feature.icon;
+
+                        return (
+                            <motion.article
+                                key={feature.title}
+                                variants={cardMotion}
+                                className="grid gap-5 py-7 sm:grid-cols-[220px_1fr] sm:items-start"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-[#0A0A0A]">
+                                        <Icon className="h-4 w-4" />
+                                    </span>
+                                    <h3 className="text-base font-semibold text-white">
+                                        {feature.title}
+                                    </h3>
+                                </div>
+
+                                <p className="text-sm leading-6 text-white/[0.58]">
+                                    {feature.highlight ? (
+                                        <span className="font-semibold text-white/82">
+                                            {feature.highlight}.{" "}
+                                        </span>
+                                    ) : null}
+                                    {feature.description}
+                                </p>
+                            </motion.article>
+                        );
+                    })}
                 </motion.div>
 
             </div>
@@ -1491,84 +1456,6 @@ function XLogo({ className = "" }: { className?: string }) {
     );
 }
 
-function FeatureShowcaseCard({
-    title,
-    description,
-    highlight,
-    visual,
-    imageSlot,
-}: {
-    title: string;
-    description: string;
-    highlight?: string;
-    visual: string;
-    imageSlot: string;
-}) {
-    return (
-        <div className="flex h-full flex-col justify-between gap-8">
-            <h3 className="max-w-md text-2xl font-bold leading-tight tracking-tight text-white">
-                {title}
-            </h3>
-            <FeatureCardVisual imageSlot={imageSlot} visual={visual} size="large" />
-            <p className="text-sm leading-6 text-white/[0.62]">
-                {highlight ? (
-                    <span className="font-semibold text-white/85">{highlight}. </span>
-                ) : null}
-                {description}
-            </p>
-        </div>
-    );
-}
-
-function FeatureMiniCard({
-    title,
-    description,
-    icon: Icon,
-    visual,
-    imageSlot,
-}: {
-    title: string;
-    description: string;
-    icon?: LucideIcon;
-    visual: string;
-    imageSlot: string;
-}) {
-    return (
-        <div className="flex h-full flex-col justify-between gap-7">
-            <div className="space-y-5">
-                <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.07] text-white shadow-[0_16px_36px_rgba(0,0,0,0.18)]">
-                    {Icon ? <Icon className="h-5 w-5" /> : null}
-                </span>
-                <h3 className="text-base font-semibold text-white">{title}</h3>
-            </div>
-            <FeatureCardVisual imageSlot={imageSlot} visual={visual} size="small" />
-            <div>
-                <p className="text-sm leading-6 text-white/[0.58]">{description}</p>
-            </div>
-        </div>
-    );
-}
-
-function FeatureCardVisual({
-    imageSlot,
-    visual,
-    size,
-}: {
-    imageSlot: string;
-    visual: string;
-    size: "large" | "small";
-}) {
-    return (
-        <div
-            aria-label={`${imageSlot} image slot`}
-            data-feature-image-slot={imageSlot}
-            data-feature-visual={visual}
-            className={`relative overflow-hidden rounded-[18px] border border-white/10 bg-gradient-to-br from-sky-200 via-[#f7f2ea] to-amber-100 shadow-[0_18px_50px_rgba(0,0,0,0.18)] ${size === "large" ? "aspect-[1.7/1]" : "aspect-[1.55/1]"
-                }`}
-        />
-    );
-}
-
 function FeatureImageSlot({
     name,
     compact = false,
@@ -1597,21 +1484,13 @@ function FeatureCopy({
     description,
     cta,
     href,
-    pills,
-    pillLayout = "wrap",
 }: {
     label: string;
     title: string;
     description: string;
     cta: string;
     href: string;
-    pills: Array<string | { label: string; icon?: LucideIcon }>;
-    pillLayout?: "wrap" | "columns";
 }) {
-    const pillItems = pills.map((pill) =>
-        typeof pill === "string" ? { label: pill } : pill,
-    );
-
     return (
         <motion.div variants={fadeUp}>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/45">
@@ -1632,26 +1511,6 @@ function FeatureCopy({
                     <ArrowRight className="h-4 w-4" />
                 </Link>
             </motion.div>
-            <div
-                className={`mt-8 gap-3 ${pillLayout === "columns"
-                    ? "grid w-full max-w-[420px] grid-flow-col grid-rows-2 gap-x-4 gap-y-4 [grid-auto-columns:minmax(0,1fr)]"
-                    : "flex flex-wrap"
-                    }`}
-            >
-                {pillItems.map(({ label: pill, icon: Icon }) => (
-                    <motion.span
-                        key={pill}
-                        whileHover={{ y: -2, backgroundColor: "rgba(255,255,255,0.075)" }}
-                        className={`inline-flex items-center justify-center gap-3 rounded-full border text-sm font-medium ${pillLayout === "columns"
-                            ? "h-12 border-white/10 bg-white/[0.045] px-5 text-white/70"
-                            : "border-white/10 bg-white/[0.045] px-4 py-2 text-white/70"
-                            }`}
-                    >
-                        {Icon ? <Icon className="h-4 w-4 text-white/55" /> : null}
-                        {pill}
-                    </motion.span>
-                ))}
-            </div>
         </motion.div>
     );
 }
