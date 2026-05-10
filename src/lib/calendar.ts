@@ -24,7 +24,22 @@ export type CalendarEvent = {
   title: string;
   description: string;
   status?: RentStatus | MaintenanceStatus;
+  displayStatus?: string;
   amount?: number;
+  tenantId?: string;
+  tenantName?: string;
+  tenantPhone?: string;
+  tenantEmail?: string;
+  paymentLinkId?: string;
+  propertyName?: string;
+  unitNumber?: string;
+  month?: string;
+  dueDate?: string;
+  leaseEnd?: string;
+  reportedDate?: string;
+  requestId?: string;
+  category?: MaintenanceCategory;
+  priority?: MaintenancePriority;
 };
 
 type TenantRow = {
@@ -131,6 +146,16 @@ function rentEvent(record: RentRecord): CalendarEvent {
     description: `${record.propertyName} · Unit ${record.unitNumber} · ${record.month}`,
     status: record.status,
     amount: record.amount,
+    tenantId: record.tenantId,
+    tenantName: record.tenantName,
+    tenantPhone: record.tenantPhone,
+    tenantEmail: record.tenantEmail,
+    paymentLinkId: record.paymentLinkId,
+    propertyName: record.propertyName,
+    unitNumber: record.unitNumber,
+    month: record.month,
+    dueDate: record.dueDate,
+    requestId: record.id,
   };
 }
 
@@ -142,6 +167,11 @@ function leaseExpiryEvent(tenant: Tenant): CalendarEvent {
     title: `${tenant.name} lease ends`,
     description: `${tenant.propertyName} · Unit ${tenant.unitNumber}`,
     status: tenant.rentStatus,
+    tenantId: tenant.id,
+    tenantName: tenant.name,
+    propertyName: tenant.propertyName,
+    unitNumber: tenant.unitNumber,
+    leaseEnd: tenant.leaseEnd,
   };
 }
 
@@ -158,6 +188,11 @@ function inspectionEvent(tenant: Tenant): CalendarEvent | null {
     date: inspectionDate,
     title: `${tenant.name} inspection`,
     description: `${tenant.propertyName} · Unit ${tenant.unitNumber}`,
+    displayStatus: "Scheduled",
+    tenantId: tenant.id,
+    tenantName: tenant.name,
+    propertyName: tenant.propertyName,
+    unitNumber: tenant.unitNumber,
   };
 }
 
@@ -181,6 +216,13 @@ function maintenanceEvents(row: MaintenanceRow): CalendarEvent[] {
       title: row.title,
       description: `${location} · ${row.category} · ${row.priority}`,
       status: row.status,
+      requestId: row.id,
+      tenantName,
+      propertyName,
+      unitNumber,
+      reportedDate: row.reported_on,
+      category: row.category,
+      priority: row.priority,
     },
   ];
 
@@ -192,6 +234,13 @@ function maintenanceEvents(row: MaintenanceRow): CalendarEvent[] {
       title: `${row.title} resolved`,
       description: location,
       status: row.status,
+      requestId: row.id,
+      tenantName,
+      propertyName,
+      unitNumber,
+      reportedDate: row.reported_on,
+      category: row.category,
+      priority: row.priority,
     });
   }
 
