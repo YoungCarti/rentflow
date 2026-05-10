@@ -12,6 +12,7 @@ import {
   MoreVertical,
   Search,
   Upload,
+  Wrench,
 } from "lucide-react";
 import {
   Table,
@@ -79,6 +80,10 @@ function statusHint(record: RentRecord, historical: boolean) {
 
 function buildPaymentUrl(paymentLinkId: string) {
   return `${window.location.origin}/pay/${paymentLinkId}`;
+}
+
+function buildMaintenanceUrl(paymentLinkId: string) {
+  return `${window.location.origin}/maintenance/report/${paymentLinkId}`;
 }
 
 export default function RentTable({ records }: { records: RentRecord[] }) {
@@ -180,10 +185,23 @@ export default function RentTable({ records }: { records: RentRecord[] }) {
     toast.success("Payment link copied.");
   }
 
+  async function copyMaintenanceLink(record: RentRecord) {
+    if (!record.paymentLinkId) return;
+
+    await navigator.clipboard.writeText(buildMaintenanceUrl(record.paymentLinkId));
+    toast.success("Maintenance link copied.");
+  }
+
   function openPaymentLink(record: RentRecord) {
     if (!record.paymentLinkId) return;
 
     window.open(buildPaymentUrl(record.paymentLinkId), "_blank", "noopener,noreferrer");
+  }
+
+  function openMaintenanceLink(record: RentRecord) {
+    if (!record.paymentLinkId) return;
+
+    window.open(buildMaintenanceUrl(record.paymentLinkId), "_blank", "noopener,noreferrer");
   }
 
   function reminderTiming(record: RentRecord) {
@@ -438,6 +456,15 @@ export default function RentTable({ records }: { records: RentRecord[] }) {
                                     <DropdownMenuItem onClick={() => openPaymentLink(record)}>
                                       <ExternalLink className="h-4 w-4" />
                                       Open payment link
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={() => void copyMaintenanceLink(record)}>
+                                      <Wrench className="h-4 w-4" />
+                                      Copy maintenance link
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => openMaintenanceLink(record)}>
+                                      <ExternalLink className="h-4 w-4" />
+                                      Open maintenance link
                                     </DropdownMenuItem>
                                   </>
                                 ) : (
