@@ -22,8 +22,20 @@ import {
 import { toast } from "sonner";
 import type { Payment, PaymentApprovalStatus } from "@/types";
 
-type FilterTab = "All" | PaymentApprovalStatus;
-const TABS: FilterTab[] = ["All", "Pending", "Approved", "Rejected"];
+type FilterTab =
+  | "All"
+  | "Online"
+  | "Manual Proofs"
+  | "Pending Review"
+  | PaymentApprovalStatus;
+const TABS: FilterTab[] = [
+  "All",
+  "Online",
+  "Manual Proofs",
+  "Pending Review",
+  "Approved",
+  "Rejected",
+];
 
 function formatRM(n: number) {
   return `RM ${n.toLocaleString()}`;
@@ -34,6 +46,62 @@ function formatDate(d: string) {
     month: "short",
     year: "numeric",
   });
+}
+
+function isOnlinePayment(payment: Payment) {
+  return payment.method === "Online";
+}
+
+function isManualProofPayment(payment: Payment) {
+  return !isOnlinePayment(payment) && Boolean(payment.proofUrl);
+}
+
+function effectivePaymentStatus(
+  payment: Payment,
+  overrides: Record<string, PaymentApprovalStatus>
+) {
+  const status = overrides[payment.id] ?? payment.status;
+
+  if (isOnlinePayment(payment) && status === "Pending") {
+    return "Approved";
+  }
+
+  return status;
+}
+
+function paymentMethodLabel(payment: Payment) {
+  if (isOnlinePayment(payment)) {
+    return {
+      label: "Online",
+      detail: "Payment link",
+    };
+  }
+
+  if (payment.proofUrl) {
+    return {
+      label: "Proof Upload",
+      detail: payment.method === "Cash" ? "Cash" : "Manual transfer",
+    };
+  }
+
+  if (payment.method === "Cash") {
+    return {
+      label: "Cash",
+      detail: "Manual payment",
+    };
+  }
+
+  if (payment.method === "Bank Transfer") {
+    return {
+      label: "Manual Transfer",
+      detail: "Bank transfer",
+    };
+  }
+
+  return {
+    label: "Manual Transfer",
+    detail: "Method not recorded",
+  };
 }
 
 function ProofPreview({
@@ -220,7 +288,7 @@ export default function PaymentsBoard({ payments }: { payments: Payment[] }) {
   const [savingId, setSavingId] = useState<string | null>(null);
 
   function effectiveStatus(p: Payment): PaymentApprovalStatus {
-    return overrides[p.id] ?? p.status;
+    return effectivePaymentStatus(p, overrides);
   }
 
   async function resolvePayment(id: string, status: PaymentApprovalStatus) {
@@ -245,30 +313,46 @@ export default function PaymentsBoard({ payments }: { payments: Payment[] }) {
     void resolvePayment(id, "Rejected");
   }
 
-  const pendingPayments = payments.filter((p) => effectiveStatus(p) === "Pending");
+  const pendingPayments = payments.filter(
+    (p) => isManualProofPayment(p) && effectiveStatus(p) === "Pending"
+  );
 
   // Tab counts (reflect live overrides)
   const counts = TABS.reduce<Record<FilterTab, number>>((acc, tab) => {
     acc[tab] =
       tab === "All"
         ? payments.length
+        : tab === "Online"
+        ? payments.filter(isOnlinePayment).length
+        : tab === "Manual Proofs"
+        ? payments.filter(isManualProofPayment).length
+        : tab === "Pending Review"
+        ? pendingPayments.length
         : payments.filter((p) => effectiveStatus(p) === tab).length;
     return acc;
   }, {} as Record<FilterTab, number>);
 
-  const filteredHistory =
-    activeTab === "All"
-      ? payments
-      : payments.filter((p) => effectiveStatus(p) === activeTab);
+  const filteredHistory = payments.filter((payment) => {
+    if (activeTab === "All") return true;
+    if (activeTab === "Online") return isOnlinePayment(payment);
+    if (activeTab === "Manual Proofs") return isManualProofPayment(payment);
+    if (activeTab === "Pending Review") {
+      return (
+        isManualProofPayment(payment) && effectiveStatus(payment) === "Pending"
+      );
+    }
+
+    return effectiveStatus(payment) === activeTab;
+  });
 
   return (
     <div className="space-y-8">
-      {/* ── Pending approvals ─────────────────────────────── */}
+      {/* ── Manual proof review ───────────────────────────── */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <Clock className="w-4 h-4 text-amber-500" />
           <h2 className="text-base font-semibold text-foreground">
-            Pending Approvals
+            Manual Proof Reviews
           </h2>
           {pendingPayments.length > 0 && (
             <span className="text-xs bg-amber-100 text-amber-700 font-semibold px-2 py-0.5 rounded-full">
@@ -281,7 +365,7 @@ export default function PaymentsBoard({ payments }: { payments: Payment[] }) {
           <div className="flex flex-col items-center justify-center gap-2 py-10 text-center border border-dashed border-border rounded-xl">
             <CheckCircle2 className="w-8 h-8 text-green-400" />
             <p className="text-sm font-medium text-muted-foreground">All caught up!</p>
-            <p className="text-xs text-muted-foreground">No pending payments to review.</p>
+            <p className="text-xs text-muted-foreground">No manual payment proofs need review.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-x-6 border-t border-border sm:grid-cols-2 lg:grid-cols-3">
@@ -357,8 +441,21 @@ export default function PaymentsBoard({ payments }: { payments: Payment[] }) {
                   <TableCell className="text-sm text-muted-foreground">
                     {formatDate(p.date)}
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {p.method ?? "—"}
+                  <TableCell>
+                    {(() => {
+                      const method = paymentMethodLabel(p);
+
+                      return (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-sm font-medium text-foreground">
+                            {method.label}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {method.detail}
+                          </span>
+                        </div>
+                      );
+                    })()}
                   </TableCell>
                   <TableCell>
                     {p.proofUrl ? (

@@ -116,6 +116,7 @@ async function getPendingPaymentNotifications() {
     .from("payments")
     .select("id, amount, paid_on, approval_status, tenants ( name ), properties ( name ), units ( unit_number )")
     .eq("approval_status", "Pending")
+    .neq("method", "Online")
     .order("created_at", { ascending: false })
     .limit(8);
 

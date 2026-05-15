@@ -126,9 +126,52 @@ function toPayment(row: PaymentRow): Payment {
     amount: Number(row.amount),
     date: row.paid_on,
     method: row.method,
-    status: row.approval_status,
+    status:
+      row.method === "Online" && row.approval_status === "Pending"
+        ? "Approved"
+        : row.approval_status,
     proofUrl: row.proof_url ?? undefined,
   };
+}
+
+async function approvePendingOnlinePayments(
+  supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
+  rows: PaymentRow[]
+) {
+  const pendingOnlinePaymentIds = rows
+    .filter(
+      (row) => row.method === "Online" && row.approval_status === "Pending"
+    )
+    .map((row) => row.id);
+  const pendingOnlinePaymentIdSet = new Set(pendingOnlinePaymentIds);
+
+  if (pendingOnlinePaymentIds.length === 0) {
+    return;
+  }
+
+  const { error } = await supabase
+    .from("payments")
+    .update({ approval_status: "Approved" })
+    .in("id", pendingOnlinePaymentIds);
+
+  if (error) {
+    const details = [
+      error.message,
+      error.code ? `code: ${error.code}` : null,
+      error.details ? `details: ${error.details}` : null,
+      error.hint ? `hint: ${error.hint}` : null,
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    throw new Error(`Unable to auto-approve online payments: ${details}`);
+  }
+
+  for (const row of rows) {
+    if (pendingOnlinePaymentIdSet.has(row.id)) {
+      row.approval_status = "Approved";
+    }
+  }
 }
 
 export function isRentPaymentsSchemaMissing(error: unknown) {
@@ -264,7 +307,10 @@ export async function getPayments() {
     throw error;
   }
 
-  return (data ?? []).map((row) => toPayment(row as PaymentRow));
+  const paymentRows = (data ?? []) as PaymentRow[];
+  await approvePendingOnlinePayments(supabase, paymentRows);
+
+  return paymentRows.map((row) => toPayment(row));
 }
 
 export async function getRevenueChartData() {

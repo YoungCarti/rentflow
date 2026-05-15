@@ -21,6 +21,7 @@ type PaymentReceiptRow = {
   amount: number | string;
   paid_on: string;
   method: PaymentMethod;
+  approval_status: string;
   tenants?: Relation<{ name: string }>;
   properties?: Relation<{ name: string }>;
   units?: Relation<{ unit_number: string }>;
@@ -40,7 +41,7 @@ type PublicPaymentReceiptRow = {
 };
 
 const paymentReceiptSelect =
-  "id, amount, paid_on, method, tenants ( name ), properties ( name ), units ( unit_number ), rent_records ( month_start, due_date )";
+  "id, amount, paid_on, method, approval_status, tenants ( name ), properties ( name ), units ( unit_number ), rent_records ( month_start, due_date )";
 
 function relationValue<T>(relation: Relation<T> | undefined) {
   if (Array.isArray(relation)) {
@@ -93,7 +94,6 @@ export async function getPaymentReceipt(paymentId: string) {
     .from("payments")
     .select(paymentReceiptSelect)
     .eq("id", paymentId)
-    .eq("approval_status", "Approved")
     .single();
 
   if (error) {
@@ -104,7 +104,17 @@ export async function getPaymentReceipt(paymentId: string) {
     throw error;
   }
 
-  return toReceipt(data as PaymentReceiptRow);
+  const row = data as PaymentReceiptRow;
+  const approvedReceipt = row.approval_status === "Approved";
+  const onlineAutoApprovedReceipt =
+    row.method === "Online" &&
+    (row.approval_status === "Pending" || row.approval_status === "Approved");
+
+  if (!approvedReceipt && !onlineAutoApprovedReceipt) {
+    return null;
+  }
+
+  return toReceipt(row);
 }
 
 export async function getPublicPaymentReceipt(paymentLinkId: string) {
