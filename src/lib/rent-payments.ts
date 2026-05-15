@@ -155,8 +155,16 @@ async function approvePendingOnlinePayments(
     .in("id", pendingOnlinePaymentIds);
 
   if (error) {
-    console.error("Unable to auto-approve online payments", error);
-    return;
+    const details = [
+      error.message,
+      error.code ? `code: ${error.code}` : null,
+      error.details ? `details: ${error.details}` : null,
+      error.hint ? `hint: ${error.hint}` : null,
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    throw new Error(`Unable to auto-approve online payments: ${details}`);
   }
 
   for (const row of rows) {

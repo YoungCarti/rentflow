@@ -105,8 +105,12 @@ export async function getPaymentReceipt(paymentId: string) {
   }
 
   const row = data as PaymentReceiptRow;
+  const approvedReceipt = row.approval_status === "Approved";
+  const onlineAutoApprovedReceipt =
+    row.method === "Online" &&
+    (row.approval_status === "Pending" || row.approval_status === "Approved");
 
-  if (row.approval_status !== "Approved" && row.method !== "Online") {
+  if (!approvedReceipt && !onlineAutoApprovedReceipt) {
     return null;
   }
 
