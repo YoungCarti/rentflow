@@ -238,7 +238,7 @@ export default function LandingPage() {
                         <span className="rounded-full bg-cyan-300/15 px-2.5 py-1 text-cyan-100">
                             Beta Preview
                         </span>
-                        <span>RentFlow is in private beta with new improvements rolling out regularly</span>
+                        <span>RentFlow is in private beta with new improvements rolling out regularly, thank you bro</span>
                     </motion.div>
 
                     <motion.h1
@@ -266,7 +266,7 @@ export default function LandingPage() {
                         variants={fadeUp}
                         className="text-lg md:text-xl text-white/50 mb-10 max-w-2xl mx-auto font-light"
                     >
-                        RentFlow provides the most premium, seamless experience for landlords and property managers to oversee their portfolios in real-time.
+                        RentFlow provides the most premium, seamless experience for landlords and and property managers to oversee their portfolios in real-time.
                     </motion.p>
 
                     <motion.div
@@ -373,7 +373,7 @@ function HowItWorksSection() {
         {
             title: "Track rent & maintenance",
             description:
-                "Monitor rent records, payment status, reminders, and maintenance work in one place.",
+                "Monitor rent records, payment status, reminders, and maintenance work in one place place.",
             icon: ClipboardCheck,
             imageSlot: "how-it-works-track-rent-maintenance",
         },
