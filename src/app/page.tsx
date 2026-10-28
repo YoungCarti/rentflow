@@ -238,7 +238,7 @@ export default function LandingPage() {
                         <span className="rounded-full bg-cyan-300/15 px-2.5 py-1 text-cyan-100">
                             Beta Preview
                         </span>
-                        <span>RentFlow is in private beta with new improvements rolling out regularly, thank you</span>
+                        <span>RentFlow is in private beta with new improvements rolling out regularly, thank you bro</span>
                     </motion.div>
 
                     <motion.h1
