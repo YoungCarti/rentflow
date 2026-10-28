@@ -243,16 +243,18 @@ export default function LandingPage() {
 
                     <motion.h1
                         variants={fadeUp}
-                        className="text-5xl md:text-7xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-br from-white to-white/60"
+                        className="text-5xl md:text-7xl font-bold tracking-tighter mb-6"
                     >
-                        Manage properties with{" "}
+                        <span className="bg-clip-text text-transparent bg-gradient-to-br from-white to-white/60">
+                            Manage properties with{" "}
+                        </span>
                         <span className="relative inline-grid text-left align-baseline text-cyan-200 italic">
                             {heroWords.map((word, index) => (
                                 <span
                                     key={word}
                                     className={`col-start-1 row-start-1 w-max justify-self-center whitespace-nowrap rounded-lg bg-cyan-300/10 px-2 transition-[opacity,transform,filter] duration-300 ease-out ${heroWordIndex === index
                                         ? "translate-y-0 opacity-100 blur-0"
-                                        : "translate-y-3 opacity-0 blur-sm"
+                                        : "translate-y-3 opacity-0 blur-sm pointer-events-none"
                                         }`}
                                     aria-hidden={heroWordIndex !== index}
                                 >
