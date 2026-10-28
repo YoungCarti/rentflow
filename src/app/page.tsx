@@ -266,7 +266,7 @@ export default function LandingPage() {
                         variants={fadeUp}
                         className="text-lg md:text-xl text-white/50 mb-10 max-w-2xl mx-auto font-light"
                     >
-                        RentFlow provides the most premium, seamless experience for landlords and property managers to oversee their portfolios in real-time.
+                        RentFlow provides the most premium, seamless experience for landlords and and property managers to oversee their portfolios in real-time.
                     </motion.p>
 
                     <motion.div
